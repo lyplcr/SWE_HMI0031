@@ -1,0 +1,145 @@
+头文件：
+
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __MAIN_H
+#define __MAIN_H
+
+/* Includes ------------------------------------------------------------------*/
+/* Exported define -----------------------------------------------------------*/
+/* Exported types ------------------------------------------------------------*/
+/* Exported constants --------------------------------------------------------*/
+/* Exported macro ------------------------------------------------------------*/
+/* Exported variables --------------------------------------------------------*/
+/* Exported functions ------------------------------------------------------- */
+
+#endif
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+
+
+源文件：
+
+/**
+  ******************************************************************************
+  * @file    main.c
+  * @author  SY
+  * @version V1.0.0
+  * @date    2015-10-25
+  * @IDE	 V5.16a
+  * @Chip    STM32F407VET6
+  * @brief   主程序
+  ******************************************************************************
+  * @attention
+  *
+  * 
+  ******************************************************************************
+  */
+
+/* Includes ------------------------------------------------------------------*/
+#include "global.h"
+
+/* Private define ------------------------------------------------------------*/
+#define COLOR_POINT						WHITE
+#define	COLOR_BACK						BLACK
+
+/* Private typedef -----------------------------------------------------------*/
+/* Private constants ---------------------------------------------------------*/
+/* Private macro -------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
+/* Private function prototypes -----------------------------------------------*/
+/* Private functions ---------------------------------------------------------*/
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+
+/*------------------------------------------------------------
+ * Function Name  : LoadTimeDatePage
+ * Description    : 时间日期页
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void LoadTimeDatePage( void )
+{
+	/* 关闭屏幕 */
+	SetBackLightEffectClose(COLOR_BACK);
+
+	/* 参数初始化 */
+
+	
+	/* 参数配置 */
+
+	
+	/* 获取参数 */
+
+	
+	/* 画GUI框架 */
+
+	
+	/* 遍历 */
+
+	
+	/* 打开屏幕 */
+	SetBackLightEffectOpen();
+	
+	while (g_timeDate.leavePage.flagLeavePage == RESET)
+	{
+		/* 输入处理 */
+		PutinProcessCycle();
+		
+		/* 移动索引值 */
+		
+		
+		/* 移动光标 */
+		
+		
+		/* 快捷菜单 */
+		
+		
+		/* 按键处理 */
+		
+		
+		/* 弹窗处理 */
+		PopWindowsProcessCycle();
+		
+		/* 离开页 */
+		
+	}
+}
+
+
+函数格式：
+
+/*------------------------------------------------------------
+ * Function Name  : main
+ * Description    : 程序入口
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+
+IO宏定义格式：
+#define USE_CANx                   CAN1
+#define RCC_CAN_CLK                RCC_APB1Periph_CAN1
+#define PIN_CAN_RX                 GPIO_Pin_0
+#define PIN_CAN_TX                 GPIO_Pin_1
+#define PORT_CAN_GPIO              GPIOD
+#define RCC_CAN_GPIO_CLK           RCC_AHB1Periph_GPIOD
+#define SOURCE_CAN_RX              GPIO_PinSource0
+#define SOURCE_CAN_TX              GPIO_PinSource1 
+
+1、变量：
+	全局变量： 以g_形式开头，变量名首字母小写，以后单词首字母大写。例如：uint8_t g_uartSendBuff[10];
+	局部变量： 变量名首字母小写，以后单词首字母大写。例如：uint32_t lineLenth = 0;
+	静态局部变量：以s_形式开头，变量名首字母小写，以后单词首字母大写。例如：uint8_t s_maxValue = 0;
+	
+2、常量、宏定义：
+	全部以大写字母形式，中间通过下划线连接。例如：#define MAX_UART_BUFF_SIZE 100		const uint32_t MAX_UART_BUFF_SIZE = 100;
+	
+3、函数体：
+	首字母大写，其他字母小写。例如：uint32_t GetMaxCtrlDegree( void ) {...}
+	
+4、指针：	
+	全局指针： 以g_形式开头，首字母以小写p开头，其他字母的首字母大写。例如：uint8_t *g_pTail = NULL;
+	局部指针： 首字母以小写p开头，其他字母的首字母大写。例如：uint8_t *pHead = NULL;
+	
+	
