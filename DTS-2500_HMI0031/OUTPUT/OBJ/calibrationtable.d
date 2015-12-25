@@ -82,3 +82,4 @@
 ..\output\obj\calibrationtable.o: ..\UTILS\inc\printer.h
 ..\output\obj\calibrationtable.o: ..\APP\inc\CalibrationTable.h
 ..\output\obj\calibrationtable.o: ..\APP\inc\ControlParameter.h
+..\output\obj\calibrationtable.o: ..\APP\inc\ChannelSelect.h

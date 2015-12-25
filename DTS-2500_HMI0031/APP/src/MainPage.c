@@ -189,8 +189,8 @@ typedef struct
 	uint8_t sumPage;								//总页数
 	BoolStatus isIndexMove;							//索引值移动
 	TEST_TYPE_TypeDef testType;						//试验类型
-	SMPL_NAME_TypeDef2 showChannel;					//显示通道
-	SMPL_NAME_TypeDef2 tureChannel;					//真实通道
+	SMPL_NAME_TypeDef showChannel;					//显示通道
+	SMPL_NAME_TypeDef tureChannel;					//真实通道
 	FunctionalState refreshShortcut;				//刷新快捷菜单
 	LEAVE_PAGE_TypeDef leavePage;					//离开页
 }MAIN_PAGE_TypeDef;
@@ -250,6 +250,7 @@ const char * const pMainPageTestName[] =
 	"水泥胶砂抗折",	//8
 	"压浆水泥浆抗折",//9
 	"通用抗折",		//10
+	"金属室温拉伸",	//11
 };
 
 const char * const pMainPageTestResultTitleName[] = 
@@ -405,17 +406,6 @@ static void MainPageInit( void )
 	g_mainPage.sumPage = 0;
 	
 	g_mainPage.testType = (TEST_TYPE_TypeDef)pHmi->test_standard_index;
-	
-	if ( (UNIT_kN==GetFH_SmplUnit() ) && (SMPL_KY_NUM==GetCurChannel()) )
-	{
-		g_mainPage.showChannel = SMPL_KY_NUM;	
-	}
-	else
-	{
-		g_mainPage.showChannel = SMPL_KZ_NUM;	
-	}
-	
-	g_mainPage.tureChannel = GetCurChannel();
 	
 	SetTestStatus(TEST_IDLE);
 	g_testBody.peakStatus = STATUS_PEAK_IDLE;
@@ -634,6 +624,9 @@ static void MainPageConfig( void )
 			break;
 		case KZTY:
 			g_mainPage.pTestTitle = pMainPageTestName[10];
+			break;
+		case KLJSSW:
+			g_mainPage.pTestTitle = pMainPageTestName[11];
 			break;
 		default:
 			break;
@@ -2338,7 +2331,7 @@ static void MainPageLoadCursor( uint8_t nowSampleSerial )
  *------------------------------------------------------------*/
 static void ClearTestResultArea( uint16_t color )
 {
-	lcd_fill(380,140,410,240,color);
+	lcd_fill(364,140,430,240,color);
 }
 
 /*------------------------------------------------------------
@@ -3759,7 +3752,7 @@ TestStatus JudgeStrengthAvail( TEST_TYPE_TypeDef type, uint8_t num,float *pAvail
 	}
 	
 	*pAvail_press = avg;
-	memcpy(match_sample,no_match, sizeof(uint8_t)*MAX_RECORD_TEST_RESULT_NUM );
+	memcpy(match_sample,no_match, sizeof(uint8_t)*MAX_RECORD_TEST_RESULT_NUM);
 
 	return PASSED;
 }

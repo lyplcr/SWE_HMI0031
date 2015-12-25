@@ -26,6 +26,8 @@ typedef enum
 	MODEL_KZKY_DZ,			//电子式抗折抗压一体机
 	MODEL_KY_YY,			//液压抗压机
 	MODEL_KZKY_YY,			//液压式抗折抗压一体机
+	MODEL_UNIVERSAL_DZ,		//电子式万能机
+	MODEL_UNIVERSAL_YY,		//液压式万能机
 }MODEL_DETAIL_TypeDef;
 
 /* Exported constants --------------------------------------------------------*/

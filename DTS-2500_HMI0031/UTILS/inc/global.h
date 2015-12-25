@@ -222,6 +222,28 @@ typedef struct
 	uint16_t radius;		/* °ë¾¶ */
 }DRAW_CIRCLE_MARK_TypeDef;
 
+typedef enum
+{
+	FH_UNIT_kN = 0,
+	FH_UNIT_N,
+}FH_UINT_TypeDef;
+
+typedef enum
+{
+	WY_UNIT_MM = 0,
+	WY_UNIT_CM,
+	WY_UNIT_DM,
+	WY_UNIT_M,
+}WY_UINT_TypeDef;
+
+typedef enum
+{
+	BX_UNIT_MM = 0,
+	BX_UNIT_CM,
+	BX_UNIT_DM,
+	BX_UNIT_M,
+}BX_UINT_TypeDef;
+
 /* Includes ------------------------------------------------------------------*/
 #include "printer.h"
 
@@ -237,9 +259,9 @@ extern const char * const LssuedParameterWarning[];
 extern const char * const pSelectMenuConfirmCue[];
 
 /* Exported functions ------------------------------------------------------- */
-SMPL_NAME_TypeDef GetCurChannel( void );
-FORCE_UINT_TypeDef GetFH_SmplUnit( void );
-SMPL_NAME_TypeDef GetCurTestChannel( uint8_t test_type );
+FH_UINT_TypeDef GetFH_SmplUnit( void );
+WY_UINT_TypeDef GetWY_SmplUnit( void );
+BX_UINT_TypeDef GetBX_SmplUnit( void );
 void GetTestContent( void );
 void ProcessMachineMatchTestType( void );
 TestStatus TestUserPassword( const char *pPassword );

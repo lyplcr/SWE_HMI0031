@@ -121,10 +121,11 @@ typedef struct
 	float		train_speed;					//应力速度
 	float		gz_area;						//规则试件的面积	
 	char		sample_shape[11];				//试块形状
+	uint8_t 	yx_diameter_index;				//圆形直径索引值
 	uint8_t 	yx_diameter;					//圆形直径
 	float		original_cut_area;				//原始截面积
 	uint16_t 	extensometer_gauge;				//引伸计标距
-	uint8_t 	rsv[18];
+	uint8_t 	rsv[17];
 }TEST_TypeDef; 	/* 194Byte */	
     
         

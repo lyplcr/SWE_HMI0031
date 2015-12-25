@@ -49,6 +49,9 @@ typedef enum
 	OBJECT_DELAY_TIMING,		/* 延时时间 */
 	OBJECT_AREA,				/* 面积 	*/
 	OBJECT_SHAPE,				/* 形状 	*/
+	OBJECT_ROUND_DIAMETER,		/* 圆形直径 	*/
+	OBJECT_ORIGINAL_CUT_AREA,	/* 原始截面积 */
+	OBJECT_EXTERNSOMETER_GAUGE,	/* 引伸计标距 */
 }ALL_PATAMETER_NAME_TypeDef;
 
 typedef enum				//水泥胶砂抗折
@@ -194,15 +197,17 @@ const char * const pTestParameterTitleName[] =
 	"参数设置 | 水泥胶砂抗折",		//7
 	"参数设置 | 压浆水泥浆抗折",		//8
 	"参数设置 | 通用抗折",			//9	
+	"参数设置 | 金属室温拉伸",		//10
 };
 
 /* 试验标准 */
 const char * const pTestStandard[] = 
 {
-	"GB/T 17671-1999",	  //水泥胶砂抗压/水泥胶砂抗折/压浆水泥浆抗折
-	"GB/T 50081-2002",	  //普通混凝土抗压/普通混凝土抗折
-	"JGJ/T 70-2009",	  //建筑砂浆抗压
-	"GB/T 2542-2012",	  //砌墙砖抗压
+	"GB/T 17671-1999",	  	//水泥胶砂抗压/水泥胶砂抗折/压浆水泥浆抗折
+	"GB/T 50081-2002",	  	//普通混凝土抗压/普通混凝土抗折
+	"JGJ/T 70-2009",	  	//建筑砂浆抗压
+	"GB/T 2542-2012",	  	//砌墙砖抗压
+	"GB/T 228-2002",		//金属室温拉伸
 };
 
 /* 水泥胶砂抗压参数名称显示 */
@@ -845,7 +850,7 @@ const char * const pRoundDiameter_KLJSSW[] =
 	"25",
 };
 
-
+//试件块数同 -> pSample_num
 
 /* 警告信息 */
 const char * const pSampleNumRangeCue[] = 
@@ -1631,10 +1636,72 @@ static void TestParameterConfig( void )
 			
 			break;
 		case KLJSSW:
-			1
+			/* 试验标准 */
+			g_testParameter.pTestStandard = pTestStandard[4];
+		
+			/* 试块个数 */
+			g_testParameter.curParameterNum = 5;
+			
+			/* 索引值 */
+			g_testParameter.indexArray[TEST_SERIAL_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
+			g_testParameter.indexArray[SAMPLE_ROUND_DIAMETER_KLJSSW] 	= OBJECT_ROUND_DIAMETER;		/* 圆形直径 */
+			g_testParameter.indexArray[ORIGINAL_CROSS_AREA] 			= OBJECT_ORIGINAL_CUT_AREA;		/* 原始截面积 */
+			g_testParameter.indexArray[EXTERNSOMETER_GAUGE] 			= OBJECT_EXTERNSOMETER_GAUGE;	/* 引伸计标距 */
+			g_testParameter.indexArray[SAMPLE_NUM_KLJSSW] 	        	= OBJECT_SPECIMEN_NUMS;			/* 试件边长 */
+			
+			/* 参数名称 */
+			g_testParameter.pParameterNameArray[TEST_SERIAL_KLJSSW] 			= pValue_KLJSSW[1];
+			g_testParameter.pParameterNameArray[SAMPLE_ROUND_DIAMETER_KLJSSW] 	= pValue_KLJSSW[2];
+			g_testParameter.pParameterNameArray[ORIGINAL_CROSS_AREA] 			= pValue_KLJSSW[3];
+			g_testParameter.pParameterNameArray[EXTERNSOMETER_GAUGE] 			= pValue_KLJSSW[4];
+			g_testParameter.pParameterNameArray[SAMPLE_NUM_KLJSSW] 				= pValue_KLJSSW[5];
+			
+			/* 单位 */
+			g_testParameter.pParameterUnitArray[TEST_SERIAL_KLJSSW] 			= "NULL";
+			g_testParameter.pParameterUnitArray[SAMPLE_ROUND_DIAMETER_KLJSSW] 	= pUnitType[4];
+			g_testParameter.pParameterUnitArray[ORIGINAL_CROSS_AREA]			= pUnitType[5];
+			g_testParameter.pParameterUnitArray[EXTERNSOMETER_GAUGE] 			= pUnitType[4];
+			g_testParameter.pParameterUnitArray[SAMPLE_NUM_KLJSSW] 				= "NULL";
+			
+			/* 标题 */
+			g_testParameter.pTitle = pTestParameterTitleName[10];
+			
+			/* 二级菜单参数个数 */
+			g_testParameter.twoLevelMenu[TEST_SERIAL_KLJSSW].parameterCnt 			= 0;
+			g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].parameterCnt	= 9;
+			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA].parameterCnt 			= 0;
+			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE].parameterCnt 			= 0;
+			g_testParameter.twoLevelMenu[SAMPLE_NUM_KLJSSW].parameterCnt 	    	= 7;
+			
+			/* 二级菜单类型 */
+			g_testParameter.twoLevelMenu[TEST_SERIAL_KLJSSW].parameterType 				= IMMEDIATELY_PUTIN_SHIFT;
+			g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].parameterType 	= USE_USER_DEFINE;
+			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA].parameterType 			= NONE_PARAMETER;
+			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE].parameterType 			= IMMEDIATELY_PUTIN_NONE;
+			g_testParameter.twoLevelMenu[SAMPLE_NUM_KLJSSW].parameterType 	    		= USE_USER_DEFINE;
+			
+			/* 二级菜单参数名 */
+			g_testParameter.twoLevelMenu[TEST_SERIAL_KLJSSW].pParameterNameArray 				= NULL;
+			g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].pParameterNameArray 		= pRoundDiameter_KLJSSW;
+			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA].pParameterNameArray 				= NULL;
+			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE].pParameterNameArray 				= NULL;
+			g_testParameter.twoLevelMenu[SAMPLE_NUM_KLJSSW].pParameterNameArray 				= pSample_num;
+            
+			/* 数据保存类型 */
+			g_testParameter.oneLevelMenu[TEST_SERIAL_KLJSSW].saveType 				= TYPE_CHAR;
+			g_testParameter.oneLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].saveType 	= TYPE_FLOAT;
+			g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA].saveType 				= TYPE_FLOAT;
+			g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE].saveType 				= TYPE_FLOAT;
+			g_testParameter.oneLevelMenu[SAMPLE_NUM_KLJSSW].saveType 				= TYPE_INT;
+
+			/* 小数点位数 */
+			g_testParameter.oneLevelMenu[TEST_SERIAL_KLJSSW].pointBit 				= 0;
+			g_testParameter.oneLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].pointBit 	= 2;
+			g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA].pointBit 				= 2;
+			g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE].pointBit 				= 2;
+			g_testParameter.oneLevelMenu[SAMPLE_NUM_KLJSSW].pointBit 				= 0;
 			break;
 	}
-	
 }
 
 
@@ -1762,6 +1829,25 @@ static void TestParameterReadParameter( void )
 	{
 		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
 	}
+	
+	index = GetTestParameterIndex(OBJECT_ROUND_DIAMETER);
+	if (index != 0xff)
+	{
+		g_testParameter.twoLevelMenu[index].index = pCurTest->yx_diameter_index;
+		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->yx_diameter,g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_ORIGINAL_CUT_AREA);
+	if (index != 0xff)
+	{
+		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->original_cut_area,g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_EXTERNSOMETER_GAUGE);
+	if (index != 0xff)
+	{
+		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->extensometer_gauge,g_testParameter.parameterData[index]);
+	}
 }
 
 /*------------------------------------------------------------
@@ -1865,6 +1951,25 @@ static void TestParameterWriteParameter( void )
 	if (index != 0xff)
 	{
 		pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_ROUND_DIAMETER);
+	if (index != 0xff)
+	{
+		pCurTest->yx_diameter_index = g_testParameter.twoLevelMenu[index].index;
+		pCurTest->yx_diameter = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_ORIGINAL_CUT_AREA);
+	if (index != 0xff)
+	{
+		pCurTest->original_cut_area = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_EXTERNSOMETER_GAUGE);
+	if (index != 0xff)
+	{
+		pCurTest->extensometer_gauge = str2float(g_testParameter.parameterData[index]);
 	}
 	
 	pcm_save();
@@ -1998,7 +2103,7 @@ static void GUI_TestParameterRectangleFrame( void )
  *------------------------------------------------------------*/
 static void GUI_TestParameterDrawOneRowOneLevelMenu( uint8_t index )
 {
-	const uint16_t x = g_testParameter.oneLevelMenu[index].x - 5 * 24;
+	const uint16_t x = g_testParameter.oneLevelMenu[index].x - 6 * 24;
 	const uint16_t y = g_testParameter.oneLevelMenu[index].y + \
 					   g_testParameter.oneLevelMenu[index].lineWidth + 1;
 	const uint16_t pointColor = g_testParameter.oneLevelMenu[index].pointColor;
@@ -2241,6 +2346,43 @@ static void TestParameterMoveIndexProcess( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : TestParameterRestoreShowOneMenu
+ * Description    : 还原显示一个菜单项
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void TestParameterRestoreShowOneMenu( uint8_t index )
+{
+	g_testParameter.oneLevelMenu[index].pointColor = g_testParameter.oneLevelMenu[index].recordPointColor;
+	g_testParameter.oneLevelMenu[index].backColor = g_testParameter.oneLevelMenu[index].recordBackColor;
+	
+	Show_TestParameterOneRowOneLevelMenuContent(index);
+	Show_TestParameterOneRowOneLevelMenuUnit(index);		
+	Clear_TestParameterOneRowOneLevelMenuArrow(index);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : TestParameterShowOneMenuWithCursor
+ * Description    : 显示一个带光标的菜单项
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void TestParameterShowOneMenuWithCursor( uint8_t index )
+{
+	g_testParameter.oneLevelMenu[index].pointColor = COLOR_SELECT_POINT;
+	g_testParameter.oneLevelMenu[index].backColor = COLOR_SELECT_BACK;
+	
+	Show_TestParameterOneRowOneLevelMenuContent(index);
+	Show_TestParameterOneRowOneLevelMenuUnit(index);	
+	if (g_testParameter.enableArrow == ENABLE)
+	{
+		Show_TestParameterOneRowOneLevelMenuArrow(index);
+	}
+}
+
+/*------------------------------------------------------------
  * Function Name  : TestParameterMoveCursorProcess
  * Description    : 移动光标处理
  * Input          : None
@@ -2252,35 +2394,14 @@ static void TestParameterMoveCursorProcess( void )
 	if (g_testParameter.isIndexMove == YES)
 	{		
 		if (g_testParameter.recordIndex != 0xff)
-		{
-			g_testParameter.oneLevelMenu[g_testParameter.recordIndex].pointColor = g_testParameter.oneLevelMenu[g_testParameter.recordIndex].recordPointColor;
-			g_testParameter.oneLevelMenu[g_testParameter.recordIndex].backColor = g_testParameter.oneLevelMenu[g_testParameter.recordIndex].recordBackColor;
+		{	
+			TestParameterRestoreShowOneMenu(g_testParameter.recordIndex);
 			
-			Show_TestParameterOneRowOneLevelMenuContent(g_testParameter.recordIndex);
-			Show_TestParameterOneRowOneLevelMenuUnit(g_testParameter.recordIndex);		
-			Clear_TestParameterOneRowOneLevelMenuArrow(g_testParameter.recordIndex);
-			
-			g_testParameter.oneLevelMenu[g_testParameter.nowIndex].pointColor = COLOR_SELECT_POINT;
-			g_testParameter.oneLevelMenu[g_testParameter.nowIndex].backColor = COLOR_SELECT_BACK;
-			
-			Show_TestParameterOneRowOneLevelMenuContent(g_testParameter.nowIndex);
-			Show_TestParameterOneRowOneLevelMenuUnit(g_testParameter.nowIndex);	
-			if (g_testParameter.enableArrow == ENABLE)
-			{
-				Show_TestParameterOneRowOneLevelMenuArrow(g_testParameter.nowIndex);
-			}
+			TestParameterShowOneMenuWithCursor(g_testParameter.nowIndex);
 		}
 		else
 		{
-			g_testParameter.oneLevelMenu[g_testParameter.nowIndex].pointColor = COLOR_SELECT_POINT;
-			g_testParameter.oneLevelMenu[g_testParameter.nowIndex].backColor = COLOR_SELECT_BACK;
-			
-			Show_TestParameterOneRowOneLevelMenuContent(g_testParameter.nowIndex);
-			Show_TestParameterOneRowOneLevelMenuUnit(g_testParameter.nowIndex);
-			if (g_testParameter.enableArrow == ENABLE)
-			{
-				Show_TestParameterOneRowOneLevelMenuArrow(g_testParameter.nowIndex);
-			}
+			TestParameterShowOneMenuWithCursor(g_testParameter.nowIndex);
 		}
 		
 		g_testParameter.recordIndex = g_testParameter.nowIndex;
@@ -2644,6 +2765,37 @@ SERIAL_ADD_ONE_STA TestParameterCheckSerialRepeat( TEST_TYPE_TypeDef type, char 
 }
 
 /*------------------------------------------------------------
+ * Function Name  : TestParameterAccordRoundDiameterGetCutAreaProcess
+ * Description    : 根据圆形直径获取截面积
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void TestParameterAccordRoundDiameterGetCutAreaProcess( void )
+{
+	float dismeter = 0;
+	uint8_t index = 0;
+	float area = 0;
+	
+	if (g_testParameter.testType == KLJSSW)
+	{
+		index = GetTestParameterIndex(OBJECT_ROUND_DIAMETER);
+		
+		if (g_testParameter.nowIndex == index)
+		{
+			dismeter = str2float(g_testParameter.parameterData[index]);
+			
+			area = PI * (dismeter / 2) * (dismeter / 2);
+			
+			index = GetTestParameterIndex(OBJECT_ORIGINAL_CUT_AREA);
+			floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,area,g_testParameter.parameterData[index]);
+			
+			TestParameterRestoreShowOneMenu(index);
+		}
+	}
+}	
+
+/*------------------------------------------------------------
  * Function Name  : TestParameterKeyProcess
  * Description    : 按键处理
  * Input          : None
@@ -2711,6 +2863,8 @@ static void TestParameterKeyProcess( void )
 						{
 							strcpy(g_testParameter.parameterData[index],pMenu->pParameterNameArray[pMenu->nowIndex]);
 						}
+						
+						TestParameterAccordRoundDiameterGetCutAreaProcess();
 					}
 					
 					TestParameterUpdateStatus();				
@@ -2843,7 +2997,7 @@ static void TestParameterLeavePageCheckCycle( void )
  *------------------------------------------------------------*/
 static void GUI_MainPageTestInfomation( void )
 {	
-	ConfigTestParameterRectangleFrameCoordinate(508,150,0);
+	ConfigTestParameterRectangleFrameCoordinate(520,150,0);
 	
 	GUI_TestParameterRectangleFrame();
 	

@@ -175,6 +175,10 @@ const char * const pUnitType[] =
 	"    d",		//8
 	"MPa/s",		//9
 	"    %",		//10
+	"    T",		//11
+	"   cm",		//12
+	"   dm",		//13
+	"    m",		//14
 };
 
 const char * const pSelectMenuCue[] = 
@@ -221,101 +225,46 @@ TEST_TypeDef *pTest = NULL;			//试验参数
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /*------------------------------------------------------------
- * Function Name  : GetCurChannel
- * Description    : 获取当前通道
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-SMPL_NAME_TypeDef GetCurChannel( void )
-{
-	SMPL_NAME_TypeDef ch = SMPL_FH_NUM;
-	
-	switch ( pHmi->test_standard_index )
-	{
-		case KYSNJS:
-		case KYJZSJ:
-		case KYHNT:
-		case KZHNT:
-		case KYQQZ:
-		case KYTY:
- 		case KYZJDH:
-			ch = SMPL_FH_NUM;
-			break;
-		
-		case KZSNJS:
-		case KZYJSNJ:
-		case KZTY:
-			ch = SMPL_FH_NUM;	
-			break;
-		
-		case KLJSSW:
-			ch = SMPL_WY_NUM;
-			break;
-		default:
-			break;
-	}	
-
-	return ch;
-}
-
-/*------------------------------------------------------------
- * Function Name  : GetCurTestChannel
- * Description    : 获取试验通道
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-SMPL_NAME_TypeDef GetCurTestChannel( uint8_t test_type )
-{
-	SMPL_NAME_TypeDef ch = SMPL_FH_NUM;
-	
-	switch ( test_type )
-	{
-		case KYSNJS:
-		case KYJZSJ:
-		case KYHNT:
-		case KZHNT:
-		case KYQQZ:
-		case KYTY:
- 		case KYZJDH:
-			ch = SMPL_FH_NUM;
-			break;
-		
-		case KZSNJS:
-		case KZYJSNJ:
-		case KZTY:
-			ch = SMPL_FH_NUM;	
-			break;
-		
-		case KLJSSW:
-			ch = SMPL_WY_NUM;
-			break;
-		
-		default:
-			break;
-	}	
-
-	return ch;
-}
-
-/*------------------------------------------------------------
- * Function Name  : GetSmplFHUnit
+ * Function Name  : GetFH_SmplUnit
  * Description    : 获取负荷通道单位
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-FORCE_UINT_TypeDef GetFH_SmplUnit( void )
+FH_UINT_TypeDef GetFH_SmplUnit( void )
 {
 	if ( pHmi->unit )
 	{
-		return UNIT_N;	  //以N为单位
+		return FH_UNIT_N;	  //以N为单位
 	}
 	else
 	{
-		return UNIT_kN;	  //以kN为单位
+		return FH_UNIT_kN;	  //以kN为单位
 	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetWY_SmplUnit
+ * Description    : 获取位移通道单位
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+WY_UINT_TypeDef GetWY_SmplUnit( void )
+{
+	return WY_UNIT_MM;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetBX_SmplUnit
+ * Description    : 获取变形通道单位
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+BX_UINT_TypeDef GetBX_SmplUnit( void )
+{
+	return BX_UNIT_MM;
 }
 
 /*------------------------------------------------------------
@@ -365,6 +314,8 @@ void ProcessMachineMatchTestType( void )
 				pHmi->test_standard_index = KZSNJS;
 				pcm_save();
 			}
+			break;
+		case MODEL_UNIVERSAL:
 			break;
 		default:
 			break;
@@ -1445,6 +1396,14 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			break;
  
 		case KZTY:
+			break;
+		
+		case KLJSSW:
+			if (fabs(report->area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				report->area = 1;
+			}
+			MPa = CurForce / report->area;
 			break;
 		
 		default:

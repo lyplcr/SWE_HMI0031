@@ -1531,7 +1531,6 @@ static ErrorStatus TestReportPrintOneReport( uint8_t reportIndex )
 {
 	uint8_t testType = 0;
 	REPORT_TypeDef readReport;
-	SMPL_NAME_TypeDef2 showChannel;
 	ErrorStatus errStatus;
 	
 	if (reportIndex >= SHOW_ONE_PAGE_REPORT_NUM)
@@ -1545,16 +1544,7 @@ static ErrorStatus TestReportPrintOneReport( uint8_t reportIndex )
 	
 	report_read(testType,g_testReport.pSearchResult->testReportData[reportIndex].fname,&readReport);
 	
-	if ( (UNIT_kN==GetFH_SmplUnit() ) && (SMPL_KY_NUM==GetCurTestChannel(testType)) )
-	{
-		showChannel = SMPL_KY_NUM;	
-	}
-	else
-	{
-		showChannel = SMPL_KZ_NUM;	
-	}
-	
-	errStatus = PrintTestReport(showChannel,(TEST_TYPE_TypeDef)testType,&readReport,\
+	errStatus = PrintTestReport(SMPL_FH_NUM,(TEST_TYPE_TypeDef)testType,&readReport,\
 				&g_testReport.pSearchResult->testReportData[reportIndex]);
 	
 	return errStatus;

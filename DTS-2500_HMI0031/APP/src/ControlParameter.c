@@ -63,8 +63,10 @@ typedef struct
 	TEST_TYPE_TypeDef testType;
 	uint8_t indexArray[MAX_PARAMETER_CNT];
 	uint8_t curParameterNum;						//参数个数
-	SMPL_NAME_TypeDef2 showChannel;					//显示通道
-	SMPL_NAME_TypeDef2 tureChannel;					//真实通道
+	FH_UINT_TypeDef fhChannelUnit;					//负荷通道单位
+	WY_UINT_TypeDef	wyChannelUnit;					//位移通道单位
+	BX_UINT_TypeDef	bxChannelUnit;					//变形通道单位
+	SMPL_NAME_TypeDef curChannel;					//当前通道
 	FunctionalState enablePutin;					//使能输入
 	FunctionalState enableArrow;					//使能箭头
 	BoolStatus isIndexMove;							//索引值移动
@@ -77,14 +79,16 @@ typedef struct
 /* Private constants ---------------------------------------------------------*/
 const char * const pCntrolParameterName[] =
 {
-	"系统最大力：",
-	"加载起始力：",
-	"曲线显示阈值：",
-	"破碎起判力值：",
-	"判破下降点数：",
-	"判破方式：",
-	"A:力值衰减了：",
-	"B:与最大力差值：",
+	"系统最大力：",		//0
+	"加载起始力：",		//1
+	"曲线显示阈值：",	//2
+	"破碎起判力值：",	//3
+	"判破下降点数：",	//4
+	"判破方式：",		//5
+	"A:力值衰减了：",	//6
+	"B:与最大力差值：",	//7
+	"位移满量程：",		//8
+	"变形满量程：",		//9
 };
 
 const char * const ControlParamErrInfoKN[] = 
@@ -121,6 +125,14 @@ const char * const ControlParamErrInfoN[] =
 	"(1 ~ 10000 N)",	
 	"力值衰减了输入范围：",		//12
 	"(1 ~ 100)",
+};
+
+const char * const ControlParamErrInfo[] = 
+{
+	"位移满量程输入范围：",		//0
+	"(1 ~ 10000)",
+	"变形满量程输入范围：",		//2
+	"(1 ~ 10000)",
 };
 
 const char * const ControlParameterCondition[] = 
@@ -218,22 +230,16 @@ void LoadControlParameterPage( void )
  *------------------------------------------------------------*/
 static void ControlParameterInit( void )
 {	
-	if ( (UNIT_kN==GetFH_SmplUnit() ) && (SMPL_KY_NUM==GetChannelSelectChannel()) )
-	{
-		g_controlParameter.showChannel = SMPL_KY_NUM;	
-	}
-	else
-	{
-		g_controlParameter.showChannel = SMPL_KZ_NUM;	
-	}
-	
-	g_controlParameter.tureChannel = GetChannelSelectChannel();
-	
 	g_controlParameter.isIndexMove = NO;		
 	g_controlParameter.recordIndex = 0xff;
 	g_controlParameter.refreshShortcut = ENABLE;
 	g_controlParameter.leavePage.flagLeavePage = RESET;
 	g_controlParameter.leavePage.flagSaveData = RESET;
+	
+	g_controlParameter.fhChannelUnit = GetFH_SmplUnit();
+	g_controlParameter.wyChannelUnit = GetWY_SmplUnit();
+	g_controlParameter.bxChannelUnit = GetBX_SmplUnit();
+	g_controlParameter.curChannel = GetChannelSelectChannel();
 }
 
 /*------------------------------------------------------------
@@ -272,104 +278,198 @@ static void ControlParameterConfig( void )
 	/* 标题 */
 	g_controlParameter.pTitle = "控制参数设置";
 	
-	/* 个数 */
-	g_controlParameter.curParameterNum = MAX_PARAMETER_CNT;
-	
-	/* 索引值 */
-	g_controlParameter.indexArray[INDEX_SYSTEM_MAX_VALUE] 		= OBJECT_SYSTEM_MAX_VALUE;
-	g_controlParameter.indexArray[INDEX_LOAD_START_VALUE] 		= OBJECT_LOAD_START_VALUE;
-	g_controlParameter.indexArray[INDEX_CURVE_SHOW_START_VALUE] = OBJECT_CURVE_SHOW_START_VALUE;
-	g_controlParameter.indexArray[INDEX_BREAK_START_FORCE] 		= OBJECT_BREAK_START_FORCE;
-	g_controlParameter.indexArray[INDEX_BREAK_DOWM_POINT] 		= OBJECT_BREAK_DOWM_POINT;
-	g_controlParameter.indexArray[INDEX_BREAK_TYPE] 			= OBJECT_BREAK_TYPE;
-	g_controlParameter.indexArray[INDEX_FORCE_DECAY_RATE] 		= OBJECT_FORCE_DECAY_RATE;
-	g_controlParameter.indexArray[INDEX_MAX_FORCE_DIFF] 		= OBJECT_MAX_FORCE_DIFF;
-	
-	
-	/* 参数名称 */
-	g_controlParameter.pParameterNameArray[INDEX_SYSTEM_MAX_VALUE] 			= pCntrolParameterName[0];
-	g_controlParameter.pParameterNameArray[INDEX_LOAD_START_VALUE] 			= pCntrolParameterName[1];
-	g_controlParameter.pParameterNameArray[INDEX_CURVE_SHOW_START_VALUE] 	= pCntrolParameterName[2];
-	g_controlParameter.pParameterNameArray[INDEX_BREAK_START_FORCE] 		= pCntrolParameterName[3];
-	g_controlParameter.pParameterNameArray[INDEX_BREAK_DOWM_POINT] 			= pCntrolParameterName[4];
-	g_controlParameter.pParameterNameArray[INDEX_BREAK_TYPE] 				= pCntrolParameterName[5];
-	g_controlParameter.pParameterNameArray[INDEX_FORCE_DECAY_RATE] 			= pCntrolParameterName[6];
-	g_controlParameter.pParameterNameArray[INDEX_MAX_FORCE_DIFF] 			= pCntrolParameterName[7];
-
-	/* 单位 */
-	if (g_controlParameter.showChannel == SMPL_KY_NUM)
+	switch ( g_controlParameter.curChannel )
 	{
-		g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 			= pUnitType[1];
-		g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE] 			= pUnitType[1];
-		g_controlParameter.pParameterUnitArray[INDEX_CURVE_SHOW_START_VALUE] 	= pUnitType[1];
-		g_controlParameter.pParameterUnitArray[INDEX_BREAK_START_FORCE] 		= pUnitType[1];
-		g_controlParameter.pParameterUnitArray[INDEX_BREAK_DOWM_POINT] 			= "NULL";
-		g_controlParameter.pParameterUnitArray[INDEX_BREAK_TYPE] 				= "NULL";
-		g_controlParameter.pParameterUnitArray[INDEX_FORCE_DECAY_RATE] 			= pUnitType[10];
-		g_controlParameter.pParameterUnitArray[INDEX_MAX_FORCE_DIFF] 			= pUnitType[1];
-	}
-	else
-	{
-		g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 			= pUnitType[0];
-		g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE] 			= pUnitType[0];
-		g_controlParameter.pParameterUnitArray[INDEX_CURVE_SHOW_START_VALUE] 	= pUnitType[0];
-		g_controlParameter.pParameterUnitArray[INDEX_BREAK_START_FORCE] 		= pUnitType[0];
-		g_controlParameter.pParameterUnitArray[INDEX_BREAK_DOWM_POINT] 			= "NULL";
-		g_controlParameter.pParameterUnitArray[INDEX_BREAK_TYPE] 				= "NULL";
-		g_controlParameter.pParameterUnitArray[INDEX_FORCE_DECAY_RATE] 			= pUnitType[10];
-		g_controlParameter.pParameterUnitArray[INDEX_MAX_FORCE_DIFF] 			= pUnitType[0];
-	}
-	
-	/* 数据保存类型 */
-	g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].saveType 		= TYPE_INT;
-	g_controlParameter.oneLevelMenu[INDEX_LOAD_START_VALUE].saveType 		= TYPE_INT;
-	g_controlParameter.oneLevelMenu[INDEX_CURVE_SHOW_START_VALUE].saveType 	= TYPE_INT;
-	g_controlParameter.oneLevelMenu[INDEX_BREAK_START_FORCE].saveType 		= TYPE_INT;
-	g_controlParameter.oneLevelMenu[INDEX_BREAK_DOWM_POINT].saveType 		= TYPE_INT;
-	g_controlParameter.oneLevelMenu[INDEX_BREAK_TYPE].saveType 				= TYPE_INT;
-	g_controlParameter.oneLevelMenu[INDEX_FORCE_DECAY_RATE].saveType 		= TYPE_INT;
-	g_controlParameter.oneLevelMenu[INDEX_MAX_FORCE_DIFF].saveType 			= TYPE_FLOAT;	
+		case SMPL_FH_NUM:
+			/* 个数 */
+			g_controlParameter.curParameterNum = MAX_PARAMETER_CNT;	
+		
+			/* 索引值 */
+			g_controlParameter.indexArray[INDEX_SYSTEM_MAX_VALUE] 		= OBJECT_SYSTEM_MAX_VALUE;
+			g_controlParameter.indexArray[INDEX_LOAD_START_VALUE] 		= OBJECT_LOAD_START_VALUE;
+			g_controlParameter.indexArray[INDEX_CURVE_SHOW_START_VALUE] = OBJECT_CURVE_SHOW_START_VALUE;
+			g_controlParameter.indexArray[INDEX_BREAK_START_FORCE] 		= OBJECT_BREAK_START_FORCE;
+			g_controlParameter.indexArray[INDEX_BREAK_DOWM_POINT] 		= OBJECT_BREAK_DOWM_POINT;
+			g_controlParameter.indexArray[INDEX_BREAK_TYPE] 			= OBJECT_BREAK_TYPE;
+			g_controlParameter.indexArray[INDEX_FORCE_DECAY_RATE] 		= OBJECT_FORCE_DECAY_RATE;
+			g_controlParameter.indexArray[INDEX_MAX_FORCE_DIFF] 		= OBJECT_MAX_FORCE_DIFF;
+			
+			
+			/* 参数名称 */
+			g_controlParameter.pParameterNameArray[INDEX_SYSTEM_MAX_VALUE] 			= pCntrolParameterName[0];
+			g_controlParameter.pParameterNameArray[INDEX_LOAD_START_VALUE] 			= pCntrolParameterName[1];
+			g_controlParameter.pParameterNameArray[INDEX_CURVE_SHOW_START_VALUE] 	= pCntrolParameterName[2];
+			g_controlParameter.pParameterNameArray[INDEX_BREAK_START_FORCE] 		= pCntrolParameterName[3];
+			g_controlParameter.pParameterNameArray[INDEX_BREAK_DOWM_POINT] 			= pCntrolParameterName[4];
+			g_controlParameter.pParameterNameArray[INDEX_BREAK_TYPE] 				= pCntrolParameterName[5];
+			g_controlParameter.pParameterNameArray[INDEX_FORCE_DECAY_RATE] 			= pCntrolParameterName[6];
+			g_controlParameter.pParameterNameArray[INDEX_MAX_FORCE_DIFF] 			= pCntrolParameterName[7];
 
-	/* 小数点位数 */
-	g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].pointBit 		= 0;
-	g_controlParameter.oneLevelMenu[INDEX_LOAD_START_VALUE].pointBit 		= 0;
-	g_controlParameter.oneLevelMenu[INDEX_CURVE_SHOW_START_VALUE].pointBit 	= 0;
-	g_controlParameter.oneLevelMenu[INDEX_BREAK_START_FORCE].pointBit 		= 0;
-	g_controlParameter.oneLevelMenu[INDEX_BREAK_DOWM_POINT].pointBit 		= 0;
-	g_controlParameter.oneLevelMenu[INDEX_BREAK_TYPE].pointBit 				= 0;
-	g_controlParameter.oneLevelMenu[INDEX_FORCE_DECAY_RATE].pointBit 		= 0;
-	g_controlParameter.oneLevelMenu[INDEX_MAX_FORCE_DIFF].pointBit 			= 1;
-	
-	/* 二级菜单类型 */
-	g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterType 		= IMMEDIATELY_PUTIN_NONE;
-	g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].parameterType 		= IMMEDIATELY_PUTIN_NONE;
-	g_controlParameter.twoLevelMenu[INDEX_CURVE_SHOW_START_VALUE].parameterType = IMMEDIATELY_PUTIN_NONE;
-	g_controlParameter.twoLevelMenu[INDEX_BREAK_START_FORCE].parameterType 		= IMMEDIATELY_PUTIN_NONE;
-	g_controlParameter.twoLevelMenu[INDEX_BREAK_DOWM_POINT].parameterType 		= IMMEDIATELY_PUTIN_NONE;
-	g_controlParameter.twoLevelMenu[INDEX_BREAK_TYPE].parameterType 			= NONE_USE_USER_DEFINE;
-	g_controlParameter.twoLevelMenu[INDEX_FORCE_DECAY_RATE].parameterType 		= IMMEDIATELY_PUTIN_NONE;
-	g_controlParameter.twoLevelMenu[INDEX_MAX_FORCE_DIFF].parameterType 		= IMMEDIATELY_PUTIN_NONE;
-	
-	/* 二级菜单参数名 */
-	g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].pParameterNameArray = NULL;
-	g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].pParameterNameArray = NULL;
-	g_controlParameter.twoLevelMenu[INDEX_CURVE_SHOW_START_VALUE].pParameterNameArray = NULL;
-	g_controlParameter.twoLevelMenu[INDEX_BREAK_START_FORCE].pParameterNameArray = NULL;
-	g_controlParameter.twoLevelMenu[INDEX_BREAK_DOWM_POINT].pParameterNameArray = NULL;
-	g_controlParameter.twoLevelMenu[INDEX_BREAK_TYPE].pParameterNameArray = ControlParameterCondition;
-	g_controlParameter.twoLevelMenu[INDEX_FORCE_DECAY_RATE].pParameterNameArray = NULL;
-	g_controlParameter.twoLevelMenu[INDEX_MAX_FORCE_DIFF].pParameterNameArray = NULL;
-	
-	/* 二级菜单参数个数 */
-	g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterCnt = 0;
-	g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].parameterCnt = 0;
-	g_controlParameter.twoLevelMenu[INDEX_CURVE_SHOW_START_VALUE].parameterCnt = 0;
-	g_controlParameter.twoLevelMenu[INDEX_BREAK_START_FORCE].parameterCnt = 0;
-	g_controlParameter.twoLevelMenu[INDEX_BREAK_DOWM_POINT].parameterCnt = 0;
-	g_controlParameter.twoLevelMenu[INDEX_BREAK_TYPE].parameterCnt = 2;
-	g_controlParameter.twoLevelMenu[INDEX_FORCE_DECAY_RATE].parameterCnt = 0;
-	g_controlParameter.twoLevelMenu[INDEX_MAX_FORCE_DIFF].parameterCnt = 0;
-	
+			/* 单位 */
+			if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+			{
+				g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 			= pUnitType[1];
+				g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE] 			= pUnitType[1];
+				g_controlParameter.pParameterUnitArray[INDEX_CURVE_SHOW_START_VALUE] 	= pUnitType[1];
+				g_controlParameter.pParameterUnitArray[INDEX_BREAK_START_FORCE] 		= pUnitType[1];
+				g_controlParameter.pParameterUnitArray[INDEX_BREAK_DOWM_POINT] 			= "NULL";
+				g_controlParameter.pParameterUnitArray[INDEX_BREAK_TYPE] 				= "NULL";
+				g_controlParameter.pParameterUnitArray[INDEX_FORCE_DECAY_RATE] 			= pUnitType[10];
+				g_controlParameter.pParameterUnitArray[INDEX_MAX_FORCE_DIFF] 			= pUnitType[1];
+			}
+			else
+			{
+				g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 			= pUnitType[0];
+				g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE] 			= pUnitType[0];
+				g_controlParameter.pParameterUnitArray[INDEX_CURVE_SHOW_START_VALUE] 	= pUnitType[0];
+				g_controlParameter.pParameterUnitArray[INDEX_BREAK_START_FORCE] 		= pUnitType[0];
+				g_controlParameter.pParameterUnitArray[INDEX_BREAK_DOWM_POINT] 			= "NULL";
+				g_controlParameter.pParameterUnitArray[INDEX_BREAK_TYPE] 				= "NULL";
+				g_controlParameter.pParameterUnitArray[INDEX_FORCE_DECAY_RATE] 			= pUnitType[10];
+				g_controlParameter.pParameterUnitArray[INDEX_MAX_FORCE_DIFF] 			= pUnitType[0];
+			}
+			
+			/* 数据保存类型 */
+			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].saveType 		= TYPE_INT;
+			g_controlParameter.oneLevelMenu[INDEX_LOAD_START_VALUE].saveType 		= TYPE_INT;
+			g_controlParameter.oneLevelMenu[INDEX_CURVE_SHOW_START_VALUE].saveType 	= TYPE_INT;
+			g_controlParameter.oneLevelMenu[INDEX_BREAK_START_FORCE].saveType 		= TYPE_INT;
+			g_controlParameter.oneLevelMenu[INDEX_BREAK_DOWM_POINT].saveType 		= TYPE_INT;
+			g_controlParameter.oneLevelMenu[INDEX_BREAK_TYPE].saveType 				= TYPE_INT;
+			g_controlParameter.oneLevelMenu[INDEX_FORCE_DECAY_RATE].saveType 		= TYPE_INT;
+			g_controlParameter.oneLevelMenu[INDEX_MAX_FORCE_DIFF].saveType 			= TYPE_FLOAT;	
+
+			/* 小数点位数 */
+			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].pointBit 		= 0;
+			g_controlParameter.oneLevelMenu[INDEX_LOAD_START_VALUE].pointBit 		= 0;
+			g_controlParameter.oneLevelMenu[INDEX_CURVE_SHOW_START_VALUE].pointBit 	= 0;
+			g_controlParameter.oneLevelMenu[INDEX_BREAK_START_FORCE].pointBit 		= 0;
+			g_controlParameter.oneLevelMenu[INDEX_BREAK_DOWM_POINT].pointBit 		= 0;
+			g_controlParameter.oneLevelMenu[INDEX_BREAK_TYPE].pointBit 				= 0;
+			g_controlParameter.oneLevelMenu[INDEX_FORCE_DECAY_RATE].pointBit 		= 0;
+			g_controlParameter.oneLevelMenu[INDEX_MAX_FORCE_DIFF].pointBit 			= 1;
+			
+			/* 二级菜单类型 */
+			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+			g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+			g_controlParameter.twoLevelMenu[INDEX_CURVE_SHOW_START_VALUE].parameterType = IMMEDIATELY_PUTIN_NONE;
+			g_controlParameter.twoLevelMenu[INDEX_BREAK_START_FORCE].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+			g_controlParameter.twoLevelMenu[INDEX_BREAK_DOWM_POINT].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+			g_controlParameter.twoLevelMenu[INDEX_BREAK_TYPE].parameterType 			= NONE_USE_USER_DEFINE;
+			g_controlParameter.twoLevelMenu[INDEX_FORCE_DECAY_RATE].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+			g_controlParameter.twoLevelMenu[INDEX_MAX_FORCE_DIFF].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+			
+			/* 二级菜单参数名 */
+			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].pParameterNameArray = NULL;
+			g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].pParameterNameArray = NULL;
+			g_controlParameter.twoLevelMenu[INDEX_CURVE_SHOW_START_VALUE].pParameterNameArray = NULL;
+			g_controlParameter.twoLevelMenu[INDEX_BREAK_START_FORCE].pParameterNameArray = NULL;
+			g_controlParameter.twoLevelMenu[INDEX_BREAK_DOWM_POINT].pParameterNameArray = NULL;
+			g_controlParameter.twoLevelMenu[INDEX_BREAK_TYPE].pParameterNameArray = ControlParameterCondition;
+			g_controlParameter.twoLevelMenu[INDEX_FORCE_DECAY_RATE].pParameterNameArray = NULL;
+			g_controlParameter.twoLevelMenu[INDEX_MAX_FORCE_DIFF].pParameterNameArray = NULL;
+			
+			/* 二级菜单参数个数 */
+			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterCnt = 0;
+			g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].parameterCnt = 0;
+			g_controlParameter.twoLevelMenu[INDEX_CURVE_SHOW_START_VALUE].parameterCnt = 0;
+			g_controlParameter.twoLevelMenu[INDEX_BREAK_START_FORCE].parameterCnt = 0;
+			g_controlParameter.twoLevelMenu[INDEX_BREAK_DOWM_POINT].parameterCnt = 0;
+			g_controlParameter.twoLevelMenu[INDEX_BREAK_TYPE].parameterCnt = 2;
+			g_controlParameter.twoLevelMenu[INDEX_FORCE_DECAY_RATE].parameterCnt = 0;
+			g_controlParameter.twoLevelMenu[INDEX_MAX_FORCE_DIFF].parameterCnt = 0;
+			break;
+		case SMPL_WY_NUM:
+			/* 个数 */
+			g_controlParameter.curParameterNum = 1;	
+		
+			/* 索引值 */
+			g_controlParameter.indexArray[INDEX_SYSTEM_MAX_VALUE] 					= OBJECT_SYSTEM_MAX_VALUE;
+			
+			/* 参数名称 */
+			g_controlParameter.pParameterNameArray[INDEX_SYSTEM_MAX_VALUE] 			= pCntrolParameterName[8];
+
+			/* 单位 */
+			switch ( g_controlParameter.wyChannelUnit )
+			{
+				case WY_UNIT_MM:
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[4];	
+					break;
+				case WY_UNIT_CM:
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[12];		
+					break;
+				case WY_UNIT_DM:
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[13];		
+					break;
+				case WY_UNIT_M:
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[14];		
+					break; 
+				default:
+					break;
+			}
+			
+			/* 数据保存类型 */
+			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].saveType 		= TYPE_INT;
+
+			/* 小数点位数 */
+			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].pointBit 		= 0;
+			
+			/* 二级菜单类型 */
+			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+			
+			/* 二级菜单参数名 */
+			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].pParameterNameArray = NULL;
+			
+			/* 二级菜单参数个数 */
+			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterCnt = 0;
+			break;
+		case SMPL_BX_NUM:
+			/* 个数 */
+			g_controlParameter.curParameterNum = 1;	
+		
+			/* 索引值 */
+			g_controlParameter.indexArray[INDEX_SYSTEM_MAX_VALUE] 					= OBJECT_SYSTEM_MAX_VALUE;
+			
+			/* 参数名称 */
+			g_controlParameter.pParameterNameArray[INDEX_SYSTEM_MAX_VALUE] 			= pCntrolParameterName[9];
+
+			/* 单位 */
+			switch ( g_controlParameter.wyChannelUnit )
+			{
+				case BX_UNIT_MM:
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[4];	
+					break;
+				case BX_UNIT_CM:
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[12];		
+					break;
+				case BX_UNIT_DM:
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[13];		
+					break;
+				case BX_UNIT_M:
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[14];		
+					break; 
+				default:
+					break;
+			}
+			
+			/* 数据保存类型 */
+			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].saveType 		= TYPE_INT;
+
+			/* 小数点位数 */
+			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].pointBit 		= 0;
+			
+			/* 二级菜单类型 */
+			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+			
+			/* 二级菜单参数名 */
+			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].pParameterNameArray = NULL;
+			
+			/* 二级菜单参数个数 */
+			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterCnt = 0;	
+			break;
+		default:
+			break;
+	}
 }
 
 /*------------------------------------------------------------
@@ -522,95 +622,150 @@ static void ControlParameterReadParameter( void )
 	uint8_t index = 0;
 	uint8_t tempu8 = 0;
 	
-	index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
-	if (index != 0xff)
+	switch ( g_controlParameter.curChannel )
 	{
-		tempf = smpl_ctrl_full_p_get(g_controlParameter.tureChannel);
-		if (g_controlParameter.showChannel == SMPL_KY_NUM)
-		{
-			tempf /= 1000;
-		}
-		numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
-	}
-	
-	index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
-	if (index != 0xff)
-	{
-		tempf = smpl_ctrl_entry_get(g_controlParameter.tureChannel);
-		if (g_controlParameter.showChannel == SMPL_KY_NUM)
-		{
-			tempf /= 1000;
-		}
-		numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
-	}
-	
-	index = GetControlParameterIndex(OBJECT_CURVE_SHOW_START_VALUE);
-	if (index != 0xff)
-	{
-		tempf = pHmi->start_force[g_controlParameter.tureChannel];
-		if (g_controlParameter.showChannel == SMPL_KY_NUM)
-		{
-			tempf /= 1000;
-		}
-		numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
-	}
-	
-	index = GetControlParameterIndex(OBJECT_BREAK_START_FORCE);
-	if (index != 0xff)
-	{
-		tempf = pHmi->break_judge_value[g_controlParameter.tureChannel];
-		if (g_controlParameter.showChannel == SMPL_KY_NUM)
-		{
-			tempf /= 1000;
-		}
-		numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
-	}
-	
-	index = GetControlParameterIndex(OBJECT_BREAK_DOWM_POINT);
-	if (index != 0xff)
-	{
-		tempu8 = pHmi->break_point[g_controlParameter.tureChannel];
+		case SMPL_FH_NUM:
+			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
+			if (index != 0xff)
+			{
+				tempf = smpl_ctrl_full_p_get(g_controlParameter.curChannel);
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				{
+					tempf /= 1000;
+				}
+				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
+			}
+			
+			index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
+			if (index != 0xff)
+			{
+				tempf = smpl_ctrl_entry_get(g_controlParameter.curChannel);
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				{
+					tempf /= 1000;
+				}
+				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
+			}
+			
+			index = GetControlParameterIndex(OBJECT_CURVE_SHOW_START_VALUE);
+			if (index != 0xff)
+			{
+				tempf = pHmi->start_force[g_controlParameter.curChannel];
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				{
+					tempf /= 1000;
+				}
+				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
+			}
+			
+			index = GetControlParameterIndex(OBJECT_BREAK_START_FORCE);
+			if (index != 0xff)
+			{
+				tempf = pHmi->break_judge_value[g_controlParameter.curChannel];
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				{
+					tempf /= 1000;
+				}
+				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
+			}
+			
+			index = GetControlParameterIndex(OBJECT_BREAK_DOWM_POINT);
+			if (index != 0xff)
+			{
+				tempu8 = pHmi->break_point[g_controlParameter.curChannel];
 
-		numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,tempu8,g_controlParameter.parameterData[index]);
-	}
-	
-	index = GetControlParameterIndex(OBJECT_BREAK_TYPE);
-	if (index != 0xff)
-	{
-		tempu8 = pHmi->break_condition[g_controlParameter.tureChannel];
-		
-		switch ( tempu8 )
-		{
-			case ATTENUATION_RATE:
-				strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[0]);
-				break;
-			case WITH_MAX_FORCE_DIFFERENCE:
-				strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[1]);
-				break;
-			default:
-				pHmi->break_condition[g_controlParameter.tureChannel] = ATTENUATION_RATE;
-				strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[0]);
-				break;
-		}
-	}
-	
-	index = GetControlParameterIndex(OBJECT_FORCE_DECAY_RATE);
-	if (index != 0xff)
-	{
-		tempu8 = pHmi->attenuationRate[g_controlParameter.tureChannel];
-		
-		numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,tempu8,g_controlParameter.parameterData[index]);
-	}	
-	
-	index = GetControlParameterIndex(OBJECT_MAX_FORCE_DIFF);
-	if (index != 0xff)
-	{
-		tempf = pHmi->break_max_value[g_controlParameter.tureChannel];
-		if (g_controlParameter.showChannel == SMPL_KY_NUM)
-		{
-			tempf /= 1000;
-		}
-		floattochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,g_controlParameter.oneLevelMenu[index].pointBit,tempf,g_controlParameter.parameterData[index]);
+				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,tempu8,g_controlParameter.parameterData[index]);
+			}
+			
+			index = GetControlParameterIndex(OBJECT_BREAK_TYPE);
+			if (index != 0xff)
+			{
+				tempu8 = pHmi->break_condition[g_controlParameter.curChannel];
+				
+				switch ( tempu8 )
+				{
+					case ATTENUATION_RATE:
+						strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[0]);
+						break;
+					case WITH_MAX_FORCE_DIFFERENCE:
+						strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[1]);
+						break;
+					default:
+						pHmi->break_condition[g_controlParameter.curChannel] = ATTENUATION_RATE;
+						strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[0]);
+						break;
+				}
+			}
+			
+			index = GetControlParameterIndex(OBJECT_FORCE_DECAY_RATE);
+			if (index != 0xff)
+			{
+				tempu8 = pHmi->attenuationRate[g_controlParameter.curChannel];
+				
+				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,tempu8,g_controlParameter.parameterData[index]);
+			}	
+			
+			index = GetControlParameterIndex(OBJECT_MAX_FORCE_DIFF);
+			if (index != 0xff)
+			{
+				tempf = pHmi->break_max_value[g_controlParameter.curChannel];
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				{
+					tempf /= 1000;
+				}
+				floattochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,g_controlParameter.oneLevelMenu[index].pointBit,tempf,g_controlParameter.parameterData[index]);
+			}	
+			break;
+		case SMPL_WY_NUM:
+			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
+			if (index != 0xff)
+			{
+				tempf = smpl_ctrl_full_p_get(g_controlParameter.curChannel);
+				switch ( g_controlParameter.wyChannelUnit )
+				{
+					case WY_UNIT_MM:						
+						break;
+					case WY_UNIT_CM:
+						tempf /= 10; 	
+						break;
+					case WY_UNIT_DM:
+						tempf /= 100;	
+						break;
+					case WY_UNIT_M:
+						tempf /= 1000;	
+						break; 
+					default:
+						break;
+				}
+				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
+			}	
+			break;
+		case SMPL_BX_NUM:
+			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
+			if (index != 0xff)
+			{
+				tempf = smpl_ctrl_full_p_get(g_controlParameter.curChannel);
+				switch ( g_controlParameter.bxChannelUnit )
+				{
+					case BX_UNIT_MM:						
+						break;
+					case BX_UNIT_CM:
+						tempf /= 10; 	
+						break;
+					case BX_UNIT_DM:
+						tempf /= 100;	
+						break;
+					case BX_UNIT_M:
+						tempf /= 1000;	
+						break; 
+					default:
+						break;
+				}
+				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
+			}	
+			break;
+		default:
+			break;
 	}
 }
 
@@ -627,88 +782,143 @@ static void ControlParameterWriteParameter( void )
 	uint32_t tempu = 0;
 	uint8_t index = 0;
 	
-	index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
-	if (index != 0xff)
+	switch ( g_controlParameter.curChannel )
 	{
-		tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-		if (g_controlParameter.showChannel == SMPL_KY_NUM)
-		{
-			tempu *= 1000;
-		}
-		smpl_ctrl_full_p_set(g_controlParameter.tureChannel,tempu);
-	}
-	
-	index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
-	if (index != 0xff)
-	{
-		tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-		if (g_controlParameter.showChannel == SMPL_KY_NUM)
-		{
-			tempu *= 1000;
-		}
-		smpl_ctrl_entry_set(g_controlParameter.tureChannel,tempu);
-	}
-	
-	index = GetControlParameterIndex(OBJECT_CURVE_SHOW_START_VALUE);
-	if (index != 0xff)
-	{
-		tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-		if (g_controlParameter.showChannel == SMPL_KY_NUM)
-		{
-			tempu *= 1000;
-		}
-		pHmi->start_force[g_controlParameter.tureChannel] = tempu;
-	}
-	
-	index = GetControlParameterIndex(OBJECT_BREAK_START_FORCE);
-	if (index != 0xff)
-	{
-		tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-		if (g_controlParameter.showChannel == SMPL_KY_NUM)
-		{
-			tempu *= 1000;
-		}
-		pHmi->break_judge_value[g_controlParameter.tureChannel] = tempu;
-	}
-	
-	index = GetControlParameterIndex(OBJECT_BREAK_DOWM_POINT);
-	if (index != 0xff)
-	{
-		tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+		case SMPL_FH_NUM:
+			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
+			if (index != 0xff)
+			{
+				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				{
+					tempu *= 1000;
+				}
+				smpl_ctrl_full_p_set(g_controlParameter.curChannel,tempu);
+			}
+			
+			index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
+			if (index != 0xff)
+			{
+				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				{
+					tempu *= 1000;
+				}
+				smpl_ctrl_entry_set(g_controlParameter.curChannel,tempu);
+			}
+			
+			index = GetControlParameterIndex(OBJECT_CURVE_SHOW_START_VALUE);
+			if (index != 0xff)
+			{
+				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				{
+					tempu *= 1000;
+				}
+				pHmi->start_force[g_controlParameter.curChannel] = tempu;
+			}
+			
+			index = GetControlParameterIndex(OBJECT_BREAK_START_FORCE);
+			if (index != 0xff)
+			{
+				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				{
+					tempu *= 1000;
+				}
+				pHmi->break_judge_value[g_controlParameter.curChannel] = tempu;
+			}
+			
+			index = GetControlParameterIndex(OBJECT_BREAK_DOWM_POINT);
+			if (index != 0xff)
+			{
+				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
 
-		pHmi->break_point[g_controlParameter.tureChannel] = tempu;
-	}
-	
-	index = GetControlParameterIndex(OBJECT_BREAK_TYPE);
-	if (index != 0xff)
-	{
-		if (strcmp(g_controlParameter.parameterData[index],ControlParameterCondition[0]) == 0)
-		{
-			pHmi->break_condition[g_controlParameter.tureChannel] = ATTENUATION_RATE;
-		}
-		else
-		{
-			pHmi->break_condition[g_controlParameter.tureChannel] = WITH_MAX_FORCE_DIFFERENCE;
-		}
-	}
-	
-	index = GetControlParameterIndex(OBJECT_FORCE_DECAY_RATE);
-	if (index != 0xff)
-	{
-		tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-		
-		pHmi->attenuationRate[g_controlParameter.tureChannel] = tempu;
-	}
-	
-	index = GetControlParameterIndex(OBJECT_MAX_FORCE_DIFF);
-	if (index != 0xff)
-	{
-		tempf = str2float(g_controlParameter.parameterData[index]);
-		if (g_controlParameter.showChannel == SMPL_KY_NUM)
-		{
-			tempf *= 1000;
-		}
-		pHmi->break_max_value[g_controlParameter.tureChannel] = tempf;
+				pHmi->break_point[g_controlParameter.curChannel] = tempu;
+			}
+			
+			index = GetControlParameterIndex(OBJECT_BREAK_TYPE);
+			if (index != 0xff)
+			{
+				if (strcmp(g_controlParameter.parameterData[index],ControlParameterCondition[0]) == 0)
+				{
+					pHmi->break_condition[g_controlParameter.curChannel] = ATTENUATION_RATE;
+				}
+				else
+				{
+					pHmi->break_condition[g_controlParameter.curChannel] = WITH_MAX_FORCE_DIFFERENCE;
+				}
+			}
+			
+			index = GetControlParameterIndex(OBJECT_FORCE_DECAY_RATE);
+			if (index != 0xff)
+			{
+				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+				
+				pHmi->attenuationRate[g_controlParameter.curChannel] = tempu;
+			}
+			
+			index = GetControlParameterIndex(OBJECT_MAX_FORCE_DIFF);
+			if (index != 0xff)
+			{
+				tempf = str2float(g_controlParameter.parameterData[index]);
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				{
+					tempf *= 1000;
+				}
+				pHmi->break_max_value[g_controlParameter.curChannel] = tempf;
+			}	
+			break;
+		case SMPL_WY_NUM:
+			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
+			if (index != 0xff)
+			{
+				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+				switch ( g_controlParameter.wyChannelUnit )
+				{
+					case WY_UNIT_MM:						
+						break;
+					case WY_UNIT_CM:
+						tempu *= 10; 	
+						break;
+					case WY_UNIT_DM:
+						tempu *= 100;	
+						break;
+					case WY_UNIT_M:
+						tempu *= 1000;	
+						break; 
+					default:
+						break;
+				}
+				smpl_ctrl_full_p_set(g_controlParameter.curChannel,tempu);
+			}	
+			break;
+		case SMPL_BX_NUM:
+			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
+			if (index != 0xff)
+			{
+				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+				switch ( g_controlParameter.bxChannelUnit )
+				{
+					case BX_UNIT_MM:						
+						break;
+					case BX_UNIT_CM:
+						tempu *= 10; 	
+						break;
+					case BX_UNIT_DM:
+						tempu *= 100;	
+						break;
+					case BX_UNIT_M:
+						tempu *= 1000;	
+						break; 
+					default:
+						break;
+				}
+				smpl_ctrl_full_p_set(g_controlParameter.curChannel,tempu);
+			}	
+			break;
+		default:
+			break;
 	}
 	
 	pcm_save();
@@ -879,6 +1089,11 @@ static void ControlParameterStatusProcess( void )
 {
 	uint8_t index = g_controlParameter.nowIndex;
 	
+	if (g_controlParameter.nowIndex >= g_controlParameter.curParameterNum)
+	{
+		g_controlParameter.nowIndex = 0;
+	}
+	
 	switch ( g_controlParameter.twoLevelMenu[index].parameterType )
 	{
 		case IMMEDIATELY_PUTIN_NONE:
@@ -1027,8 +1242,15 @@ static void ControlParameterShortcutCycleTask( void )
  *------------------------------------------------------------*/
 static void ControlParameterIndexUpdate( void )
 {
+	uint8_t recordIndex = g_controlParameter.nowIndex;
+	
 	g_controlParameter.nowIndex++;
 	g_controlParameter.nowIndex %= g_controlParameter.curParameterNum;
+	
+	if (g_controlParameter.nowIndex == recordIndex)
+	{
+		g_controlParameter.recordIndex = 0xff;
+	}
 }
 
 /*------------------------------------------------------------
@@ -1242,38 +1464,96 @@ static TestStatus ControlParameterCheckDataCycle( void )
 		{
 			case OBJECT_SYSTEM_MAX_VALUE:
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.showChannel == SMPL_KY_NUM)
-				{
-					tempu *= 1000;
-				}
 				
-				if (g_controlParameter.tureChannel == SMPL_KY_NUM)
+				switch ( g_controlParameter.curChannel )
 				{
-					if ((tempu < 10000) || (tempu > 10000000))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[0]);
+					case SMPL_FH_NUM:
+						if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+						{
+							tempu *= 1000;
+						}
 						
-						return FAILED;
-					}
-				}
-				else
-				{
-					if ((tempu < 10000) || (tempu > 100000))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[0]);
+						if (g_controlParameter.curChannel == SMPL_FH_NUM)
+						{
+							if ((tempu < 10000) || (tempu > 10000000))
+							{
+								SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[0]);
+								
+								return FAILED;
+							}
+						}
+						else
+						{
+							if ((tempu < 10000) || (tempu > 100000))
+							{
+								SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[0]);
+								
+								return FAILED;
+							}
+						}	
+						break;
+					case SMPL_WY_NUM:
+						switch ( g_controlParameter.wyChannelUnit )
+						{
+							case WY_UNIT_MM:						
+								break;
+							case WY_UNIT_CM:
+								tempu *= 10; 	
+								break;
+							case WY_UNIT_DM:
+								tempu *= 100;	
+								break;
+							case WY_UNIT_M:
+								tempu *= 1000;	
+								break; 
+							default:
+								break;
+						}
 						
-						return FAILED;
-					}
+						if ((tempu < 1) || (tempu > 10000))
+						{
+							SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfo[0]);
+							
+							return FAILED;
+						}	
+						break;
+					case SMPL_BX_NUM:
+						switch ( g_controlParameter.bxChannelUnit )
+						{
+							case BX_UNIT_MM:						
+								break;
+							case BX_UNIT_CM:
+								tempu *= 10; 	
+								break;
+							case BX_UNIT_DM:
+								tempu *= 100;	
+								break;
+							case BX_UNIT_M:
+								tempu *= 1000;	
+								break; 
+							default:
+								break;
+						}
+				
+						if ((tempu < 1) || (tempu > 10000))
+						{
+							SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfo[2]);
+							
+							return FAILED;
+						}	
+						break;
+					default:
+						break;
 				}
 				break;
 			case OBJECT_LOAD_START_VALUE:
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.showChannel == SMPL_KY_NUM)
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
 				{
 					tempu *= 1000;
 				}
 				
-				if (g_controlParameter.tureChannel == SMPL_KY_NUM)
+				if (g_controlParameter.curChannel == SMPL_FH_NUM)
 				{
 					if ((tempu < 1000) || (tempu > 100000))
 					{
@@ -1294,12 +1574,12 @@ static TestStatus ControlParameterCheckDataCycle( void )
 				break;
 			case OBJECT_CURVE_SHOW_START_VALUE:
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.showChannel == SMPL_KY_NUM)
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
 				{
 					tempu *= 1000;
 				}
 				
-				if (g_controlParameter.tureChannel == SMPL_KY_NUM)
+				if (g_controlParameter.curChannel == SMPL_FH_NUM)
 				{
 					if ((tempu < 1000) || (tempu > 100000))
 					{
@@ -1320,12 +1600,12 @@ static TestStatus ControlParameterCheckDataCycle( void )
 				break;
 			case OBJECT_BREAK_START_FORCE:
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.showChannel == SMPL_KY_NUM)
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
 				{
 					tempu *= 1000;
 				}
 				
-				if (g_controlParameter.tureChannel == SMPL_KY_NUM)
+				if (g_controlParameter.curChannel == SMPL_FH_NUM)
 				{
 					if ((tempu < 1000) || (tempu > 1000000))
 					{
@@ -1366,12 +1646,12 @@ static TestStatus ControlParameterCheckDataCycle( void )
 			
 			case OBJECT_MAX_FORCE_DIFF:
 				tempf = str2float(g_controlParameter.parameterData[index]);
-				if (g_controlParameter.showChannel == SMPL_KY_NUM)
+				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
 				{
 					tempf *= 1000;
 				}
 				
-				if (g_controlParameter.tureChannel == SMPL_KY_NUM)
+				if (g_controlParameter.curChannel == SMPL_FH_NUM)
 				{
 					if ((tempf < 100) || (tempf > 100000))
 					{
@@ -1394,30 +1674,6 @@ static TestStatus ControlParameterCheckDataCycle( void )
 	}
 	
 	return PASSED;
-}
-
-/*------------------------------------------------------------
- * Function Name  : GetControlParameterShowChannel
- * Description    : 获取控制参数显示通道
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-SMPL_NAME_TypeDef2 GetControlParameterShowChannel( void )
-{
-	return g_controlParameter.showChannel;
-}
-
-/*------------------------------------------------------------
- * Function Name  : GetControlParameterTureChannel
- * Description    : 获取控制参数真实通道
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-SMPL_NAME_TypeDef2 GetControlParameterTureChannel( void )
-{
-	return g_controlParameter.tureChannel;
 }
 
 /*------------------------------------------------------------

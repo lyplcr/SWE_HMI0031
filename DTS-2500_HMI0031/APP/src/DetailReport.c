@@ -331,17 +331,6 @@ static void DetailReportInit( void )
 	
 	g_detailReport.testType = (TEST_TYPE_TypeDef)GetSelectReportTestType();
 	
-	if ( (UNIT_kN==GetFH_SmplUnit() ) && (SMPL_KY_NUM==GetCurTestChannel(g_detailReport.testType)) )
-	{
-		g_detailReport.showChannel = SMPL_KY_NUM;	
-	}
-	else
-	{
-		g_detailReport.showChannel = SMPL_KZ_NUM;	
-	}
-	
-	g_detailReport.tureChannel = GetCurTestChannel(g_detailReport.testType);
-	
 	if (GetCurPageTestReportNum() == 0)
 	{
 		SetPage(TEST_REPORT_PAGE);
@@ -890,6 +879,8 @@ static void DetailReportConfig( void )
 			break;
 		case KZTY:
 			
+			break;
+		case KLJSSW:
 			break;
 		default:
 			break;

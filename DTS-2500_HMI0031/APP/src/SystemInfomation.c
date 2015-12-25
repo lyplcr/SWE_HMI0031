@@ -382,6 +382,12 @@ static void SystemInfomationReadParameter( void )
 			case MODEL_KZKY_YY:
 				strcpy(g_systemInfomation.parameterData[index],"液压式抗折抗压机");
 				break;	
+			case MODEL_UNIVERSAL_DZ:
+				strcpy(g_systemInfomation.parameterData[index],"电子式万能机");
+				break;
+			case MODEL_UNIVERSAL_YY:
+				strcpy(g_systemInfomation.parameterData[index],"液压式万能机");
+				break;
 			default:
 				strcpy(g_systemInfomation.parameterData[index],"未知机型");
 				break;

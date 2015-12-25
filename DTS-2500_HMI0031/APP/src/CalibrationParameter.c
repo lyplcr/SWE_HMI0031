@@ -184,15 +184,6 @@ static void CalibrationParameterInit( void )
 	g_calibrationParameter.leavePage.flagLeavePage = RESET;
 	g_calibrationParameter.leavePage.flagSaveData = RESET;
 	
-	if ( (UNIT_kN==GetFH_SmplUnit() ) && (SMPL_KY_NUM==GetChannelSelectChannel()) )
-	{
-		g_calibrationParameter.showChannel = SMPL_KY_NUM;	
-	}
-	else
-	{
-		g_calibrationParameter.showChannel = SMPL_KZ_NUM;	
-	}
-	
 	g_calibrationParameter.tureChannel = GetChannelSelectChannel();
 }
 

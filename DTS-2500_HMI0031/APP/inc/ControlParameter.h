@@ -17,8 +17,6 @@ typedef enum
 /* Exported variables --------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void LoadControlParameterPage( void );
-SMPL_NAME_TypeDef2 GetControlParameterShowChannel( void );
-SMPL_NAME_TypeDef2 GetControlParameterTureChannel( void );
 JUDGE_BREAK_TYPE_TypeDef GetJudgeBreakType( SMPL_NAME_TypeDef2 channel );
 uint8_t GetTargetAttenuationRate( SMPL_NAME_TypeDef2 channel );
 float GetTargetWithMaxForceDifference( SMPL_NAME_TypeDef2 channel );

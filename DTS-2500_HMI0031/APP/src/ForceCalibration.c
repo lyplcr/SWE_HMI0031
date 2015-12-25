@@ -293,17 +293,6 @@ static void ForceCalibationInit( void )
 	g_ForceCalibration.curPageSampleNum = 0;
 	g_ForceCalibration.sumSampleNum = 0;	
 	g_ForceCalibration.sumPage = 1;
-	
-	if ( (UNIT_kN==GetFH_SmplUnit() ) && (SMPL_KY_NUM==GetChannelSelectChannel()) )
-	{
-		g_ForceCalibration.showChannel = SMPL_KY_NUM;	
-	}
-	else
-	{
-		g_ForceCalibration.showChannel = SMPL_KZ_NUM;	
-	}
-	
-	g_ForceCalibration.tureChannel = GetChannelSelectChannel();
 }
 
 /*------------------------------------------------------------

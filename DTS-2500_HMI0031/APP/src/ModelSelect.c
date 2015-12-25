@@ -22,19 +22,16 @@
 #define COLOR_POINT						WHITE
 #define	COLOR_BACK						BLACK
 
-#define MAX_MENU_NUM					5
+#define MAX_MENU_NUM					2
 
-#define MACHINE_TONS_NUM				1
-#define MAX_MACHINE_TONS_PUTIN_BIT		3
+#define CONFIG_MACHINE_PARAMETER_NUM	3
+#define MAX_CONFIG_MACHINE_PUTIN_BIT	4
 
 /* Private typedef -----------------------------------------------------------*/
 typedef enum
 {
-	INDEX_KY_DZ = 0,		//电子抗压机
-	INDEX_KZ_DZ,			//电子抗折机
-	INDEX_KZKY_DZ,			//电子式抗折抗压一体机
-	INDEX_KY_YY,			//液压抗压机
-	INDEX_KZKY_YY,			//液压式抗折抗压一体机
+	INDEX_UNIVERSAL_DZ = 0,		//电子万能机
+	INDEX_UNIVERSAL_YY,			//液压抗折机
 }INDEX_MODEL_SELECT_TypeDef;
 
 typedef struct
@@ -51,43 +48,59 @@ typedef struct
 	LEAVE_PAGE_TypeDef leavePage;						
 }MODEL_SELECT_TypeDef;
 
+typedef enum
+{
+	INDEX_MACHINE_TONS = 0,		
+	INDEX_MAX_DISPALCEMENT,
+	INDEX_MAX_DEFORM,
+}INDEX_CONFIG_MACHINE_TypeDef;
+
+typedef enum
+{
+	OBJECT_MACHINE_TONS = 0,		
+	OBJECT_MAX_DISPALCEMENT,
+	OBJECT_MAX_DEFORM,
+}OBJECT_CONFIG_MACHINE_TypeDef;
+
 typedef struct
 {
 	uint8_t nowIndex;
 	uint8_t recordIndex;
-	char parameterData[MACHINE_TONS_NUM][MAX_MACHINE_TONS_PUTIN_BIT+1];
-	ONE_LEVEL_MENU_TYPE_TypeDef oneLevelMenu[MACHINE_TONS_NUM];
-	const char *pParameterNameArray[MACHINE_TONS_NUM];
+	char parameterData[CONFIG_MACHINE_PARAMETER_NUM][MAX_CONFIG_MACHINE_PUTIN_BIT+1];
+	ONE_LEVEL_MENU_TYPE_TypeDef oneLevelMenu[CONFIG_MACHINE_PARAMETER_NUM];
+	const char *pParameterNameArray[CONFIG_MACHINE_PARAMETER_NUM];
+	const char *pParameterUnitArray[CONFIG_MACHINE_PARAMETER_NUM];
+	uint8_t indexArray[CONFIG_MACHINE_PARAMETER_NUM];
+	BoolStatus isIndexMove;							//索引值移动
 	uint8_t curParameterNum;						//参数个数
 	uint8_t putinNum;								//输入字符个数
 	const char * pTitle;							//标题
 	LEAVE_PAGE_TypeDef leavePage;					//离开页
 	BoolStatus isCancelPutin;
-	SMPL_NAME_TypeDef2 channel;
-	uint16_t putinKYTons;
-	uint16_t putinKZTons;
-}MACHINE_TONS_TypeDef;
+	SMPL_NAME_TypeDef channel;
+	FunctionalState refreshShortcut;				//刷新快捷菜单
+}CONFIG_MACHINE_TypeDef;
 
 
 /* Private constants ---------------------------------------------------------*/
 const char * const pModelTypeName[] =
 {
-	"1、电子式抗压机",
-	"2、电子式抗折机",
-	"3、电子式抗折抗压机",
-	"4、液压式抗压机",
-	"5、液压式抗折抗压机",
+	"1、电子式万能机",
+	"2、液压式万能机",
 };
 
-const char * const pMachineTonsName[] =
+const char * const pMachineConfigName[] =
 {
-	"抗压机器吨位：",
-	"抗折机器吨位：",
+	"机器吨位：",
+	"最大位移：",
+	"最大变形：",
 };
 
-const char * const pMachineTonsWarn[] = 
+const char * const pConfigMachineWarn[] = 
 {
-	"吨位输入范围：1 ~ 1000 T",		//0
+	"吨位输入范围：1 ~ 1000",		//0
+	"最大位移输入范围：1 ~ 10000",	//1
+	"最大变形输入范围：1 ~ 10000",	//2
 };
 
 const char * const pModelSelectErrorCue[] =
@@ -105,7 +118,7 @@ const char * const pModelSelectMenuCue[] =
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static MODEL_SELECT_TypeDef g_modelSelect;
-static MACHINE_TONS_TypeDef g_machineTons;
+static CONFIG_MACHINE_TypeDef g_configMachine;
 
 /* Private function prototypes -----------------------------------------------*/
 static void ModelSelectInit( void );
@@ -116,18 +129,23 @@ static void ModelSelectMoveIndexProcess( void );
 static void ModelSelectMoveCursorProcess( void );
 static void ModelSelectKeyProcess( void );
 static void ModelSelectLeavePageCheckCycle( void );
-static void MachineTonsInit( void );
-static void MachineTonsParameterConfig( void );
-static void MachineTonsReadParameter( void );
-static void GUI_MachineTons( void );
-static void MachineTonsPutinProcess( void );
-static void Traverse_MachineTons( void );
-static void MachineTonsMoveCursorProcess( void );
-static void MachineTonsKeyProcess( void );
-static void MachineTonsLeavePageCheckCycle( void );
-static void LoadPutinMachineTonsPage( void );
-static void SetMachineTonsChannel( SMPL_NAME_TypeDef2 channel );
+
 static void SaveDefaultParameter( void );
+
+static void LoadConfigMachineParameterPage( void );
+static void ConfigMachineParameterInit( void );
+static void ConfigMachineParameterConfig( void );
+static void ConfigMachineParameterReadParameter( void );
+static void ConfigMachineParameterWriteParameter( void );
+static void GUI_ConfigMachineParameter( void );
+static void Traverse_ConfigMachineParameter( void );
+static void ConfigMachineParameterPutinProcess( void );
+static void ConfigMachineParameterMoveIndexProcess( void );
+static void ConfigMachineParameterMoveCursorProcess( void );
+static void ConfigMachineParameterKeyProcess( void );
+static void ConfigMachineParameterLeavePageCheckCycle( void );
+static uint8_t GetConfigMachineParameterIndex( uint8_t handle );
+static void ConfigMachineParameterShortcutCycleTask( void );
 
 /* Private functions ---------------------------------------------------------*/
 /*------------------------------------------------------------
@@ -211,7 +229,12 @@ MODEL_TYPE_TypeDef GetModelType( void )
 		case MODEL_KZKY_YY:
 			Type = MODEL_KZKY;
 			break;
-		
+		case MODEL_UNIVERSAL_DZ:
+			Type = MODEL_UNIVERSAL;
+			break;
+		case MODEL_UNIVERSAL_YY:
+			Type = MODEL_UNIVERSAL;
+			break;
 		default:
 			Type = MODEL_KY;
 			break;
@@ -254,18 +277,12 @@ static void ModelSelectConfig( void )
 	g_modelSelect.rowNum = MAX_MENU_NUM;
 	
 	/* 索引值 */		
-	g_modelSelect.indexArray[INDEX_KY_DZ] 		= MODEL_KY_DZ;	
-	g_modelSelect.indexArray[INDEX_KZ_DZ] 		= MODEL_KZ_DZ;		
-	g_modelSelect.indexArray[INDEX_KZKY_DZ] 	= MODEL_KZKY_DZ;		
-	g_modelSelect.indexArray[INDEX_KY_YY] 		= MODEL_KY_YY;			
-	g_modelSelect.indexArray[INDEX_KZKY_YY] 	= MODEL_KZKY_YY;
+	g_modelSelect.indexArray[INDEX_UNIVERSAL_DZ] 			= MODEL_UNIVERSAL_DZ;	
+	g_modelSelect.indexArray[INDEX_UNIVERSAL_YY] 			= MODEL_UNIVERSAL_YY;		
 	
 	/* 名称 */
-	g_modelSelect.pParameterNameArray[INDEX_KY_DZ]		= pModelTypeName[0];	
-	g_modelSelect.pParameterNameArray[INDEX_KZ_DZ] 		= pModelTypeName[1];		
-	g_modelSelect.pParameterNameArray[INDEX_KZKY_DZ] 	= pModelTypeName[2];		
-	g_modelSelect.pParameterNameArray[INDEX_KY_YY] 		= pModelTypeName[3];			
-	g_modelSelect.pParameterNameArray[INDEX_KZKY_YY] 	= pModelTypeName[4];
+	g_modelSelect.pParameterNameArray[INDEX_UNIVERSAL_DZ]	= pModelTypeName[0];	
+	g_modelSelect.pParameterNameArray[INDEX_UNIVERSAL_YY] 	= pModelTypeName[1];		
 	
 	/* 标题 */
 	g_modelSelect.pTitle = "机型选择";
@@ -313,6 +330,10 @@ static void ModelSelectReadParameter( void )
 	if (index != 0xff)
 	{
 		g_modelSelect.nowIndex = index;
+	}
+	else
+	{
+		g_modelSelect.nowIndex = 0;
 	}
 }
 
@@ -505,7 +526,6 @@ static void ModelSelectShortcutCheckCycle( void )
 	}
 }
 
-
 /*------------------------------------------------------------
  * Function Name  : ModelSelectKeyProcess
  * Description    : 按键处理
@@ -548,36 +568,15 @@ static void ModelSelectPutinTons( void )
 	
 	switch ( Model )
 	{
-		case MODEL_KY_DZ:
-			SetMachineTonsChannel(SMPL_KY_NUM);
+		case MODEL_UNIVERSAL_DZ:
 			break;
-		case MODEL_KZ_DZ:
-			SetMachineTonsChannel(SMPL_KZ_NUM);
+		case MODEL_UNIVERSAL_YY:			
 			break;
-		case MODEL_KZKY_DZ:
-			SetMachineTonsChannel(SMPL_KY_NUM);
-			LoadPutinMachineTonsPage();
-			if (g_machineTons.isCancelPutin == YES)
-			{
-				return;
-			}
-			SetMachineTonsChannel(SMPL_KZ_NUM);
-			break;
-		case MODEL_KY_YY:
-			SetMachineTonsChannel(SMPL_KY_NUM);
-			break;
-		case MODEL_KZKY_YY:
-			SetMachineTonsChannel(SMPL_KY_NUM);
-			LoadPutinMachineTonsPage();
-			if (g_machineTons.isCancelPutin == YES)
-			{
-				return;
-			}
-			SetMachineTonsChannel(SMPL_KZ_NUM);
+		default:
 			break;
 	}
 	
-	LoadPutinMachineTonsPage();
+	LoadConfigMachineParameterPage();
 }
 
 /*------------------------------------------------------------
@@ -595,7 +594,7 @@ static void ModelSelectLeavePageCheckCycle( void )
 		{			
 			ModelSelectPutinTons();
 			
-			if (g_machineTons.isCancelPutin == YES)
+			if (g_configMachine.isCancelPutin == YES)
 			{
 				SetPage(MODEL_SELECT_PAGE);
 				
@@ -654,65 +653,67 @@ static void SetIPAddr( const uint8_t *pIP )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void DefaultParameterSet( SMPL_NAME_TypeDef2 ch, MODEL_ATTRIBUTE_TypeDef type, uint16_t ton )
+static void DefaultParameterSet( MODEL_ATTRIBUTE_TypeDef type, uint16_t ton, \
+								 uint16_t maxDisplacement, uint16_t maxDeform )
 {	
 	const uint8_t DEFAULT_IP[] = {192,168,0,234};
+	const uint8_t USE_CHANNEL = 3;
+	uint8_t index = 0;
 	
 	//上位机参数
-	switch ( ch )
+	pHmi->test_standard_index = KYSNJS;
+	pHmi->attenuationRate[SMPL_KY_NUM] = 50;
+	pHmi->curveStayTime = 5;
+	
+	for (index=0; index<USE_CHANNEL; ++index)
 	{
-		case SMPL_KY_NUM:
-			pHmi->test_standard_index = KYSNJS;
-			if ( UNIT_kN==GetCurChannel() )
-			{
-				pHmi->start_force[SMPL_KY_NUM] 		  = 5000;
-				pHmi->run_wait_time[SMPL_KY_NUM] 	  = 180;
-				pHmi->break_judge_value[SMPL_KY_NUM]  = 10000;
-				pHmi->break_point[SMPL_KY_NUM] 	 	  = 1;	
-				pHmi->break_condition[SMPL_KY_NUM]    = 0;	
-				pHmi->break_max_value[SMPL_KY_NUM]    = 1000;	
-				pHmi->break_border_value[SMPL_KY_NUM] = 1000;
-			}
-			else
-			{
-				pHmi->start_force[SMPL_KY_NUM] 		  = 100;
-				pHmi->run_wait_time[SMPL_KY_NUM] 	  = 180;
-				pHmi->break_judge_value[SMPL_KY_NUM]  = 1000;
-				pHmi->break_point[SMPL_KY_NUM] 	 	  = 1;	
-				pHmi->break_condition[SMPL_KY_NUM]    = 0;	
-				pHmi->break_max_value[SMPL_KY_NUM]    = 100;	
-				pHmi->break_border_value[SMPL_KY_NUM] = 100;
-			}
-			pHmi->attenuationRate[SMPL_KY_NUM] = 50;
-			break;
-		
-		case SMPL_KZ_NUM:
-			pHmi->test_standard_index = KZSNJS;
-			pHmi->start_force[SMPL_KZ_NUM] 		  = 100;
-			pHmi->run_wait_time[SMPL_KZ_NUM] 	  = 180;
-			pHmi->break_judge_value[SMPL_KZ_NUM]  = 1000;
-			pHmi->break_point[SMPL_KZ_NUM] 	 	  = 1;	
-			pHmi->break_condition[SMPL_KZ_NUM]    = 0;	
-			pHmi->break_max_value[SMPL_KZ_NUM]    = 100;	
-			pHmi->break_border_value[SMPL_KZ_NUM] = 100;
-			pHmi->attenuationRate[SMPL_KZ_NUM] = 50;
-			break;
+		switch ( index )
+		{
+			case SMPL_FH_NUM:
+				if ( FH_UNIT_kN == GetFH_SmplUnit() )
+				{
+					pHmi->start_force[index] 		= 5000;
+					pHmi->run_wait_time[index] 	  	= 180;
+					pHmi->break_judge_value[index]  = 10000;
+					pHmi->break_point[index] 	 	= 1;	
+					pHmi->break_condition[index]    = 0;	
+					pHmi->break_max_value[index]    = 5000;	
+					pHmi->break_border_value[index] = 5000;
+				}
+				else
+				{
+					pHmi->start_force[index] 		= 100;
+					pHmi->run_wait_time[index] 	  	= 180;
+					pHmi->break_judge_value[index]  = 1000;
+					pHmi->break_point[index] 	 	= 1;	
+					pHmi->break_condition[index]    = 0;	
+					pHmi->break_max_value[index]    = 500;	
+					pHmi->break_border_value[index] = 500;
+				}			
+				break;
+			
+			case SMPL_WY_NUM:
+				break;
+			
+			case SMPL_BX_NUM:					
+				break;		
+		}
 	}
 	
 	switch ( type )
 	{
 		case HYDRAULIC_PRESS:
-			spcl_quick_up_set(ch,33500);		//快升初始开度
-			spcl_quick_down_set(ch,500);		//快升步进
-			spcl_slow_up_set(ch,33500);			//慢升初始开度
-			spcl_slow_down_set(ch,100);			//慢升步进
+			spcl_quick_up_set(SMPL_KY_NUM,33500);		//快升初始开度
+			spcl_quick_down_set(SMPL_KY_NUM,500);		//快升步进
+			spcl_slow_up_set(SMPL_KY_NUM,33500);		//慢升初始开度
+			spcl_slow_down_set(SMPL_KY_NUM,100);		//慢升步进
 			break;
 		
 		case ELECTRONIC:
-			pHmi->manual_fast_open[ch] = 800;	
-			pHmi->manual_fast_step[ch] = 400;
-			pHmi->manual_slow_open[ch] = 800;
-			pHmi->manual_slow_step[ch] = 100;
+			pHmi->manual_fast_open[SMPL_KY_NUM] = 800;	
+			pHmi->manual_fast_step[SMPL_KY_NUM] = 400;
+			pHmi->manual_slow_open[SMPL_KY_NUM] = 800;
+			pHmi->manual_slow_step[SMPL_KY_NUM] = 100;
 			break;
 	}
 	
@@ -727,120 +728,103 @@ static void DefaultParameterSet( SMPL_NAME_TypeDef2 ch, MODEL_ATTRIBUTE_TypeDef 
 	switch ( type )
 	{
 		case HYDRAULIC_PRESS:
-			switch ( ch )
-			{
-				case SMPL_KY_NUM:
-					spcl_unload_delay_set(SMPL_KY_NUM,3);
-					spcl_valve_init_set(SMPL_KY_NUM,33500);
-					spcl_valve_middle_set(SMPL_KY_NUM,20000);
-					spcl_valve_back_set(SMPL_KY_NUM,1000);
-					break;
-				
-				case SMPL_KZ_NUM:
-					spcl_unload_delay_set(SMPL_KZ_NUM,3);
-					spcl_valve_init_set(SMPL_KZ_NUM,31500);
-					spcl_valve_middle_set(SMPL_KZ_NUM,20000);
-					spcl_valve_back_set(SMPL_KZ_NUM,1000);
-					break;
-			}
+			spcl_unload_delay_set(SMPL_KY_NUM,3);
+			spcl_valve_init_set(SMPL_KY_NUM,33500);
+			spcl_valve_middle_set(SMPL_KY_NUM,20000);
+			spcl_valve_back_set(SMPL_KY_NUM,1000);
 			break;
 		
 		case ELECTRONIC:
-			spcl_unload_delay_set(ch,3);
-			spcl_valve_init_set(ch,800);
-			spcl_valve_back_set(ch,400);	
+			spcl_unload_delay_set(SMPL_KY_NUM,3);
+			spcl_valve_init_set(SMPL_KY_NUM,800);
+			spcl_valve_back_set(SMPL_KY_NUM,400);	
 			break;
 	}
 					
 	//传感器参数	
-	switch ( ch )
+	for (index=0; index<USE_CHANNEL; ++index)
 	{
-		case SMPL_KY_NUM:
-			if ( UNIT_kN==GetCurChannel() )
-			{
-				smpl_ctrl_full_p_set(SMPL_KY_NUM,10000*ton);	//单位：T -> N
-				smpl_ctrl_full_n_set(SMPL_KY_NUM,(-10000)*ton);	
-				smpl_ctrl_entry_set(SMPL_KY_NUM,5000);
-				smpl_cof_ahead_set(SMPL_KY_NUM,1);
-				smpl_cof_break_set(SMPL_KY_NUM,1);
-				smpl_cof_spd_set(SMPL_KY_NUM,3000);
-				smpl_ctrl_crash_set(SMPL_KY_NUM,10000);
-				smpl_ctrl_overspeed_set(SMPL_KY_NUM,10000);	
-				smpl_tab_num_set(SMPL_KY_NUM,2);
-				smpl_tab_value_set(SMPL_KY_NUM,0,0);
-				smpl_tab_value_set(SMPL_KY_NUM,1,10000*ton);		
-				smpl_tab_code_set(SMPL_KY_NUM,0,0);	
-				smpl_pid_segs_set(SMPL_KY_NUM,1);
-				smpl_pid_node_set(SMPL_KY_NUM,0,10000*ton);
-				smpl_pid_kp_set(SMPL_KY_NUM,0,800);
-				smpl_pid_ki_set(SMPL_KY_NUM,0,200);
-				smpl_pid_kd_set(SMPL_KY_NUM,0,0);
-			}
-			else
-			{
-				smpl_ctrl_full_p_set(SMPL_KY_NUM,10000*ton);	//单位：T -> N
-				smpl_ctrl_full_n_set(SMPL_KY_NUM,(-10000)*ton);	
-				smpl_ctrl_entry_set(SMPL_KY_NUM,100);
-				smpl_cof_ahead_set(SMPL_KY_NUM,1);
-				smpl_cof_break_set(SMPL_KY_NUM,1);
-				smpl_cof_spd_set(SMPL_KY_NUM,3000);
-				smpl_ctrl_crash_set(SMPL_KY_NUM,500);
-				smpl_ctrl_overspeed_set(SMPL_KY_NUM,500);	
-				smpl_tab_num_set(SMPL_KY_NUM,2);
-				smpl_tab_value_set(SMPL_KY_NUM,0,0);
-				smpl_tab_value_set(SMPL_KY_NUM,1,10000*ton);		
-				smpl_tab_code_set(SMPL_KY_NUM,0,0);	
-				smpl_pid_segs_set(SMPL_KY_NUM,1);
-				smpl_pid_node_set(SMPL_KY_NUM,0,10000*ton);
-				smpl_pid_kp_set(SMPL_KY_NUM,0,800);
-				smpl_pid_ki_set(SMPL_KY_NUM,0,200);
-				smpl_pid_kd_set(SMPL_KY_NUM,0,0);
-			}
+		switch ( index )
+		{
+			case SMPL_FH_NUM:
+				if ( FH_UNIT_kN == GetFH_SmplUnit() )
+				{
+					smpl_ctrl_full_p_set(index,10000*ton);	//单位：T -> N
+					smpl_ctrl_full_n_set(index,(-10000)*ton);	
+					smpl_ctrl_entry_set(index,5000);
+					smpl_cof_ahead_set(index,1);
+					smpl_cof_break_set(index,1);
+					smpl_cof_spd_set(index,3000);
+					smpl_ctrl_crash_set(index,10000);
+					smpl_ctrl_overspeed_set(index,10000);	
+					
+					/* 标定表 */
+					smpl_tab_num_set(index,2);
+					smpl_tab_value_set(index,0,0);
+					smpl_tab_code_set(index,0,0);	
+					smpl_tab_value_set(index,1,10000*ton);		
+					smpl_tab_code_set(index,1,80000);
+					
+					/* PID */
+					smpl_pid_segs_set(index,1);
+					smpl_pid_node_set(index,0,10000*ton);
+					smpl_pid_kp_set(index,0,800);
+					smpl_pid_ki_set(index,0,200);
+					smpl_pid_kd_set(index,0,0);
+				}
+				else
+				{
+					smpl_ctrl_full_p_set(index,10000*ton);	//单位：T -> N
+					smpl_ctrl_full_n_set(index,(-10000)*ton);	
+					smpl_ctrl_entry_set(index,100);
+					smpl_cof_ahead_set(index,1);
+					smpl_cof_break_set(index,1);
+					smpl_cof_spd_set(index,3000);
+					smpl_ctrl_crash_set(index,500);
+					smpl_ctrl_overspeed_set(index,500);	
+					
+					/* 标定表 */
+					smpl_tab_num_set(index,2);
+					smpl_tab_value_set(index,0,0);
+					smpl_tab_code_set(index,0,0);
+					smpl_tab_value_set(index,1,10000*ton);							
+					smpl_tab_code_set(index,1,80000);
+					
+					/* PID */
+					smpl_pid_segs_set(index,1);
+					smpl_pid_node_set(index,0,10000*ton);
+					smpl_pid_kp_set(index,0,800);
+					smpl_pid_ki_set(index,0,200);
+					smpl_pid_kd_set(index,0,0);
+				}			
+				break;
+		
+			case SMPL_WY_NUM:
+				smpl_ctrl_full_p_set(index,maxDisplacement);		
+				smpl_ctrl_full_n_set(index,-maxDisplacement);	
+				
+				/* 标定表 */
+				smpl_tab_num_set(index,2);
+				smpl_tab_value_set(index,0,0);
+				smpl_tab_code_set(index,0,0);	
+				smpl_tab_value_set(index,1,maxDisplacement);		
+				smpl_tab_code_set(index,1,80000);
+				break;
+				
+			case SMPL_BX_NUM:
+				smpl_ctrl_full_p_set(index,maxDeform);		
+				smpl_ctrl_full_n_set(index,-maxDeform);	
 			
-			switch ( type )
-			{
-				case HYDRAULIC_PRESS:
-					smpl_tab_code_set(SMPL_KY_NUM,1,80000);
-					break;
-				
-				case ELECTRONIC:
-					smpl_tab_code_set(SMPL_KY_NUM,1,80000);
-					break;
-			}			
-			break;
-	
-		case SMPL_KZ_NUM:
-			smpl_ctrl_full_p_set(SMPL_KZ_NUM,10000*ton);	//单位：T -> N
-			smpl_ctrl_full_n_set(SMPL_KZ_NUM,(-10000)*ton);	
-			smpl_ctrl_entry_set(SMPL_KZ_NUM,100);
-			smpl_cof_ahead_set(SMPL_KZ_NUM,1);
-			smpl_cof_break_set(SMPL_KZ_NUM,1);
-			smpl_cof_spd_set(SMPL_KZ_NUM,3000);
-			smpl_ctrl_crash_set(SMPL_KZ_NUM,500);
-			smpl_ctrl_overspeed_set(SMPL_KZ_NUM,500);	
-			smpl_tab_num_set(SMPL_KZ_NUM,2);
-			smpl_tab_value_set(SMPL_KZ_NUM,0,0);
-			smpl_tab_value_set(SMPL_KZ_NUM,1,10000*ton);		
-			smpl_tab_code_set(SMPL_KZ_NUM,0,0);	
-			smpl_pid_segs_set(SMPL_KZ_NUM,1);
-			smpl_pid_node_set(SMPL_KZ_NUM,0,10000*ton);
-			smpl_pid_kp_set(SMPL_KZ_NUM,0,800);
-			smpl_pid_ki_set(SMPL_KZ_NUM,0,200);
-			smpl_pid_kd_set(SMPL_KZ_NUM,0,0);
-			switch ( type )
-			{
-				case HYDRAULIC_PRESS:
-					smpl_tab_code_set(SMPL_KZ_NUM,1,80000);		//抗折通道的传感器都是负荷传感器
-					break;
-				
-				case ELECTRONIC:
-					smpl_tab_code_set(SMPL_KZ_NUM,1,80000);
-					break;
-			}			
-			break;
+				/* 标定表 */
+				smpl_tab_num_set(index,2);
+				smpl_tab_value_set(index,0,0);
+				smpl_tab_code_set(index,0,0);	
+				smpl_tab_value_set(index,1,maxDeform);		
+				smpl_tab_code_set(index,1,80000);
+				break;
+		}
 	}
 }
-
 
 /*------------------------------------------------------------
  * Function Name  : SaveDefaultParameter
@@ -852,31 +836,38 @@ static void DefaultParameterSet( SMPL_NAME_TypeDef2 ch, MODEL_ATTRIBUTE_TypeDef 
 static void SaveDefaultParameter( void )
 {	
 	uint8_t model = 0;
+	uint16_t ton = 0;
+	uint16_t maxDisplacement = 0;
+	uint16_t maxDeform = 0;
+	uint8_t index = 0;
 
+	index = GetConfigMachineParameterIndex(OBJECT_MACHINE_TONS);
+	if (index != 0xff)
+	{
+		ton = ustrtoul(g_configMachine.parameterData[index],0,10);
+	}
+
+	index = GetConfigMachineParameterIndex(OBJECT_MAX_DISPALCEMENT);
+	if (index != 0xff)
+	{
+		maxDisplacement = ustrtoul(g_configMachine.parameterData[index],0,10);
+	}
+	
+	index = GetConfigMachineParameterIndex(OBJECT_MAX_DEFORM);
+	if (index != 0xff)
+	{
+		maxDeform = ustrtoul(g_configMachine.parameterData[index],0,10);
+	}
+	
 	model = devc_token_get();
 	
 	switch ( model )
-	{
-		case MODEL_KY_DZ:
-			DefaultParameterSet(SMPL_KY_NUM,ELECTRONIC,g_machineTons.putinKYTons);	
+	{	
+		case MODEL_UNIVERSAL_DZ:
+			DefaultParameterSet(ELECTRONIC,ton,maxDisplacement,maxDeform);
 			break;
-		
-		case MODEL_KZ_DZ:
-			DefaultParameterSet(SMPL_KZ_NUM,ELECTRONIC,g_machineTons.putinKZTons);
-			break;		
-		
-		case MODEL_KZKY_DZ:
-			DefaultParameterSet(SMPL_KY_NUM,ELECTRONIC,g_machineTons.putinKYTons);
-			DefaultParameterSet(SMPL_KZ_NUM,ELECTRONIC,g_machineTons.putinKZTons);
-			break;
-		
-		case MODEL_KY_YY:
-			DefaultParameterSet(SMPL_KY_NUM,HYDRAULIC_PRESS,g_machineTons.putinKYTons);
-			break;
-		
-		case MODEL_KZKY_YY:
-			DefaultParameterSet(SMPL_KY_NUM,HYDRAULIC_PRESS,g_machineTons.putinKYTons);
-			DefaultParameterSet(SMPL_KZ_NUM,HYDRAULIC_PRESS,g_machineTons.putinKZTons);
+		case MODEL_UNIVERSAL_YY:
+			DefaultParameterSet(HYDRAULIC_PRESS,ton,maxDisplacement,maxDeform);
 			break;
 	}
 	
@@ -886,415 +877,611 @@ static void SaveDefaultParameter( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : LoadPutinMachineTonsPage
- * Description    : 输入机器吨位页
+ * Function Name  : LoadConfigMachineParameterPage
+ * Description    : 配置机器参数页
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void LoadPutinMachineTonsPage( void )
+static void LoadConfigMachineParameterPage( void )
 {
 	/* 关闭屏幕 */
 	SetBackLightEffectClose(COLOR_BACK);
 	
 	/* 参数初始化 */
-	MachineTonsInit();
+	ConfigMachineParameterInit();
 	
 	/* 参数配置 */
-	MachineTonsParameterConfig();
+	ConfigMachineParameterConfig();
 	
 	/* 获取参数 */
-	MachineTonsReadParameter();
+	ConfigMachineParameterReadParameter();
 	
 	/* 画GUI框架 */
-	GUI_MachineTons();
+	GUI_ConfigMachineParameter();
 	
 	/* 遍历 */
-	Traverse_MachineTons();
+	Traverse_ConfigMachineParameter();
 	
 	/* 打开屏幕 */
 	SetBackLightEffectOpen();
 	
-	while (g_machineTons.leavePage.flagLeavePage == RESET)
+	while (g_configMachine.leavePage.flagLeavePage == RESET)
 	{
 		/* 输入处理 */
-		MachineTonsPutinProcess();
+		ConfigMachineParameterPutinProcess();
+		
+		/* 移动索引 */
+		ConfigMachineParameterMoveIndexProcess();
 		
 		/* 移动光标 */
-		MachineTonsMoveCursorProcess();
+		ConfigMachineParameterMoveCursorProcess();
 		
 		/* 按键处理 */
-		MachineTonsKeyProcess();
+		ConfigMachineParameterKeyProcess();
+		
+		/* 快捷菜单 */
+		ConfigMachineParameterShortcutCycleTask();
 		
 		/* 弹窗处理 */
 		PopWindowsProcessCycle();
 		
 		/* 离开页 */
-		MachineTonsLeavePageCheckCycle();
+		ConfigMachineParameterLeavePageCheckCycle();
 	}
 }
 
 /*------------------------------------------------------------
- * Function Name  : MachineTonsInit
+ * Function Name  : ConfigMachineParameterInit
  * Description    : 初始化
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MachineTonsInit( void )
+static void ConfigMachineParameterInit( void )
 {	
-	g_machineTons.nowIndex = 0;
-	g_machineTons.recordIndex = 0xff;
-	g_machineTons.leavePage.flagLeavePage = RESET;
-	g_machineTons.leavePage.flagSaveData = RESET;
-	g_machineTons.isCancelPutin = NO;
+	g_configMachine.nowIndex = 0;
+	g_configMachine.recordIndex = 0xff;
+	g_configMachine.leavePage.flagLeavePage = RESET;
+	g_configMachine.leavePage.flagSaveData = RESET;
+	g_configMachine.isCancelPutin = NO;
+	g_configMachine.refreshShortcut = ENABLE;
+	
 	InitKeyCheck();
 }
 
 /*------------------------------------------------------------
- * Function Name  : SetMachineTonsChannel
- * Description    : 设置通道
+ * Function Name  : GetConfigMachineParameterIndex
+ * Description    : 获取索引
  * Input          : None
  * Output         : None
- * Return         : None
+ * Return         : 0xff：表示未找到配置项
  *------------------------------------------------------------*/
-static void SetMachineTonsChannel( SMPL_NAME_TypeDef2 channel )
+static uint8_t GetConfigMachineParameterIndex( uint8_t handle )
 {
-	g_machineTons.channel = channel;
+	uint8_t i;
+	uint8_t index = 0xff;	//错误的值
+	
+	for (i=0; i<g_configMachine.curParameterNum; ++i)
+	{
+		if (g_configMachine.indexArray[i] == handle)
+		{
+			index = i;
+			break;
+		}
+	}
+	
+	return index;
 }
 
 /*------------------------------------------------------------
- * Function Name  : MachineTonsParameterConfig
+ * Function Name  : ConfigMachineParameterConfig
  * Description    : 参数配置
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MachineTonsParameterConfig( void )
+static void ConfigMachineParameterConfig( void )
 {
-	g_machineTons.pTitle = "机型配置";
+	g_configMachine.pTitle = "机型配置";
 	
-	g_machineTons.curParameterNum = MACHINE_TONS_NUM;
+	/* 参数个数 */
+	g_configMachine.curParameterNum = CONFIG_MACHINE_PARAMETER_NUM;
 	
-	if (g_machineTons.channel == SMPL_KY_NUM)
-	{
-		g_machineTons.pParameterNameArray[0] = pMachineTonsName[0];
-	}
-	else
-	{
-		g_machineTons.pParameterNameArray[0] = pMachineTonsName[1];
-	}
-	g_machineTons.oneLevelMenu[0].saveType = TYPE_INT;
+	/* 索引值 */
+	g_configMachine.indexArray[INDEX_MACHINE_TONS] 		= OBJECT_MACHINE_TONS;
+	g_configMachine.indexArray[INDEX_MAX_DISPALCEMENT] 	= OBJECT_MAX_DISPALCEMENT;
+	g_configMachine.indexArray[INDEX_MAX_DEFORM] 		= OBJECT_MAX_DEFORM;
+	
+	/* 参数名 */
+	g_configMachine.pParameterNameArray[INDEX_MACHINE_TONS] 	= pMachineConfigName[0];
+	g_configMachine.pParameterNameArray[INDEX_MAX_DISPALCEMENT] = pMachineConfigName[1];
+	g_configMachine.pParameterNameArray[INDEX_MAX_DEFORM] 		= pMachineConfigName[2];
+	
+	/* 保存类型 */
+	g_configMachine.oneLevelMenu[INDEX_MACHINE_TONS].saveType 		= TYPE_INT;
+	g_configMachine.oneLevelMenu[INDEX_MAX_DISPALCEMENT].saveType 	= TYPE_INT;
+	g_configMachine.oneLevelMenu[INDEX_MAX_DEFORM].saveType 		= TYPE_INT;
+	
+	/* 单位 */
+	g_configMachine.pParameterUnitArray[INDEX_MACHINE_TONS] 	= pUnitType[11];
+	g_configMachine.pParameterUnitArray[INDEX_MAX_DISPALCEMENT] = pUnitType[4];
+	g_configMachine.pParameterUnitArray[INDEX_MAX_DEFORM] 		= pUnitType[4];
 }
 
 /*------------------------------------------------------------
- * Function Name  : MachineTonsReadParameter
+ * Function Name  : ConfigMachineParameterReadParameter
  * Description    : 读参数
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MachineTonsReadParameter( void )
+static void ConfigMachineParameterReadParameter( void )
 {
-	g_machineTons.parameterData[0][0] = NULL;
+	uint8_t index = 0;
+	
+	index = GetConfigMachineParameterIndex(OBJECT_MACHINE_TONS);
+	if (index != 0xff)
+	{
+		g_configMachine.parameterData[index][0] = NULL;
+	}
+
+	index = GetConfigMachineParameterIndex(OBJECT_MAX_DISPALCEMENT);
+	if (index != 0xff)
+	{
+		g_configMachine.parameterData[index][0] = NULL;
+	}
+	
+	index = GetConfigMachineParameterIndex(OBJECT_MAX_DEFORM);
+	if (index != 0xff)
+	{
+		g_configMachine.parameterData[index][0] = NULL;
+	}
 }	
 
 /*------------------------------------------------------------
- * Function Name  : MachineTonsWriteParameter
+ * Function Name  : ConfigMachineParameterWriteParameter
  * Description    : 写参数
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MachineTonsWriteParameter( void )
+static void ConfigMachineParameterWriteParameter( void )
 {
-	uint16_t tons = (uint16_t)ustrtoul(g_machineTons.parameterData[0],0,10);
-	
-	if (g_machineTons.channel == SMPL_KY_NUM)
-	{
-		g_machineTons.putinKYTons = tons;
-	}
-	else
-	{
-		g_machineTons.putinKZTons = tons;
-	}
+	;
 }
 
 /*------------------------------------------------------------
- * Function Name  : ConfigMachineTonsParameterRectangleFrameCoordinate
+ * Function Name  : ConfigMachineParameterRectangleFrameCoordinate
  * Description    : 配置界面GUI坐标
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void ConfigMachineTonsParameterRectangleFrameCoordinate( void )
+static void ConfigMachineParameterRectangleFrameCoordinate( void )
 {
 	const uint16_t START_X = 349;
-	const uint16_t START_Y = 229;
+	const uint16_t START_Y = 147;
 	uint16_t startX = START_X;
 	uint16_t startY = START_Y;
 	uint8_t i;
 	
-	for (i=0; i<g_machineTons.curParameterNum; ++i)
+	for (i=0; i<g_configMachine.curParameterNum; ++i)
 	{
-		g_machineTons.oneLevelMenu[i].x = startX;
-		g_machineTons.oneLevelMenu[i].y = startY;
-		g_machineTons.oneLevelMenu[i].pointColor = COLOR_POINT;
-		g_machineTons.oneLevelMenu[i].backColor = COLOR_BACK;
-		g_machineTons.oneLevelMenu[i].recordPointColor = COLOR_POINT;
-		g_machineTons.oneLevelMenu[i].recordBackColor = COLOR_BACK;
-		g_machineTons.oneLevelMenu[i].lenth = 42;
-		g_machineTons.oneLevelMenu[i].width = 30;
-		g_machineTons.oneLevelMenu[i].fontSize = 24;
-		g_machineTons.oneLevelMenu[i].rowDistance = 48;
-		g_machineTons.oneLevelMenu[i].columnDistance = 48;
-		g_machineTons.oneLevelMenu[i].lineWidth = 2;
+		g_configMachine.oneLevelMenu[i].x = startX;
+		g_configMachine.oneLevelMenu[i].y = startY;
+		g_configMachine.oneLevelMenu[i].pointColor = COLOR_POINT;
+		g_configMachine.oneLevelMenu[i].backColor = COLOR_BACK;
+		g_configMachine.oneLevelMenu[i].recordPointColor = COLOR_POINT;
+		g_configMachine.oneLevelMenu[i].recordBackColor = COLOR_BACK;
+		g_configMachine.oneLevelMenu[i].lenth = 114;
+		g_configMachine.oneLevelMenu[i].width = 30;
+		g_configMachine.oneLevelMenu[i].fontSize = 24;
+		g_configMachine.oneLevelMenu[i].rowDistance = 48;
+		g_configMachine.oneLevelMenu[i].columnDistance = 48;
+		g_configMachine.oneLevelMenu[i].lineWidth = 2;
 		
-		startY += g_machineTons.oneLevelMenu[i].width + g_machineTons.oneLevelMenu[i].rowDistance;
+		startY += g_configMachine.oneLevelMenu[i].width + g_configMachine.oneLevelMenu[i].rowDistance;
 	}
 }
 
 /*------------------------------------------------------------
- * Function Name  : GUI_MachineTonsDrawOneRectangleFrame
+ * Function Name  : GUI_ConfigMachineParameterDrawOneRectangleFrame
  * Description    : 参数界面GUI
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_MachineTonsDrawOneRectangleFrame( uint8_t index )
+static void GUI_ConfigMachineParameterDrawOneRectangleFrame( uint8_t index )
 {
 	RECTANGLE_FRAME_TypeDef rectangle;
 	
-	rectangle.x = g_machineTons.oneLevelMenu[index].x;
-	rectangle.y = g_machineTons.oneLevelMenu[index].y;
-	rectangle.lenth = g_machineTons.oneLevelMenu[index].lenth;
-	rectangle.width = g_machineTons.oneLevelMenu[index].width;
-	rectangle.lineWidth = g_machineTons.oneLevelMenu[index].lineWidth;
-	rectangle.lineColor = g_machineTons.oneLevelMenu[index].pointColor;
+	rectangle.x = g_configMachine.oneLevelMenu[index].x;
+	rectangle.y = g_configMachine.oneLevelMenu[index].y;
+	rectangle.lenth = g_configMachine.oneLevelMenu[index].lenth;
+	rectangle.width = g_configMachine.oneLevelMenu[index].width;
+	rectangle.lineWidth = g_configMachine.oneLevelMenu[index].lineWidth;
+	rectangle.lineColor = g_configMachine.oneLevelMenu[index].pointColor;
 	
 	GUI_DrawRectangleFrame(&rectangle);
 }
 
 /*------------------------------------------------------------
- * Function Name  : GUI_MachineTonsRectangleFrame
+ * Function Name  : GUI_ConfigMachineParameterRectangleFrame
  * Description    : 参数界面GUI
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_MachineTonsRectangleFrame( void )
+static void GUI_ConfigMachineParameterRectangleFrame( void )
 {
 	uint8_t i;
 	
-	for (i=0; i<g_machineTons.curParameterNum; ++i)
+	for (i=0; i<g_configMachine.curParameterNum; ++i)
 	{
-		GUI_MachineTonsDrawOneRectangleFrame(i);
+		GUI_ConfigMachineParameterDrawOneRectangleFrame(i);
 	}	
 }
 
 /*------------------------------------------------------------
- * Function Name  : GUI_MachineTonsDrawOneRowOneLevelMenu
+ * Function Name  : GUI_ConfigMachineParameterDrawOneRowOneLevelMenu
  * Description    : 参数界面GUI
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_MachineTonsDrawOneRowOneLevelMenu( uint8_t index )
+static void GUI_ConfigMachineParameterDrawOneRowOneLevelMenu( uint8_t index )
 {
-	const uint16_t x = g_machineTons.oneLevelMenu[index].x - 7 * g_machineTons.oneLevelMenu[index].fontSize;
-	const uint16_t y = g_machineTons.oneLevelMenu[index].y + g_machineTons.oneLevelMenu[index].lineWidth + 1;
-	const uint16_t pointColor = g_machineTons.oneLevelMenu[index].pointColor;
-	const uint16_t backColor = g_machineTons.oneLevelMenu[index].backColor;
+	const uint16_t x = g_configMachine.oneLevelMenu[index].x - 5 * g_configMachine.oneLevelMenu[index].fontSize;
+	const uint16_t y = g_configMachine.oneLevelMenu[index].y + g_configMachine.oneLevelMenu[index].lineWidth + 1;
+	const uint16_t pointColor = g_configMachine.oneLevelMenu[index].pointColor;
+	const uint16_t backColor = g_configMachine.oneLevelMenu[index].backColor;
 	
-	GUI_DispStr24At(x,y,pointColor,backColor,g_machineTons.pParameterNameArray[index]);
+	GUI_DispStr24At(x,y,pointColor,backColor,g_configMachine.pParameterNameArray[index]);
 }
 
 /*------------------------------------------------------------
- * Function Name  : GUI_MachineTonsOneLevelMenu
+ * Function Name  : GUI_ConfigMachineParameterOneLevelMenu
  * Description    : 参数界面一级菜单
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_MachineTonsOneLevelMenu( void )
+static void GUI_ConfigMachineParameterOneLevelMenu( void )
 {	
 	uint8_t i;
 	
-	for (i=0; i<g_machineTons.curParameterNum; ++i)
+	for (i=0; i<g_configMachine.curParameterNum; ++i)
 	{
-		GUI_MachineTonsDrawOneRowOneLevelMenu(i);
+		GUI_ConfigMachineParameterDrawOneRowOneLevelMenu(i);
 	}
 }
 
 /*------------------------------------------------------------
- * Function Name  : GUI_TimeDate
+ * Function Name  : GUI_ConfigMachineParameter
  * Description    : 界面GUI
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_MachineTons( void )
+static void GUI_ConfigMachineParameter( void )
 {
-	GUI_DrawGeneralTitleRectangleFrame(g_machineTons.pTitle);
+	GUI_DrawGeneralTitleRectangleFrame(g_configMachine.pTitle);
 	
-	ConfigMachineTonsParameterRectangleFrameCoordinate();
+	ConfigMachineParameterRectangleFrameCoordinate();
 	
-	GUI_MachineTonsRectangleFrame();
+	GUI_ConfigMachineParameterRectangleFrame();
 	
-	GUI_MachineTonsOneLevelMenu();
+	GUI_ConfigMachineParameterOneLevelMenu();
 }
 
 /*------------------------------------------------------------
- * Function Name  : Show_MachineTonsDataOneRowOneLevelMenuContent
+ * Function Name  : Show_ConfigMachineParameterOneRowOneLevelMenuUnit
+ * Description    : 显示一行试验参数单位
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void Show_ConfigMachineParameterOneRowOneLevelMenuUnit( uint8_t index )
+{
+	const uint16_t x = g_configMachine.oneLevelMenu[index].x + g_configMachine.oneLevelMenu[index].lenth - \
+					   g_configMachine.oneLevelMenu[index].lineWidth - 5 * 12;
+	const uint16_t y = g_configMachine.oneLevelMenu[index].y + g_configMachine.oneLevelMenu[index].lineWidth + 1;
+	const uint16_t pointColor = g_configMachine.oneLevelMenu[index].pointColor;
+	const uint16_t backColor = g_configMachine.oneLevelMenu[index].backColor;
+	
+	if ( strcmp(g_configMachine.pParameterUnitArray[index],"NULL") )
+	{
+		GUI_DispStr24At(x,y,pointColor,backColor,g_configMachine.pParameterUnitArray[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : Show_TestParameterOneLevelMenuUnit
+ * Description    : 显示一级菜单单位
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void Show_ConfigMachineParameterOneLevelMenuUnit( void )
+{
+	uint8_t i;
+	
+	for (i=0; i<g_configMachine.curParameterNum; ++i)
+	{
+		Show_ConfigMachineParameterOneRowOneLevelMenuUnit(i);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : Show_ConfigMachineParameterDataOneRowOneLevelMenuContent
  * Description    : 显示一行试验参数
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void Show_MachineTonsDataOneRowOneLevelMenuContent( uint8_t index )
+static void Show_ConfigMachineParameterDataOneRowOneLevelMenuContent( uint8_t index )
 {
-	const uint16_t x = g_machineTons.oneLevelMenu[index].x + g_machineTons.oneLevelMenu[index].lineWidth + 1;
-	const uint16_t y = g_machineTons.oneLevelMenu[index].y + g_machineTons.oneLevelMenu[index].lineWidth + 1;
-	const uint16_t pointColor = g_machineTons.oneLevelMenu[index].pointColor;
-	const uint16_t backColor = g_machineTons.oneLevelMenu[index].backColor;
-	const uint16_t lenth = g_machineTons.oneLevelMenu[index].lenth - 2 * g_machineTons.oneLevelMenu[index].lineWidth - 2;
-	const uint16_t width = g_machineTons.oneLevelMenu[index].width - 2 * g_machineTons.oneLevelMenu[index].lineWidth - 2;
+	const uint16_t x = g_configMachine.oneLevelMenu[index].x + g_configMachine.oneLevelMenu[index].lineWidth + 1;
+	const uint16_t y = g_configMachine.oneLevelMenu[index].y + g_configMachine.oneLevelMenu[index].lineWidth + 1;
+	const uint16_t pointColor = g_configMachine.oneLevelMenu[index].pointColor;
+	const uint16_t backColor = g_configMachine.oneLevelMenu[index].backColor;
+	const uint16_t lenth = g_configMachine.oneLevelMenu[index].lenth - 2 * g_configMachine.oneLevelMenu[index].lineWidth - 2;
+	const uint16_t width = g_configMachine.oneLevelMenu[index].width - 2 * g_configMachine.oneLevelMenu[index].lineWidth - 2;
 	
 	lcd_fill(x,y,lenth,width,backColor);
 	
-	GUI_DispStr24At(x,y,pointColor,backColor,g_machineTons.parameterData[index]);
+	GUI_DispStr24At(x,y,pointColor,backColor,g_configMachine.parameterData[index]);
 }
 
 /*------------------------------------------------------------
- * Function Name  : Show_MachineTonsDataOneLevelMenuContent
+ * Function Name  : Show_ConfigMachineParameterDataOneLevelMenuContent
  * Description    : 显示一级菜单内容
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void Show_MachineTonsDataOneLevelMenuContent( void )
+static void Show_ConfigMachineParameterDataOneLevelMenuContent( void )
 {
 	uint8_t i;
 	
-	for (i=0; i<g_machineTons.curParameterNum; ++i)
+	for (i=0; i<g_configMachine.curParameterNum; ++i)
 	{
-		Show_MachineTonsDataOneRowOneLevelMenuContent(i);
+		Show_ConfigMachineParameterDataOneRowOneLevelMenuContent(i);
 	}	
 }
 
 /*------------------------------------------------------------
- * Function Name  : Traverse_MachineTons
+ * Function Name  : Traverse_ConfigMachineParameter
  * Description    : 遍历
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void Traverse_MachineTons( void )
+static void Traverse_ConfigMachineParameter( void )
 {
-	Show_MachineTonsDataOneLevelMenuContent();
+	Show_ConfigMachineParameterDataOneLevelMenuContent();
+	Show_ConfigMachineParameterOneLevelMenuUnit();
 }
 
 /*------------------------------------------------------------
- * Function Name  : MachineTonsPutinProcess
+ * Function Name  : ConfigMachineParameterPutinProcess
  * Description    : 输入处理
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MachineTonsPutinProcess( void )
+static void ConfigMachineParameterPutinProcess( void )
 {
 	PUTIN_TypeDef *pPutin = GetPutinAddr();
-	uint8_t index = g_machineTons.nowIndex;
+	uint8_t index = g_configMachine.nowIndex;
 	
 	PutinProcessCycle();
 	
 	pPutin->skin.x = PUTIN_SKIN_START_X;
 	pPutin->skin.y = PUTIN_SKIN_START_Y;
 	pPutin->skin.pointColor = PUTIN_SKIN_POINT_COLOR;
-	pPutin->skin.backColor = g_machineTons.oneLevelMenu[index].recordBackColor;
+	pPutin->skin.backColor = g_configMachine.oneLevelMenu[index].recordBackColor;
 	pPutin->MenuPointColor = COLOR_SHORTCUT_POINT;
 	pPutin->MenuBackColor = COLOR_SHORTCUT_BACK;
 	pPutin->skin.open = ENABLE;
 	pPutin->NewShift = DISABLE_SHIFT;
-	pPutin->x = g_machineTons.oneLevelMenu[index].x + g_machineTons.oneLevelMenu[index].lineWidth + 1;
-	pPutin->y = g_machineTons.oneLevelMenu[index].y + g_machineTons.oneLevelMenu[index].lineWidth + 1;
-	pPutin->AllowPutinBit = MAX_MACHINE_TONS_PUTIN_BIT;
-	pPutin->FillBit = MAX_MACHINE_TONS_PUTIN_BIT;
-	pPutin->putinFrameLenth = g_machineTons.oneLevelMenu[index].lenth - 2 * g_machineTons.oneLevelMenu[index].lineWidth - 2;
-	pPutin->putinFrameWidth = g_machineTons.oneLevelMenu[index].width - 2 * g_machineTons.oneLevelMenu[index].lineWidth - 2;
-	pPutin->PutinNum = &g_machineTons.putinNum;
-	pPutin->SaveType = g_machineTons.oneLevelMenu[index].saveType;
-	pPutin->FontSize = g_machineTons.oneLevelMenu[index].fontSize;
+	pPutin->x = g_configMachine.oneLevelMenu[index].x + g_configMachine.oneLevelMenu[index].lineWidth + 1;
+	pPutin->y = g_configMachine.oneLevelMenu[index].y + g_configMachine.oneLevelMenu[index].lineWidth + 1;
+	pPutin->AllowPutinBit = MAX_CONFIG_MACHINE_PUTIN_BIT;
+	pPutin->FillBit = MAX_CONFIG_MACHINE_PUTIN_BIT;
+	pPutin->putinFrameLenth = g_configMachine.oneLevelMenu[index].lenth - 2 * g_configMachine.oneLevelMenu[index].lineWidth - 2;
+	pPutin->putinFrameWidth = g_configMachine.oneLevelMenu[index].width - 2 * g_configMachine.oneLevelMenu[index].lineWidth - 2;
+	pPutin->PutinNum = &g_configMachine.putinNum;
+	pPutin->SaveType = g_configMachine.oneLevelMenu[index].saveType;
+	pPutin->FontSize = g_configMachine.oneLevelMenu[index].fontSize;
 	pPutin->Encrypt = DISABLE;
 	
 	KeyPutinChars(pPutin);
 }
 
 /*------------------------------------------------------------
- * Function Name  : PasswordMoveCursorProcess
+ * Function Name  : ConfigMachineParameterMoveIndexProcess
+ * Description    : 参数移动索引值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void ConfigMachineParameterMoveIndexProcess( void )
+{	
+	INDEX_MANAGE_TypeDef indexObj;
+	
+	g_configMachine.isIndexMove = NO;
+	
+	indexObj.enableMoveIndex = ENABLE;
+	indexObj.rowNum = g_configMachine.curParameterNum;
+	indexObj.colNum = 1;
+	indexObj.sumNum = indexObj.rowNum * indexObj.colNum;
+	indexObj.pNowIndex = &g_configMachine.nowIndex;
+		
+	KeyIndexManage(&indexObj);
+	
+	if (g_configMachine.nowIndex != g_configMachine.recordIndex)
+	{		
+		g_configMachine.isIndexMove = YES;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : ConfigMachineParameterMoveCursorProcess
  * Description    : 移动光标处理
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MachineTonsMoveCursorProcess( void )
+static void ConfigMachineParameterMoveCursorProcess( void )
 {
-	if (g_machineTons.recordIndex == 0xff)
-	{
-		g_machineTons.oneLevelMenu[g_machineTons.nowIndex].pointColor = COLOR_SELECT_POINT;
-		g_machineTons.oneLevelMenu[g_machineTons.nowIndex].backColor = COLOR_SELECT_BACK;
+	if (g_configMachine.isIndexMove == YES)
+	{		
+		if (g_configMachine.recordIndex != 0xff)
+		{
+			g_configMachine.oneLevelMenu[g_configMachine.recordIndex].pointColor = g_configMachine.oneLevelMenu[g_configMachine.recordIndex].recordPointColor;
+			g_configMachine.oneLevelMenu[g_configMachine.recordIndex].backColor = g_configMachine.oneLevelMenu[g_configMachine.recordIndex].recordBackColor;
+			
+			Show_ConfigMachineParameterDataOneRowOneLevelMenuContent(g_configMachine.recordIndex);
+			Show_ConfigMachineParameterOneRowOneLevelMenuUnit(g_configMachine.recordIndex);
+			
+			g_configMachine.oneLevelMenu[g_configMachine.nowIndex].pointColor = COLOR_SELECT_POINT;
+			g_configMachine.oneLevelMenu[g_configMachine.nowIndex].backColor = COLOR_SELECT_BACK;
+			
+			Show_ConfigMachineParameterDataOneRowOneLevelMenuContent(g_configMachine.nowIndex);		
+			Show_ConfigMachineParameterOneRowOneLevelMenuUnit(g_configMachine.nowIndex);
+		}
+		else
+		{
+			g_configMachine.oneLevelMenu[g_configMachine.nowIndex].pointColor = COLOR_SELECT_POINT;
+			g_configMachine.oneLevelMenu[g_configMachine.nowIndex].backColor = COLOR_SELECT_BACK;
+			
+			Show_ConfigMachineParameterDataOneRowOneLevelMenuContent(g_configMachine.nowIndex);
+			Show_ConfigMachineParameterOneRowOneLevelMenuUnit(g_configMachine.nowIndex);
+		}
 		
-		Show_MachineTonsDataOneRowOneLevelMenuContent(g_machineTons.nowIndex);
-	}
-	
-	g_machineTons.recordIndex = g_machineTons.nowIndex;
+		g_configMachine.recordIndex = g_configMachine.nowIndex;
+	}	
 }
 
 /*------------------------------------------------------------
- * Function Name  : MachineTonsUpdateStatus
+ * Function Name  : ConfigMachineParameterShortcutCycleTask
+ * Description    : 快捷菜单任务
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void ConfigMachineParameterShortcutCycleTask( void )
+{
+	SHORTCUT_TypeDef *pShortCut = GetShortcutMenuAddr();
+	
+	if (g_configMachine.refreshShortcut == ENABLE)
+	{
+		g_configMachine.refreshShortcut = DISABLE;
+			
+		pShortCut->status = SHOW_F3 | SHOW_F4;
+		pShortCut->pointColor = COLOR_SHORTCUT_POINT;
+		pShortCut->backColor = COLOR_SHORTCUT_BACK;
+		pShortCut->pContent[2] = pTwoLevelMenu[45];
+		pShortCut->pContent[3] = pTwoLevelMenu[58];
+		
+		ShortcutMenuTask(pShortCut);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : ConfigMachineParameterIncreaseIndex
+ * Description    : 更新索引值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void ConfigMachineParameterIncreaseIndex( void )
+{
+	g_configMachine.nowIndex++;
+	
+	g_configMachine.nowIndex %= g_configMachine.curParameterNum;
+}	
+
+/*------------------------------------------------------------
+ * Function Name  : ConfigMachineParameterUpdateStatus
  * Description    : 更新状态
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MachineTonsUpdateStatus( void )
-{
-	g_machineTons.recordIndex = 0xff;
+static void ConfigMachineParameterUpdateStatus( void )
+{	
+	ConfigMachineParameterIncreaseIndex();
+	
+	g_configMachine.refreshShortcut = ENABLE;
 }
 
 /*------------------------------------------------------------
- * Function Name  : MachineTonsCheckDataCycle
+ * Function Name  : ConfigMachineParameterCheckDataCycle
  * Description    : 检测数据
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static TestStatus MachineTonsCheckDataCycle( void )
+static TestStatus ConfigMachineParameterCheckDataCycle( void )
 {
-	uint16_t tons = 0;
+	uint16_t tempu16 = 0;
+	uint8_t index = 0;
 	
-	tons = (uint16_t)ustrtoul(g_machineTons.parameterData[0],0,10);
-	
-	if ((tons<1) || (tons>1000))
+	index = GetConfigMachineParameterIndex(OBJECT_MACHINE_TONS);
+	if (index != 0xff)
 	{
-		SetPopWindowsInfomation(POP_PCM_CUE,1,&pMachineTonsWarn[0]);	
-					
-		return FAILED;
+		tempu16 = (uint16_t)ustrtoul(g_configMachine.parameterData[index],0,10);
+		
+		if ((tempu16<1) || (tempu16>1000))
+		{
+			SetPopWindowsInfomation(POP_PCM_CUE,1,&pConfigMachineWarn[0]);	
+						
+			return FAILED;
+		}
+	}
+	
+	index = GetConfigMachineParameterIndex(OBJECT_MAX_DISPALCEMENT);
+	if (index != 0xff)
+	{
+		tempu16 = (uint16_t)ustrtoul(g_configMachine.parameterData[index],0,10);
+		
+		if ((tempu16<1) || (tempu16>10000))
+		{
+			SetPopWindowsInfomation(POP_PCM_CUE,1,&pConfigMachineWarn[1]);	
+						
+			return FAILED;
+		}
+	}
+	
+	index = GetConfigMachineParameterIndex(OBJECT_MAX_DEFORM);
+	if (index != 0xff)
+	{
+		tempu16 = (uint16_t)ustrtoul(g_configMachine.parameterData[index],0,10);
+		
+		if ((tempu16<1) || (tempu16>10000))
+		{
+			SetPopWindowsInfomation(POP_PCM_CUE,1,&pConfigMachineWarn[2]);	
+						
+			return FAILED;
+		}
 	}
 	
 	return PASSED;
 }
 
 /*------------------------------------------------------------
- * Function Name  : MachineTonsKeyProcess
+ * Function Name  : ConfigMachineParameterKeyProcess
  * Description    : 按键处理
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MachineTonsKeyProcess( void )
+static void ConfigMachineParameterKeyProcess( void )
 {
-	uint8_t index = g_machineTons.nowIndex;
+	uint8_t index = g_configMachine.nowIndex;
 	STATUS_PUTIN_TypeDef putinStatus;
 	
 	if (IsPressKey() == YES)
@@ -1310,18 +1497,18 @@ static void MachineTonsKeyProcess( void )
 						return;
 					
 					case STATUS_EDIT_COMP:							
-						switch ( g_machineTons.oneLevelMenu[index].saveType )
+						switch ( g_configMachine.oneLevelMenu[index].saveType )
 						{
 							case TYPE_INT:
-								numtochar(g_machineTons.putinNum,*GetPutinIntDataAddr(),g_machineTons.parameterData[index]);
+								numtochar(g_configMachine.putinNum,*GetPutinIntDataAddr(),g_configMachine.parameterData[index]);
 								break;
 							case TYPE_FLOAT:
-								floattochar(g_machineTons.putinNum,g_machineTons.oneLevelMenu[index].pointBit,*GetPutinFloatDataAddr(),g_machineTons.parameterData[index]);
+								floattochar(g_configMachine.putinNum,g_configMachine.oneLevelMenu[index].pointBit,*GetPutinFloatDataAddr(),g_configMachine.parameterData[index]);
 								break;
 							case TYPE_CHAR:
 								if ( strcmp(GetPutinCharDataAddr(),"") )
 								{
-									strcpy(g_machineTons.parameterData[index],GetPutinCharDataAddr());
+									strcpy(g_configMachine.parameterData[index],GetPutinCharDataAddr());
 								}
 								break;
 						}	
@@ -1330,17 +1517,24 @@ static void MachineTonsKeyProcess( void )
 					default:
 						break;
 				}
-				if (MachineTonsCheckDataCycle() == FAILED)
+								
+				ConfigMachineParameterUpdateStatus();
+				break;
+			
+			case KEY_F3:
+				if (ConfigMachineParameterCheckDataCycle() == FAILED)
 				{
-					g_machineTons.leavePage.flagLeavePage = SET;
-					g_machineTons.leavePage.flagSaveData = RESET;
+					g_configMachine.leavePage.flagLeavePage = SET;
+					g_configMachine.leavePage.flagSaveData = RESET;
 					break;
 				}
 				
-				g_machineTons.leavePage.flagLeavePage = SET;
-				g_machineTons.leavePage.flagSaveData = SET;
-				
-				MachineTonsUpdateStatus();
+				g_configMachine.leavePage.flagLeavePage = SET;
+				g_configMachine.leavePage.flagSaveData = SET;
+				break;
+			case KEY_F4:
+				g_configMachine.leavePage.flagLeavePage = SET;
+				g_configMachine.leavePage.flagSaveData = RESET;
 				break;
 				
 			case KEY_ESC:
@@ -1349,12 +1543,12 @@ static void MachineTonsKeyProcess( void )
 				switch ( putinStatus )
 				{
 					case STATUS_DISABLE_PUTIN:
-						g_machineTons.leavePage.flagLeavePage = SET;
-						g_machineTons.leavePage.flagSaveData = RESET;
+						g_configMachine.leavePage.flagLeavePage = SET;
+						g_configMachine.leavePage.flagSaveData = RESET;
 						break;
 					
 					case STATUS_CANCEL_PUTIN:
-						MachineTonsUpdateStatus();
+						ConfigMachineParameterUpdateStatus();
 						break;
 					
 					default:						
@@ -1366,27 +1560,25 @@ static void MachineTonsKeyProcess( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : MachineTonsLeavePageCheckCycle
+ * Function Name  : ConfigMachineParameterLeavePageCheckCycle
  * Description    : 离开页检测
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MachineTonsLeavePageCheckCycle( void )
+static void ConfigMachineParameterLeavePageCheckCycle( void )
 {
-	if (g_machineTons.leavePage.flagLeavePage == SET)
+	if (g_configMachine.leavePage.flagLeavePage == SET)
 	{
-		if (g_machineTons.leavePage.flagSaveData == SET)
+		if (g_configMachine.leavePage.flagSaveData == SET)
 		{
-			g_machineTons.isCancelPutin = NO;
+			g_configMachine.isCancelPutin = NO;
 			
-			MachineTonsWriteParameter();
+			ConfigMachineParameterWriteParameter();
 		}
 		else
 		{
-			g_machineTons.isCancelPutin = YES;
-			g_machineTons.putinKYTons = 0;
-			g_machineTons.putinKZTons = 0;
+			g_configMachine.isCancelPutin = YES;
 		}
 	}
 }

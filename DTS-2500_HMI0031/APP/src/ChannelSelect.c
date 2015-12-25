@@ -300,8 +300,6 @@ static void ChannelSelectReadParameter( void )
 {	
 	uint8_t index = 0;
 	
-	g_channelSelect.selChannel = GetCurChannel();
-	
 	index = GetChannelSelectIndex(g_channelSelect.selChannel);
 	if (index != 0xff)
 	{

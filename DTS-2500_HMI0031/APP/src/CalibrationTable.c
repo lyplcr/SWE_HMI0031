@@ -18,6 +18,7 @@
 #include "global.h"
 #include "CalibrationTable.h"
 #include "ControlParameter.h"
+#include "ChannelSelect.h"
 
 /* Private define ------------------------------------------------------------*/
 #define COLOR_POINT						WHITE
@@ -72,8 +73,10 @@ typedef struct
 	FunctionalState refreshShortcut;				//刷新快捷菜单
 	LEAVE_PAGE_TypeDef leavePage;					//离开页	
 	uint8_t fieldNum;								//字段个数
-	SMPL_NAME_TypeDef2 showChannel;					//显示通道
-	SMPL_NAME_TypeDef2 tureChannel;					//真实通道
+	FH_UINT_TypeDef fhChannelUnit;					//负荷通道单位
+	WY_UINT_TypeDef	wyChannelUnit;					//位移通道单位
+	BX_UINT_TypeDef	bxChannelUnit;					//变形通道单位
+	SMPL_NAME_TypeDef curChannel;					//当前通道
 	CALIBRATION_TABLE_AREA_TypeDef area;
 	FunctionalState exchangeNewSegment;				//切换新的分段点
 }CALIBRATION_TABLE_TypeDef;
@@ -85,6 +88,12 @@ const char * const pCalibrationTableFieldName[] =
 	"检测点(kN)",	//1
 	"检测点(N)",		//2
 	"力码",			//3
+	"检测点(mm)",	//4
+	"检测点(cm)",	//5
+	"检测点(dm)",	//6
+	"检测点(m)",		//7
+	"位移码",		//8
+	"变形码",		//9
 };
 
 const char * const ControlParameterWarn[] = 
@@ -93,6 +102,12 @@ const char * const ControlParameterWarn[] =
 	"标定点不能为0！",					//1
 	"检测点力值错误(不是递增趋势)！",		//2	
 	"力码错误(不是递增趋势)！",			//3		
+	"检测点位移值错误，",				//4
+	"不是递增趋势！",					//5	
+	"位移码错误(不是递增趋势)！",		//6	
+	"检测点变形值错误，",				//7
+	"不是递增趋势！",					//8
+	"变形码错误(不是递增趋势)！",		//9
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -193,8 +208,10 @@ static void CalibrationTableInit( void )
 	g_calibrationTable.leavePage.flagLeavePage = RESET;
 	g_calibrationTable.leavePage.flagSaveData = RESET;
 	
-	g_calibrationTable.showChannel = GetControlParameterShowChannel();	
-	g_calibrationTable.tureChannel = GetControlParameterTureChannel();
+	g_calibrationTable.fhChannelUnit = GetFH_SmplUnit();
+	g_calibrationTable.wyChannelUnit = GetWY_SmplUnit();
+	g_calibrationTable.bxChannelUnit = GetBX_SmplUnit();
+	g_calibrationTable.curChannel = GetChannelSelectChannel();
 }
 
 /*------------------------------------------------------------
@@ -245,7 +262,20 @@ static void CalibrationTableConfig( void )
 	uint8_t i;
 	
 	/* 标题 */
-	g_calibrationTable.pTitle = "标定表";
+	switch ( g_calibrationTable.curChannel )
+	{
+		case SMPL_FH_NUM:
+			g_calibrationTable.pTitle = "负荷通道标定表";		
+			break;
+		case SMPL_WY_NUM:
+			g_calibrationTable.pTitle = "位移通道标定表";		
+			break;
+		case SMPL_BX_NUM:
+			g_calibrationTable.pTitle = "变形通道标定表";		
+			break;
+		default:
+			break;
+	}
 	
 	/* 字段个数 */
 	g_calibrationTable.fieldNum = MAX_FIELD_NUM;
@@ -257,16 +287,69 @@ static void CalibrationTableConfig( void )
 	
 	/* 字段名 */
 	g_calibrationTable.pParameterNameArray[INDEX_SERIAL] 		= pCalibrationTableFieldName[0];
-	if (g_calibrationTable.showChannel == SMPL_KY_NUM)
+	switch ( g_calibrationTable.curChannel )
 	{
-		g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[1];
+		case SMPL_FH_NUM:
+			if (g_calibrationTable.fhChannelUnit == FH_UNIT_kN)
+			{
+				g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[1];
+			}
+			else
+			{
+				g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[2];
+			}
+			g_calibrationTable.pParameterNameArray[INDEX_FORCE_CODE] 	= pCalibrationTableFieldName[3];	
+			break;
+		case SMPL_WY_NUM:
+			switch ( g_calibrationTable.wyChannelUnit )
+			{
+				case WY_UNIT_MM:
+					g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[4];
+					g_calibrationTable.pParameterNameArray[INDEX_FORCE_CODE] 	= pCalibrationTableFieldName[8];
+					break;
+				case WY_UNIT_CM:
+					g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[5];
+					g_calibrationTable.pParameterNameArray[INDEX_FORCE_CODE] 	= pCalibrationTableFieldName[8];	
+					break;
+				case WY_UNIT_DM:
+					g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[6];
+					g_calibrationTable.pParameterNameArray[INDEX_FORCE_CODE] 	= pCalibrationTableFieldName[8];	
+					break;
+				case WY_UNIT_M:
+					g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[7];
+					g_calibrationTable.pParameterNameArray[INDEX_FORCE_CODE] 	= pCalibrationTableFieldName[8];	
+					break; 
+				default:
+					break;
+			}	
+			break;
+		case SMPL_BX_NUM:
+			switch ( g_calibrationTable.bxChannelUnit )
+			{
+				case BX_UNIT_MM:
+					g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[4];
+					g_calibrationTable.pParameterNameArray[INDEX_FORCE_CODE] 	= pCalibrationTableFieldName[9];
+					break;
+				case BX_UNIT_CM:
+					g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[5];
+					g_calibrationTable.pParameterNameArray[INDEX_FORCE_CODE] 	= pCalibrationTableFieldName[9];	
+					break;
+				case BX_UNIT_DM:
+					g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[6];
+					g_calibrationTable.pParameterNameArray[INDEX_FORCE_CODE] 	= pCalibrationTableFieldName[9];	
+					break;
+				case BX_UNIT_M:
+					g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[7];
+					g_calibrationTable.pParameterNameArray[INDEX_FORCE_CODE] 	= pCalibrationTableFieldName[9];	
+					break; 
+				default:
+					break;
+			}	
+			break;
+		default:
+			break;
 	}
-	else
-	{
-		g_calibrationTable.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationTableFieldName[2];
-	}
-	g_calibrationTable.pParameterNameArray[INDEX_FORCE_CODE] 	= pCalibrationTableFieldName[3];
-	
+
 	/* 数据对齐 */
 	g_calibrationTable.align[INDEX_SERIAL] 		= ALIGN_MIDDLE;
 	g_calibrationTable.align[INDEX_CHECK_POINT] = ALIGN_LEFT;
@@ -316,7 +399,7 @@ static void CalibrationTableReadParameter( void )
 	uint8_t serial = 1;
 	int32_t code = 0;
 	
-	calibrationSegments = smpl_tab_num_get(g_calibrationTable.tureChannel);
+	calibrationSegments = smpl_tab_num_get(g_calibrationTable.curChannel);
 		
 	if ((calibrationSegments < 2) || (calibrationSegments > MAX_CALIBRATION_SEGS + 1))
 	{
@@ -347,16 +430,61 @@ static void CalibrationTableReadParameter( void )
 		{
 			/* 读力值 */
 			fieldIndex = GetCalibrationTableFieldIndex(OBJECT_CHECK_POINT);
-			tempf = smpl_tab_value_get(g_calibrationTable.tureChannel,segmentIndex+1);
-			if (g_calibrationTable.showChannel == SMPL_KY_NUM)
+			tempf = smpl_tab_value_get(g_calibrationTable.curChannel,segmentIndex+1);
+			
+			switch ( g_calibrationTable.curChannel )
 			{
-				tempf /= 1000;
+				case SMPL_FH_NUM:
+					if (g_calibrationTable.fhChannelUnit == FH_UNIT_kN)
+					{
+						tempf /= 1000;
+					}	
+					break;
+				case SMPL_WY_NUM:
+					switch ( g_calibrationTable.wyChannelUnit )
+					{
+						case WY_UNIT_MM:								
+							break;
+						case WY_UNIT_CM:
+							tempf /= 10;	
+							break;
+						case WY_UNIT_DM:
+							tempf /= 100;	
+							break;
+						case WY_UNIT_M:
+							tempf /= 1000;	
+							break; 
+						default:
+							break;
+					}	
+					break;
+				case SMPL_BX_NUM:
+					switch ( g_calibrationTable.bxChannelUnit )
+					{
+						case BX_UNIT_MM:								
+							break;
+						case BX_UNIT_CM:
+							tempf /= 10;	
+							break;
+						case BX_UNIT_DM:
+							tempf /= 100;	
+							break;
+						case BX_UNIT_M:
+							tempf /= 1000;	
+							break; 
+						default:
+							break;
+					}	
+					break;
+				default:
+					break;
 			}
+			
 			numtochar(MAX_DATA_BIT,(int32_t)tempf,g_calibrationTable.fieldData[segmentIndex].parameterData[fieldIndex]);
 			
 			/* 读码值 */
 			fieldIndex = GetCalibrationTableFieldIndex(ONJECT_FORCE_CODE);
-			code = smpl_tab_code_get(g_calibrationTable.tureChannel,segmentIndex+1);
+			code = smpl_tab_code_get(g_calibrationTable.curChannel,segmentIndex+1);
 			numtochar(MAX_DATA_BIT,code,g_calibrationTable.fieldData[segmentIndex].parameterData[fieldIndex]);
 		}
 	}
@@ -383,25 +511,70 @@ static void CalibrationTableWriteParameter( void )
 	}
 	
 	calibrationSegments++;		//加上零点
-	smpl_tab_num_set(g_calibrationTable.tureChannel,calibrationSegments);
-	smpl_tab_value_set(g_calibrationTable.tureChannel,0,0);
-	smpl_tab_code_set(g_calibrationTable.tureChannel,0,0);
+	smpl_tab_num_set(g_calibrationTable.curChannel,calibrationSegments);
+	smpl_tab_value_set(g_calibrationTable.curChannel,0,0);
+	smpl_tab_code_set(g_calibrationTable.curChannel,0,0);
 	
 	for (segmentIndex=0; segmentIndex<calibrationSegments; ++segmentIndex)
 	{
 		/* 写力值 */
 		fieldIndex = GetCalibrationTableFieldIndex(OBJECT_CHECK_POINT);
 		force = (int32_t)ustrtoul(g_calibrationTable.fieldData[segmentIndex].parameterData[fieldIndex],0,10);
-		if (g_calibrationTable.showChannel == SMPL_KY_NUM)
+		
+		switch ( g_calibrationTable.curChannel )
 		{
-			force *= 1000;
+			case SMPL_FH_NUM:
+				if (g_calibrationTable.fhChannelUnit == FH_UNIT_kN)
+				{
+					force *= 1000;
+				}	
+				break;
+			case SMPL_WY_NUM:
+				switch ( g_calibrationTable.wyChannelUnit )
+				{
+					case WY_UNIT_MM:								
+						break;
+					case WY_UNIT_CM:
+						force *= 10;	
+						break;
+					case WY_UNIT_DM:
+						force *= 100;	
+						break;
+					case WY_UNIT_M:
+						force *= 1000;	
+						break; 
+					default:
+						break;
+				}	
+				break;
+			case SMPL_BX_NUM:
+				switch ( g_calibrationTable.bxChannelUnit )
+				{
+					case BX_UNIT_MM:								
+						break;
+					case BX_UNIT_CM:
+						force *= 10;	
+						break;
+					case BX_UNIT_DM:
+						force *= 100;	
+						break;
+					case BX_UNIT_M:
+						force *= 1000;	
+						break; 
+					default:
+						break;
+				}	
+				break;
+			default:
+				break;
 		}
-		smpl_tab_value_set(g_calibrationTable.tureChannel,segmentIndex+1,force);
+		
+		smpl_tab_value_set(g_calibrationTable.curChannel,segmentIndex+1,force);
 		
 		/* 写码值 */
 		fieldIndex = GetCalibrationTableFieldIndex(ONJECT_FORCE_CODE);
 		code = (int32_t)ustrtoul(g_calibrationTable.fieldData[segmentIndex].parameterData[fieldIndex],0,10);
-		smpl_tab_code_set(g_calibrationTable.tureChannel,segmentIndex+1,code);
+		smpl_tab_code_set(g_calibrationTable.curChannel,segmentIndex+1,code);
 	}
 	
 	prm_save();
@@ -1139,7 +1312,7 @@ static void CalibrationTablePagePrint( void )
 {
 	ShowPrintingShortcutMenu();
 	
-	if (PrintCalibrationTable(g_calibrationTable.tureChannel,g_calibrationTable.showChannel) == ERROR)
+	if (PrintCalibrationTable(g_calibrationTable.curChannel,g_calibrationTable.fhChannelUnit) == ERROR)
 	{
 		g_calibrationTable.leavePage.flagLeavePage = SET;
 		g_calibrationTable.leavePage.flagSaveData = RESET;
@@ -1337,7 +1510,20 @@ static TestStatus CalibrationTableCheckDataCycle( TABLE_INDEX_TypeDef *pTableInd
 			pTableIndex->rowIndex = rowIndex;
 			pTableIndex->colIndex = fieldIndex;
 			
-			SetPopWindowsInfomation(POP_PCM_CUE,1,&ControlParameterWarn[2]);
+			switch ( g_calibrationTable.curChannel )
+			{
+				case SMPL_FH_NUM:
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&ControlParameterWarn[2]);	
+					break;
+				case SMPL_WY_NUM:
+					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParameterWarn[4]);	
+					break;
+				case SMPL_BX_NUM:
+					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParameterWarn[7]);		
+					break;
+				default:
+					break;
+			}
 			
 			return FAILED;
 		}
@@ -1354,7 +1540,20 @@ static TestStatus CalibrationTableCheckDataCycle( TABLE_INDEX_TypeDef *pTableInd
 			pTableIndex->rowIndex = rowIndex;
 			pTableIndex->colIndex = fieldIndex;
 			
-			SetPopWindowsInfomation(POP_PCM_CUE,1,&ControlParameterWarn[3]);
+			switch ( g_calibrationTable.curChannel )
+			{
+				case SMPL_FH_NUM:
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&ControlParameterWarn[3]);	
+					break;
+				case SMPL_WY_NUM:
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&ControlParameterWarn[6]);	
+					break;
+				case SMPL_BX_NUM:
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&ControlParameterWarn[9]);		
+					break;
+				default:
+					break;
+			}
 			
 			return FAILED;
 		}

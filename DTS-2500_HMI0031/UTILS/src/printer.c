@@ -432,6 +432,10 @@ ErrorStatus PrintTestReport( SMPL_NAME_TypeDef2 showChannel, TEST_TYPE_TypeDef t
 			PrintWordsAndLineFeed("    通用抗折试验报告");	
 			break;
 		
+		case KLJSSW:
+			PrintWordsAndLineFeed(" 金属室温拉伸试验报告");	
+			break;
+		
 		default:
 			PrintWordsAndLineFeed("     试验类型出错！");
 			PrintRowSpace(END_ROW_CNT);
@@ -630,6 +634,11 @@ ErrorStatus PrintTestReport( SMPL_NAME_TypeDef2 showChannel, TEST_TYPE_TypeDef t
 			PrintWordsAndLineFeed("暂且不支持通用抗折试验！");		
 			
 			return ERROR;	
+		
+		case KLJSSW:
+			PrintWordsAndLineFeed("暂且不支持通用抗折试验！");		
+			
+			return ERROR;
 
 		default:
 			break;

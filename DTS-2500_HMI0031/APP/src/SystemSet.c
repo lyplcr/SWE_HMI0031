@@ -66,27 +66,28 @@ typedef struct
 	const char * pTitle;
 	BoolStatus isIndexMove;							//索引值移动
 	LEAVE_PAGE_TypeDef leavePage;						
+	SMPL_NAME_TypeDef curChannel;					//当前通道
 }SYSTEM_SET_TypeDef;
 
 /* Private constants ---------------------------------------------------------*/
 const char * const pSystemSetParameterName[] =
 {
-	"1、控制参数设置",
-	"2、时间日期设置",
-	"3、软件激活设置",
-	"4、联机参数设置",
-	"5、系统密码设置",
-	"6、力值校准",
-	"7、力值检定",
-	"8、试验后处理",
-	"9、高级参数",
-	"0、硬件测试",
-	"6、负荷校准",
-	"7、负荷检定",
-	"6、位移校准",
-	"7、位移检定",
-	"6、变形校准",
-	"7、变形检定",
+	"1、控制参数设置",		//0
+	"2、时间日期设置",		//1
+	"3、软件激活设置",		//2
+	"4、联机参数设置",		//3
+	"5、系统密码设置",		//4
+	"6、力值校准",			//5
+	"7、力值检定",			//6
+	"8、试验后处理",			//7
+	"9、高级参数",			//8
+	"0、硬件测试",			//9
+	"6、负荷校准",			//10
+	"7、负荷检定",			//11
+	"6、位移校准",			//12
+	"7、位移检定",			//13
+	"6、变形校准",			//14
+	"7、变形检定",			//15
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -163,6 +164,8 @@ static void SystemSetInit( void )
 	
 	g_systemSet.leavePage.flagLeavePage = RESET;
 	g_systemSet.leavePage.flagSaveData = RESET;	
+	
+	g_systemSet.curChannel = GetChannelSelectChannel();
 }
 
 /*------------------------------------------------------------
@@ -198,8 +201,24 @@ static void SystemSetConfig( void )
 	g_systemSet.pParameterNameArray[INDEX_SOFT_ACTIVE] 			= pSystemSetParameterName[2];		
 	g_systemSet.pParameterNameArray[INDEX_ONLINE_PARAMETER_SET] = pSystemSetParameterName[3];			
 	g_systemSet.pParameterNameArray[INDEX_SYSTEM_PASSWORD_SET] 	= pSystemSetParameterName[4];
-	g_systemSet.pParameterNameArray[INDEX_FORCE_CALIBRATION] 	= pSystemSetParameterName[5];		
-	g_systemSet.pParameterNameArray[INDEX_FORCE_VERIFICATION] 	= pSystemSetParameterName[6];	
+	switch ( g_systemSet.curChannel )
+	{
+		case SMPL_FH_NUM:
+			g_systemSet.pParameterNameArray[INDEX_FORCE_CALIBRATION] 	= pSystemSetParameterName[5];		
+			g_systemSet.pParameterNameArray[INDEX_FORCE_VERIFICATION] 	= pSystemSetParameterName[6];	
+			break;
+		case SMPL_WY_NUM:
+			g_systemSet.pParameterNameArray[INDEX_FORCE_CALIBRATION] 	= pSystemSetParameterName[12];		
+			g_systemSet.pParameterNameArray[INDEX_FORCE_VERIFICATION] 	= pSystemSetParameterName[13];		
+			break;
+		case SMPL_BX_NUM:
+			g_systemSet.pParameterNameArray[INDEX_FORCE_CALIBRATION] 	= pSystemSetParameterName[14];		
+			g_systemSet.pParameterNameArray[INDEX_FORCE_VERIFICATION] 	= pSystemSetParameterName[15];		
+			break;
+		default:
+			break;
+	}	
+	
 	g_systemSet.pParameterNameArray[INDEX_TEST_AFTER_DISPOSE] 	= pSystemSetParameterName[7];	
 	g_systemSet.pParameterNameArray[INDEX_SENIOR_PARAMETER_SET] = pSystemSetParameterName[8];
 	g_systemSet.pParameterNameArray[INDEX_HARD_TEST] 			= pSystemSetParameterName[9];

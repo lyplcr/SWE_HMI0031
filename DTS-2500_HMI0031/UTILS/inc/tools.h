@@ -17,12 +17,6 @@
 /* Exported types ------------------------------------------------------------*/
 typedef enum
 {
-	UNIT_kN,
-	UNIT_N,
-}FORCE_UINT_TypeDef;
-
-typedef enum
-{
 	NONE_PARAMETER = 0,				//无参数
 	IMMEDIATELY_PUTIN_NONE,			//可立即输入
 	IMMEDIATELY_PUTIN_SHIFT,		//可立即输入(允许切换输入法)
