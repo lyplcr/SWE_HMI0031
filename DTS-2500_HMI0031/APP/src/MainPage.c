@@ -1806,7 +1806,7 @@ static void Show_MainPageOneIndicateWindowsContent( uint8_t indexRow, uint8_t in
 			RefreshDynamicForce(x+43,y,pointColor,backColor,GetInterfaceElementForce());		
 			break;
 		case OBJECT_WINDOWS_SPEED:
-			RefreshDynamicSpeed(x+24,y,pointColor,backColor,GetInterfaceElementSpeed());
+			RefreshDynamicSpeed(x+12,y,pointColor,backColor,GetInterfaceElementFHSpeed());
 			break;
 		case OBJECT_WINDOWS_STRENGTH:
 			RefreshDynamicStrength(x+12,y,pointColor,backColor,GetInterfaceElementStrength());
@@ -2900,7 +2900,7 @@ static void SetDynamicContentForce( void )
 {
 	float force = 0;
 	
-	force = get_smpl_force(g_mainPage.tureChannel);
+	force = get_smpl_value(g_mainPage.tureChannel);
 	
 	if (g_mainPage.showChannel == SMPL_KY_NUM)
 	{
@@ -2928,7 +2928,7 @@ static void SetDynamicContentSpeed( void )
 		speed /= 1000;
 	}
 
-	SetInterfaceElementSpeed(speed);
+	SetInterfaceElementFHSpeed(speed);
 }
 
 /*------------------------------------------------------------
@@ -2945,7 +2945,7 @@ static void SetDynamicContentStrength( void )
 	
 	if (GetTestStatus() != TEST_IDLE)
 	{
-		force = get_smpl_force(g_mainPage.tureChannel);
+		force = get_smpl_value(g_mainPage.tureChannel);
 	
 		strength = FromForceGetStrength(g_mainPage.testType,&g_readReport,force);
 	}
@@ -3256,7 +3256,7 @@ static void MainPageJudgeBreakCoreCycle( void )
 	float curForce = 0;
 	
 	breakStartValue = GetTargetBreakStartValue(g_mainPage.tureChannel);
-	curForce = get_smpl_force(g_mainPage.tureChannel);
+	curForce = get_smpl_value(g_mainPage.tureChannel);
 	
 	if (curForce > breakStartValue)
 	{
@@ -4115,7 +4115,7 @@ static void MainPageTestAfterDisposeExecuteCycle( void )
  *------------------------------------------------------------*/
 static void MainPageTestExecuteCoreCycle( void )
 {
-	float force = get_smpl_force(g_mainPage.tureChannel);
+	float force = get_smpl_value(g_mainPage.tureChannel);
 	float startLoadForce = smpl_ctrl_entry_get(g_mainPage.tureChannel);
 	
 	switch ( GetTestStatus() )
@@ -4264,7 +4264,7 @@ static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeD
 	float force = 0;
 	float curveShowStartForce = 0; 
 	
-	force = get_smpl_force(g_mainPage.tureChannel);
+	force = get_smpl_value(g_mainPage.tureChannel);
 	
 	curveShowStartForce = GetCurveShowStartValue(g_mainPage.tureChannel);
 	
@@ -4311,7 +4311,7 @@ static void MainPageCoordinateDrawLineRedrawJudgeCondition( COORDINATE_DRAW_LINE
 	const uint8_t ONCE_LOAD_SECOND = 20;
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
-	force = get_smpl_force(g_mainPage.tureChannel);
+	force = get_smpl_value(g_mainPage.tureChannel);
 	maxForce = smpl_ctrl_full_p_get(g_mainPage.tureChannel);
 	
 	checkForce = pDrawLine->maxForce * ((float)(pCoordinate->rowFieldNum - 1) / pCoordinate->rowFieldNum);
@@ -4371,7 +4371,7 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 		return;
 	}
 	
-	force = get_smpl_force(g_mainPage.tureChannel);
+	force = get_smpl_value(g_mainPage.tureChannel);
 	
 	pDrawLine->force[pDrawLine->nowTimePoint] = force;
 	

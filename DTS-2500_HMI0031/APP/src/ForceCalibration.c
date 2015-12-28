@@ -139,8 +139,10 @@ typedef struct
 	uint8_t fieldNum;								//字段个数
 	FunctionalState refreshShortcut;				//刷新快捷菜单
 	LEAVE_PAGE_TypeDef leavePage;					//离开页	
-	SMPL_NAME_TypeDef2 showChannel;					//显示通道
-	SMPL_NAME_TypeDef2 tureChannel;					//真实通道
+	FH_UINT_TypeDef fhChannelUnit;					//负荷通道单位
+	WY_UINT_TypeDef	wyChannelUnit;					//位移通道单位
+	BX_UINT_TypeDef	bxChannelUnit;					//变形通道单位
+	SMPL_NAME_TypeDef curChannel;					//当前通道
 }FORCE_CALIBRATION_TypeDef;
 
 typedef struct
@@ -153,8 +155,8 @@ typedef struct
 	FlagStatus cancelPoint;							//撤销
 	CALIBRATION_STATUS_TypeDef calibrationStatus;
 	uint8_t serial[MAX_CALIBRATION_POINT_SEGS];
-	int32_t checkForce[MAX_CALIBRATION_POINT_SEGS];
-	float realForce[MAX_CALIBRATION_POINT_SEGS];
+	int32_t checkValue[MAX_CALIBRATION_POINT_SEGS];
+	float realValue[MAX_CALIBRATION_POINT_SEGS];
 	int32_t code[MAX_CALIBRATION_POINT_SEGS];
 	float deviation[MAX_CALIBRATION_POINT_SEGS];
 }FORCE_CALIBRATION_BODY_TypeDef;
@@ -162,13 +164,27 @@ typedef struct
 /* Private constants ---------------------------------------------------------*/
 const char * const pForceCalibrationFieldName[] = 
 {
-	"序号",
-	"检测点(kN)",
-	"检测点(N)",
-	"力值(kN)",
-	"力值(N)",
-	"力码",
-	"误差(%)",
+	"序号",			//0
+	"检测点(kN)",	//1
+	"检测点(N)",		//2
+	"力值(kN)",		//3
+	"力值(N)",		//4
+	"力码",			//5
+	"误差(%)",		//6
+	"检测点(mm)",	//7
+	"检测点(cm)",	//8
+	"检测点(dm)",	//9
+	"检测点(m)",		//10
+	"位移值(mm)",	//11
+	"位移值(cm)",	//12
+	"位移值(dm)",	//13
+	"位移值(m)",		//14
+	"变形值(mm)",	//15
+	"变形值(cm)",	//16
+	"变形值(dm)",	//17
+	"变形值(m)",		//18
+	"位移码",		//19
+	"变形码",		//20
 };
 
 const char * const pForceCalibrationIndecateWindowsTitleName[] = 
@@ -177,6 +193,18 @@ const char * const pForceCalibrationIndecateWindowsTitleName[] =
 	"力值(N)",		//1
 	"速度(kN/s)",	//2
 	"速度(N/s)",	//3
+	"位移(mm)",		//4
+	"位移(cm)",		//5
+	"位移(dm)",		//6
+	"位移(m)",		//7
+	"变形(mm)",		//8
+	"变形(cm)",		//9
+	"变形(dm)",		//10
+	"变形(m)",		//11
+	"速度(mm/s)",	//12
+	"速度(cm/s)",	//13
+	"速度(dm/s)",	//14
+	"速度(m/s)",	//15
 };
 
 const char * const pCalibrationStatusBarTitleName[] = 
@@ -196,6 +224,8 @@ const char * const pForceCalibrationWarning[] =
 	"标定数据不是递增趋势！",		//3
 	"标定表已更新！",				//4
 	"发送力值清零命令失败！",		//5
+	"发送位移清零命令失败！",		//6
+	"发送变形清零命令失败！",		//7
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -281,7 +311,25 @@ void LoadForceCalibationPage( void )
  *------------------------------------------------------------*/
 static void ForceCalibationInit( void )
 {
-	disp_syn(DISP_CHN_FH);
+	g_ForceCalibration.fhChannelUnit = GetFH_SmplUnit();
+	g_ForceCalibration.wyChannelUnit = GetWY_SmplUnit();
+	g_ForceCalibration.bxChannelUnit = GetBX_SmplUnit();
+	g_ForceCalibration.curChannel = GetChannelSelectChannel();
+	
+	switch ( g_ForceCalibration.curChannel )
+	{
+		case SMPL_FH_NUM:
+			disp_syn(DISP_CHN_FH);	
+			break;
+		case SMPL_WY_NUM:
+			disp_syn(DISP_CHN_WY);	
+			break;
+		case SMPL_BX_NUM:
+			disp_syn(DISP_CHN_BX);	
+			break;
+		default:
+			break;
+	}
 	disp_syn(DISP_CHN_SPEED);
 	
 	InitInterfaceElement();
@@ -403,13 +451,110 @@ static void ForceCalibationConfig( void )
 	uint8_t i;
 	
 	/* 标题 */
-	if (GetPageName() == FORCE_CALIBRATION_PAGE)
+	switch ( g_ForceCalibration.curChannel )
 	{
-		g_ForceCalibration.pTitle = "力值校准";
-	}
-	else
-	{
-		g_ForceCalibration.pTitle = "力值检定";
+		case SMPL_FH_NUM:
+			if (GetPageName() == FORCE_CALIBRATION_PAGE)
+			{
+				g_ForceCalibration.pTitle = "力值校准";
+			}
+			else
+			{
+				g_ForceCalibration.pTitle = "力值检定";
+			}
+
+			/* 字段名 */
+			g_ForceCalibration.pParameterNameArray[INDEX_SERIAL] 		= pForceCalibrationFieldName[0];
+			if (g_ForceCalibration.fhChannelUnit == FH_UNIT_kN)
+			{
+				g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[1];
+				g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[3];
+			}
+			else
+			{
+				g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[2];
+				g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[4];
+			}
+			
+			g_ForceCalibration.pParameterNameArray[INDEX_CODE] 			= pForceCalibrationFieldName[5];
+			g_ForceCalibration.pParameterNameArray[INDEX_ERROR] 		= pForceCalibrationFieldName[6];
+			break;
+		case SMPL_WY_NUM:
+			if (GetPageName() == FORCE_CALIBRATION_PAGE)
+			{
+				g_ForceCalibration.pTitle = "位移校准";
+			}
+			else
+			{
+				g_ForceCalibration.pTitle = "位移检定";
+			}
+
+			/* 字段名 */
+			g_ForceCalibration.pParameterNameArray[INDEX_SERIAL] 		= pForceCalibrationFieldName[0];
+			switch ( g_ForceCalibration.wyChannelUnit )
+			{
+				case WY_UNIT_MM:
+					g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[7];
+					g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[11];	
+					break;
+				case WY_UNIT_CM:
+					g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[8];
+					g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[12];		
+					break;
+				case WY_UNIT_DM:
+					g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[9];
+					g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[13];		
+					break;
+				case WY_UNIT_M:
+					g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[10];
+					g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[14];		
+					break; 
+				default:
+					break;
+			}
+			
+			g_ForceCalibration.pParameterNameArray[INDEX_CODE] 			= pForceCalibrationFieldName[19];
+			g_ForceCalibration.pParameterNameArray[INDEX_ERROR] 		= pForceCalibrationFieldName[6];
+			break;
+		case SMPL_BX_NUM:
+			if (GetPageName() == FORCE_CALIBRATION_PAGE)
+			{
+				g_ForceCalibration.pTitle = "变形校准";
+			}
+			else
+			{
+				g_ForceCalibration.pTitle = "变形检定";
+			}
+
+			/* 字段名 */
+			g_ForceCalibration.pParameterNameArray[INDEX_SERIAL] 		= pForceCalibrationFieldName[0];
+			switch ( g_ForceCalibration.bxChannelUnit )
+			{
+				case BX_UNIT_MM:
+					g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[7];
+					g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[15];	
+					break;
+				case BX_UNIT_CM:
+					g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[8];
+					g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[16];		
+					break;
+				case BX_UNIT_DM:
+					g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[9];
+					g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[17];		
+					break;
+				case BX_UNIT_M:
+					g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[10];
+					g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[18];		
+					break; 
+				default:
+					break;
+			}
+			
+			g_ForceCalibration.pParameterNameArray[INDEX_CODE] 			= pForceCalibrationFieldName[20];
+			g_ForceCalibration.pParameterNameArray[INDEX_ERROR] 		= pForceCalibrationFieldName[6];
+			break;
+		default:
+			break;
 	}
 	
 	/* 示值窗索引 */
@@ -430,34 +575,71 @@ static void ForceCalibationConfig( void )
 	g_ForceCalibration.indexStatusBarArray[INDEX_TIME] 					= OBJECT_TIME;
 	g_ForceCalibration.indexStatusBarArray[INDEX_STATUS] 				= OBJECT_PERIPHERAL_STATUS;
 	
-	/* 字段名 */
-	g_ForceCalibration.pParameterNameArray[INDEX_SERIAL] 		= pForceCalibrationFieldName[0];
-	if (g_ForceCalibration.showChannel == SMPL_KY_NUM)
-	{
-		g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[1];
-		g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[3];
-	}
-	else
-	{
-		g_ForceCalibration.pParameterNameArray[INDEX_CHECK_POINT] 	= pForceCalibrationFieldName[2];
-		g_ForceCalibration.pParameterNameArray[INDEX_FORCE] 		= pForceCalibrationFieldName[4];
-	}
-	
-	g_ForceCalibration.pParameterNameArray[INDEX_CODE] 			= pForceCalibrationFieldName[5];
-	g_ForceCalibration.pParameterNameArray[INDEX_ERROR] 		= pForceCalibrationFieldName[6];
-	
 	/* 示值窗标题名 */
-	if (g_ForceCalibration.showChannel == SMPL_KY_NUM)
+	switch ( g_ForceCalibration.curChannel )
 	{
-		g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[0];
-		g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[2];
+		case SMPL_FH_NUM:
+			if (g_ForceCalibration.curChannel == FH_UNIT_kN)
+			{
+				g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[0];
+				g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[2];
+			}
+			else
+			{
+				g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[1];
+				g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[3];
+			}	
+			break;
+		case SMPL_WY_NUM:
+			switch ( g_ForceCalibration.wyChannelUnit )
+			{
+				case WY_UNIT_MM:
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[4];	
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[12];
+					break;
+				case WY_UNIT_CM:
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[5];
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[13];
+					break;
+				case WY_UNIT_DM:
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[6];
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[14];
+					break;
+				case WY_UNIT_M:
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[7];
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[15];
+					break; 
+				default:
+					break;
+			}
+			break;
+		case SMPL_BX_NUM:
+			switch ( g_ForceCalibration.bxChannelUnit )
+			{
+				case BX_UNIT_MM:
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[8];
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[12];
+					break;
+				case BX_UNIT_CM:
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[9];	
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[13];
+					break;
+				case BX_UNIT_DM:
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[10];
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[14];
+					break;
+				case BX_UNIT_M:
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[11];
+					g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[15];
+					break; 
+				default:
+					break;
+			}	
+			break;
+		default:
+			break;
 	}
-	else
-	{
-		g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[1];
-		g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[3];
-	}
-	
+		
 	/* 状态栏标题 */
 	g_ForceCalibration.pStatusBarTitleNameArray[INDEX_COMM_STATUS] 			= pCalibrationStatusBarTitleName[0];
 	g_ForceCalibration.pStatusBarTitleNameArray[INDEX_CALIBRATION_STATUS] 	= pCalibrationStatusBarTitleName[1];
@@ -467,7 +649,7 @@ static void ForceCalibationConfig( void )
 	
 	/* 字段个数 */
 	g_ForceCalibration.fieldNum = MAX_FIELD_NUM;
-	g_ForceCalibration.indicateWindowNum = INDICATE_WINDOWS_NUMS;
+	g_ForceCalibration.indicateWindowNum = INDICATE_WINDOWS_NUMS;	
 	g_ForceCalibration.statusBarNum = STATUS_BAR_NUMS;
 	
 	/* 小数点位数 */
@@ -502,7 +684,7 @@ static void ForceCalibrationReadParameter( void )
 	uint8_t remain = 0;
 	uint8_t baseIndex = 0;
 	uint8_t fieldIndex = 0;
-	float force = 0;
+	float force = 0,disPlacement = 0,deform = 0;
 	uint8_t dotNum = 0;
 	int32_t tempu = 0;
 	float tempf = 0;
@@ -514,7 +696,7 @@ static void ForceCalibrationReadParameter( void )
 	{
 		g_CalibrationBody.serial[rowIndex] = rowIndex + 1;
 		
-		g_CalibrationBody.checkForce[rowIndex] = pCalibrationPoint->calibrationForce[rowIndex];
+		g_CalibrationBody.checkValue[rowIndex] = pCalibrationPoint->calibrationValue[rowIndex];
 	}
 	
 	/* 总个数 */
@@ -571,40 +753,177 @@ static void ForceCalibrationReadParameter( void )
 		numtochar(MAX_DATA_BIT,tempu,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);
 	}
 	
-	/* 检测点 */
-	fieldIndex = GetForceCalibationFieldIndex(OBJECT_CHECK_POINT);
-	for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
+	switch ( g_ForceCalibration.curChannel )
 	{
-		force = g_CalibrationBody.checkForce[baseIndex+rowIndex];
-		if (g_ForceCalibration.showChannel == SMPL_KY_NUM)
-		{
-			force /= 1000;
-		}
+		case SMPL_FH_NUM:
+			/* 检测点 */
+			fieldIndex = GetForceCalibationFieldIndex(OBJECT_CHECK_POINT);
+			
+			for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
+			{		
+				force = g_CalibrationBody.checkValue[baseIndex+rowIndex];	
+				if (g_ForceCalibration.curChannel == FH_UNIT_kN)
+				{
+					force /= 1000;
+				}
+				
+				numtochar(MAX_DATA_BIT,(int32_t)force,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);	
+			}	
+			
+			/* 力值 */
+			fieldIndex = GetForceCalibationFieldIndex(OBJECT_FORCE);
+			for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
+			{
+				force = g_CalibrationBody.realValue[baseIndex+rowIndex];
+				
+				if (g_ForceCalibration.curChannel == FH_UNIT_kN)
+				{
+					force /= 1000;
+				}
+				
+				dotNum = g_ForceCalibration.oneLevelMenuTable[rowIndex][fieldIndex].pointBit;
+				floattochar(MAX_DATA_BIT,dotNum,force,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);
+			}
+			
+			/* 力码 */
+			fieldIndex = GetForceCalibationFieldIndex(OBJECT_CODE);
+			for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
+			{
+				tempu = g_CalibrationBody.code[baseIndex+rowIndex];
+				
+				numtochar(MAX_DATA_BIT,tempu,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);
+			}
+			break;
+		case SMPL_WY_NUM:
+			/* 检测点 */
+			fieldIndex = GetForceCalibationFieldIndex(OBJECT_CHECK_POINT);
+			
+			for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
+			{
+				disPlacement = g_CalibrationBody.checkValue[baseIndex+rowIndex];	
+				
+				switch ( g_ForceCalibration.wyChannelUnit )
+				{
+					case WY_UNIT_MM:							
+						break;
+					case WY_UNIT_CM:
+						disPlacement /= 10;	
+						break;
+					case WY_UNIT_DM:
+						disPlacement /= 100;	
+						break;
+					case WY_UNIT_M:
+						disPlacement /= 1000;	
+						break; 
+					default:
+						break;
+				}
+				numtochar(MAX_DATA_BIT,(int32_t)disPlacement,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);	
+			}
 		
-		numtochar(MAX_DATA_BIT,(int32_t)force,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);
-	}
-	
-	/* 力值 */
-	fieldIndex = GetForceCalibationFieldIndex(OBJECT_FORCE);
-	for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
-	{
-		force = g_CalibrationBody.realForce[baseIndex+rowIndex];
-		if (g_ForceCalibration.showChannel == SMPL_KY_NUM)
-		{
-			force /= 1000;
-		}
-		
-		dotNum = g_ForceCalibration.oneLevelMenuTable[rowIndex][fieldIndex].pointBit;
-		floattochar(MAX_DATA_BIT,dotNum,force,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);
-	}
-	
-	/* 力码 */
-	fieldIndex = GetForceCalibationFieldIndex(OBJECT_CODE);
-	for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
-	{
-		tempu = g_CalibrationBody.code[baseIndex+rowIndex];
-		
-		numtochar(MAX_DATA_BIT,tempu,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);
+			/* 位移值 */
+			fieldIndex = GetForceCalibationFieldIndex(OBJECT_FORCE);
+			
+			for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
+			{
+				disPlacement = g_CalibrationBody.realValue[baseIndex+rowIndex];
+				
+				switch ( g_ForceCalibration.wyChannelUnit )
+				{
+					case WY_UNIT_MM:
+							
+						break;
+					case WY_UNIT_CM:
+						disPlacement /= 10;	
+						break;
+					case WY_UNIT_DM:
+						disPlacement /= 100;	
+						break;
+					case WY_UNIT_M:
+						disPlacement /= 1000;	
+						break; 
+					default:
+						break;
+				}				
+				
+				dotNum = g_ForceCalibration.oneLevelMenuTable[rowIndex][fieldIndex].pointBit;
+				floattochar(MAX_DATA_BIT,dotNum,disPlacement,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);
+			}
+			
+			/* 位移码 */
+			fieldIndex = GetForceCalibationFieldIndex(OBJECT_CODE);
+			for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
+			{
+				tempu = g_CalibrationBody.code[baseIndex+rowIndex];
+				
+				numtochar(MAX_DATA_BIT,tempu,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);
+			}
+			break;
+		case SMPL_BX_NUM:
+			/* 检测点 */
+			fieldIndex = GetForceCalibationFieldIndex(OBJECT_CHECK_POINT);
+			
+			for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
+			{
+				deform = g_CalibrationBody.checkValue[baseIndex+rowIndex];	
+				switch ( g_ForceCalibration.bxChannelUnit )
+				{
+					case BX_UNIT_MM:							
+						break;
+					case BX_UNIT_CM:
+						deform /= 10;	
+						break;
+					case BX_UNIT_DM:
+						deform /= 100;	
+						break;
+					case BX_UNIT_M:
+						deform /= 1000;	
+						break; 
+					default:
+						break;
+				}
+				numtochar(MAX_DATA_BIT,(int32_t)deform,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);		
+			}
+			
+			/* 变形值 */
+			fieldIndex = GetForceCalibationFieldIndex(OBJECT_FORCE);
+			for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
+			{
+				deform = g_CalibrationBody.realValue[baseIndex+rowIndex];
+				
+				switch ( g_ForceCalibration.bxChannelUnit )
+				{
+					case BX_UNIT_MM:
+							
+						break;
+					case BX_UNIT_CM:
+						deform /= 10;	
+						break;
+					case BX_UNIT_DM:
+						deform /= 100;	
+						break;
+					case BX_UNIT_M:
+						deform /= 1000;	
+						break; 
+					default:
+						break;
+				}				
+				
+				dotNum = g_ForceCalibration.oneLevelMenuTable[rowIndex][fieldIndex].pointBit;
+				floattochar(MAX_DATA_BIT,dotNum,deform,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);
+			}
+			
+			/* 变形码 */
+			fieldIndex = GetForceCalibationFieldIndex(OBJECT_CODE);
+			for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
+			{
+				tempu = g_CalibrationBody.code[baseIndex+rowIndex];
+				
+				numtochar(MAX_DATA_BIT,tempu,g_ForceCalibration.fieldData[rowIndex][fieldIndex].parameterData);
+			}
+			break;
+		default:
+			break;
 	}
 	
 	/* 误差 */
@@ -652,7 +971,7 @@ static void ConfigForceCalibrationOneFieldRectangleFrameCoordinate( uint8_t rowI
 			break;
 		
 		case OBJECT_FORCE:
-			g_ForceCalibration.oneLevelMenuTable[rowIndex][fieldIndex].lenth = 102;
+			g_ForceCalibration.oneLevelMenuTable[rowIndex][fieldIndex].lenth = 126;
 			break;
 		case OBJECT_CODE:
 			g_ForceCalibration.oneLevelMenuTable[rowIndex][fieldIndex].lenth = 102;
@@ -889,6 +1208,7 @@ static void Show_ForceCalibrationOneIndicateWindowsContent( uint8_t indexRow, ui
 //	uint16_t width = g_mainPage.oneLevelMenuIndicateWindows[indexRow][indexField].width - \
 //					2 * g_mainPage.oneLevelMenuIndicateWindows[indexRow][indexField].lineWidth;
 	uint8_t handle = g_ForceCalibration.indexIndicateWindowsArray[indexField];
+	float tempf = 0;
 	
 //	lcd_fill(x,y,lenth,width,backColor);
 	y += 6;
@@ -896,10 +1216,40 @@ static void Show_ForceCalibrationOneIndicateWindowsContent( uint8_t indexRow, ui
 	switch ( handle )
 	{
 		case OBJECT_WINDOWS_FORCE:
-			RefreshDynamicForce(x+104,y,pointColor,backColor,GetInterfaceElementForce());		
+			switch ( g_ForceCalibration.curChannel )
+			{
+				case SMPL_FH_NUM:
+					tempf = GetInterfaceElementForce();	
+					break;
+				case SMPL_WY_NUM:
+					tempf = GetInterfaceElementDisPlacement();	
+					break;
+				case SMPL_BX_NUM:
+					tempf = GetInterfaceElementDeform();	
+					break;
+				default:
+					break;
+			}
+			
+			RefreshDynamicForce(x+104,y,pointColor,backColor,tempf);		
 			break;
 		case OBJECT_WINDOWS_SPEED:
-			RefreshDynamicSpeed(x+104,y,pointColor,backColor,GetInterfaceElementSpeed());
+			switch ( g_ForceCalibration.curChannel )
+			{
+				case SMPL_FH_NUM:
+					tempf = GetInterfaceElementFHSpeed();	
+					break;
+				case SMPL_WY_NUM:
+					tempf = GetInterfaceElementWYSpeed();	
+					break;
+				case SMPL_BX_NUM:
+					tempf = GetInterfaceElementBXSpeed();	
+					break;
+				default:
+					break;
+			}
+			
+			RefreshDynamicSpeed(x+104,y,pointColor,backColor,tempf);
 			break;
 	}
 }
@@ -1489,11 +1839,11 @@ static void ForceCalibrationPrintCalibrationResult( void )
 		return;
 	}
 	
-	g_CalibrationResult.tureChannel = g_ForceCalibration.tureChannel;
-	g_CalibrationResult.showChannel = g_ForceCalibration.showChannel;
+//	g_CalibrationResult.tureChannel = g_ForceCalibration.tureChannel;
+//	g_CalibrationResult.showChannel = g_ForceCalibration.showChannel;
 	g_CalibrationResult.calibrationPointNums = calibrationNum;
-	g_CalibrationResult.pCheckForce = g_CalibrationBody.checkForce;
-	g_CalibrationResult.pRealForce = g_CalibrationBody.realForce;
+	g_CalibrationResult.pCheckForce = g_CalibrationBody.checkValue;
+	g_CalibrationResult.pRealForce = g_CalibrationBody.realValue;
 	g_CalibrationResult.pCode = g_CalibrationBody.code;
 	g_CalibrationResult.pDeviation = g_CalibrationBody.deviation;
 	
@@ -1577,17 +1927,17 @@ static TestStatus ForceCalibrationChangeCalibrationTableProcess( void )
 	
 	calibrationSegments++;	//加上0点
 	
-	smpl_tab_num_set(g_ForceCalibration.tureChannel,calibrationSegments);
-	smpl_tab_value_set(g_ForceCalibration.tureChannel,0,0);
-	smpl_tab_code_set(g_ForceCalibration.tureChannel,0,0);
+	smpl_tab_num_set(g_ForceCalibration.curChannel,calibrationSegments);
+	smpl_tab_value_set(g_ForceCalibration.curChannel,0,0);
+	smpl_tab_code_set(g_ForceCalibration.curChannel,0,0);
 	
 	for (segmentIndex=0; segmentIndex<calibrationSegments; ++segmentIndex)
 	{
-		/* 写力值 */
-		smpl_tab_value_set(g_ForceCalibration.tureChannel,segmentIndex+1,g_CalibrationBody.checkForce[segmentIndex]);
+		/* 写值 */
+		smpl_tab_value_set(g_ForceCalibration.curChannel,segmentIndex+1,g_CalibrationBody.checkValue[segmentIndex]);
 		
-		/* 写码值 */		
-		smpl_tab_code_set(g_ForceCalibration.tureChannel,segmentIndex+1,g_CalibrationBody.code[segmentIndex]);
+		/* 写码 */		
+		smpl_tab_code_set(g_ForceCalibration.curChannel,segmentIndex+1,g_CalibrationBody.code[segmentIndex]);
 	}
 	
 	prm_save();
@@ -1781,9 +2131,22 @@ static void ForceCalibrationKeyProcess( void )
 				break;
 			
 			case KEY_FORCE_TARE:		
-				if (SendChannelTareCmd(g_ForceCalibration.tureChannel) == ERROR)
+				if (SendChannelTareCmd(g_ForceCalibration.curChannel) == ERROR)
 				{
-					SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[5]);
+					switch ( g_ForceCalibration.curChannel )
+					{
+						case SMPL_FH_NUM:
+							SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[5]);	
+							break;
+						case SMPL_WY_NUM:
+							SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[6]);	
+							break;
+						case SMPL_BX_NUM:
+							SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[7]);	
+							break;
+						default:
+							break;
+					}
 			
 					g_ForceCalibration.leavePage.flagLeavePage = SET;
 					g_ForceCalibration.leavePage.flagSaveData = RESET;
@@ -1821,9 +2184,9 @@ static void SetDynamicContentForce( void )
 {
 	float force = 0;
 	
-	force = get_smpl_force(g_ForceCalibration.tureChannel);
+	force = get_smpl_value(SMPL_FH_NUM);
 	
-	if (g_ForceCalibration.showChannel == SMPL_KY_NUM)
+	if (g_ForceCalibration.fhChannelUnit == FH_UNIT_kN)
 	{
 		force /= 1000;
 	}
@@ -1832,24 +2195,160 @@ static void SetDynamicContentForce( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : SetDynamicContentSpeed
- * Description    : 设置动态内容速度
+ * Function Name  : SetDynamicContentDispalcement
+ * Description    : 设置动态内容位移
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void SetDynamicContentSpeed( void )
+static void SetDynamicContentDispalcement( void )
+{
+	float disPlacement = 0;
+	
+	disPlacement = get_smpl_value(SMPL_WY_NUM);
+	
+	switch ( g_ForceCalibration.wyChannelUnit )
+	{
+		case WY_UNIT_MM:
+				
+			break;
+		case WY_UNIT_CM:
+			disPlacement /= 10;	
+			break;
+		case WY_UNIT_DM:
+			disPlacement /= 100;		
+			break;
+		case WY_UNIT_M:
+			disPlacement /= 1000;		
+			break; 
+		default:
+			break;
+	}
+
+	SetInterfaceElementDisPlacement(disPlacement);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDynamicContentDeform
+ * Description    : 设置动态内容变形
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void SetDynamicContentDeform( void )
+{
+	float deform = 0;
+	
+	deform = get_smpl_value(SMPL_BX_NUM);
+	
+	switch ( g_ForceCalibration.bxChannelUnit )
+	{
+		case BX_UNIT_MM:
+				
+			break;
+		case BX_UNIT_CM:
+			deform /= 10;	
+			break;
+		case BX_UNIT_DM:
+			deform /= 100;		
+			break;
+		case BX_UNIT_M:
+			deform /= 1000;		
+			break; 
+		default:
+			break;
+	}
+
+	SetInterfaceElementDeform(deform);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDynamicContentFHSpeed
+ * Description    : 设置动态内容负荷速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void SetDynamicContentFHSpeed( void )
 {
 	float speed = 0;
 	
-	speed = get_smpl_spd(g_ForceCalibration.tureChannel);
+	speed = get_smpl_spd(SMPL_FH_NUM);
 	
-	if (g_ForceCalibration.showChannel == SMPL_KY_NUM)
+	if (g_ForceCalibration.fhChannelUnit == FH_UNIT_kN)
 	{
 		speed /= 1000;
+	}	
+	
+	SetInterfaceElementFHSpeed(speed);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDynamicContentWYSpeed
+ * Description    : 设置动态内容位移速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void SetDynamicContentWYSpeed( void )
+{
+	float speed = 0;
+	
+	speed = get_smpl_spd(SMPL_WY_NUM);
+	
+	switch ( g_ForceCalibration.wyChannelUnit )
+	{
+		case WY_UNIT_MM:
+				
+			break;
+		case WY_UNIT_CM:
+			speed /= 10;	
+			break;
+		case WY_UNIT_DM:
+			speed /= 100;	
+			break;
+		case WY_UNIT_M:
+			speed /= 1000;	
+			break; 
+		default:
+			break;
 	}
 
-	SetInterfaceElementSpeed(speed);
+	SetInterfaceElementWYSpeed(speed);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDynamicContentBXSpeed
+ * Description    : 设置动态内容变形速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void SetDynamicContentBXSpeed( void )
+{
+	float speed = 0;
+	
+	speed = get_smpl_spd(SMPL_BX_NUM);
+	
+	switch ( g_ForceCalibration.bxChannelUnit )
+	{
+		case BX_UNIT_MM:
+				
+			break;
+		case BX_UNIT_CM:
+			speed /= 10;	
+			break;
+		case BX_UNIT_DM:
+			speed /= 100;	
+			break;
+		case BX_UNIT_M:
+			speed /= 1000;	
+			break; 
+		default:
+			break;
+	}
+
+	SetInterfaceElementBXSpeed(speed);
 }
 
 /*------------------------------------------------------------
@@ -1873,11 +2372,26 @@ static void SetDynamicContentCalibrationStatus( void )
  *------------------------------------------------------------*/
 static void SetForceCalibrationDynamicContentTask( void )
 {
-	SetDynamicContentForce();
-	SetDynamicContentSpeed();
+	switch ( g_ForceCalibration.curChannel )
+	{
+		case SMPL_FH_NUM:
+			SetDynamicContentForce();
+			SetDynamicContentFHSpeed();	
+			break;
+		case SMPL_WY_NUM:
+			SetDynamicContentDispalcement();
+			SetDynamicContentWYSpeed();
+			break;
+		case SMPL_BX_NUM:
+			SetDynamicContentDeform();
+			SetDynamicContentBXSpeed();
+			break;
+		default:
+			break;
+	}
 	SetDynamicContentLinkStatus();
 	SetDynamicContentCalibrationStatus();
-	SetDynamicContentCode(g_ForceCalibration.tureChannel);
+	SetDynamicContentCode(g_ForceCalibration.curChannel);
 	SetDynamicContentUSBStatus();
 	SetDynamicContentNETStatus();
 }
@@ -1968,7 +2482,7 @@ static FunctionalState ForceCalibrationAllowRunCalibration( void )
  *------------------------------------------------------------*/
 static void ClearTestResultArea( uint16_t color )
 {
-	lcd_fill(150,100,500,270,color);
+	lcd_fill(150,100,530,270,color);
 }
 
 /*------------------------------------------------------------
@@ -2060,7 +2574,7 @@ static void ForceCalibrationWriteForce( uint8_t index, float force )
 	
 	if ((index>=1) && (index<=MAX_CALIBRATION_POINT_SEGS))
 	{
-		if (g_ForceCalibration.showChannel == SMPL_KY_NUM)
+		if (g_ForceCalibration.fhChannelUnit == FH_UNIT_kN)
 		{
 			force /= 1000;
 		}
@@ -2081,6 +2595,108 @@ static void ForceCalibrationWriteForce( uint8_t index, float force )
 		dotNum = g_ForceCalibration.oneLevelMenuTable[index-1][fieldIndex].pointBit;
 		
 		floattochar(MAX_DATA_BIT,dotNum,force,g_ForceCalibration.fieldData[index-1][fieldIndex].parameterData);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : ForceCalibrationWriteDisPlacement
+ * Description    : 写入位移(编号从1开始)
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void ForceCalibrationWriteDisPlacement( uint8_t index, float disPlacement )
+{
+	uint8_t fieldIndex = 0;
+	uint8_t dotNum = 0;
+	
+	if ((index>=1) && (index<=MAX_CALIBRATION_POINT_SEGS))
+	{
+		switch ( g_ForceCalibration.wyChannelUnit )
+		{
+			case WY_UNIT_MM:
+					
+				break;
+			case WY_UNIT_CM:
+				disPlacement /= 10;	
+				break;
+			case WY_UNIT_DM:
+				disPlacement /= 100;	
+				break;
+			case WY_UNIT_M:
+				disPlacement /= 1000;	
+				break; 
+			default:
+				break;
+		}
+			
+		fieldIndex = GetForceCalibationFieldIndex(OBJECT_FORCE);
+		if (fieldIndex == 0xff)
+		{
+			return;
+		}
+		
+		if (fabs(disPlacement) > 9999999)
+		{
+			strcpy(g_ForceCalibration.fieldData[index-1][fieldIndex].parameterData,"--------");
+			
+			return;
+		}
+		
+		dotNum = g_ForceCalibration.oneLevelMenuTable[index-1][fieldIndex].pointBit;
+		
+		floattochar(MAX_DATA_BIT,dotNum,disPlacement,g_ForceCalibration.fieldData[index-1][fieldIndex].parameterData);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : ForceCalibrationWriteDeform
+ * Description    : 写入变形(编号从1开始)
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void ForceCalibrationWriteDeform( uint8_t index, float deform )
+{
+	uint8_t fieldIndex = 0;
+	uint8_t dotNum = 0;
+	
+	if ((index>=1) && (index<=MAX_CALIBRATION_POINT_SEGS))
+	{
+		switch ( g_ForceCalibration.bxChannelUnit )
+		{
+			case BX_UNIT_MM:
+					
+				break;
+			case BX_UNIT_CM:
+				deform /= 10;	
+				break;
+			case BX_UNIT_DM:
+				deform /= 100;	
+				break;
+			case BX_UNIT_M:
+				deform /= 1000;	
+				break; 
+			default:
+				break;
+		}
+			
+		fieldIndex = GetForceCalibationFieldIndex(OBJECT_FORCE);
+		if (fieldIndex == 0xff)
+		{
+			return;
+		}
+		
+		if (fabs(deform) > 9999999)
+		{
+			strcpy(g_ForceCalibration.fieldData[index-1][fieldIndex].parameterData,"--------");
+			
+			return;
+		}
+		
+		dotNum = g_ForceCalibration.oneLevelMenuTable[index-1][fieldIndex].pointBit;
+		
+		floattochar(MAX_DATA_BIT,dotNum,deform,g_ForceCalibration.fieldData[index-1][fieldIndex].parameterData);
 	}
 }
 
@@ -2241,7 +2857,7 @@ float ForceCalibrationGetDeviation( float standardForce, float realForce )
  *------------------------------------------------------------*/
 static void ForceCalibrationTakePointProcess( void )
 {
-	float curForce = 0,standardForce = 0;
+	float curValue = 0,standardForce = 0;
 	int32_t code = 0;
 	float deviation = 0;
 		
@@ -2256,21 +2872,34 @@ static void ForceCalibrationTakePointProcess( void )
 		
 		g_CalibrationBody.curCompletePieceSerial++;
 		
-		/* 处理力值 */
-		curForce = get_smpl_force(g_ForceCalibration.tureChannel);		
-		g_CalibrationBody.realForce[g_CalibrationBody.curCompletePieceSerial-1] = curForce;
-		ForceCalibrationWriteForce(GetCompletePieceSerialInCurrentPageSerial(),curForce);
+		/* 处理值 */
+		curValue = get_smpl_value(g_ForceCalibration.curChannel);		
+		g_CalibrationBody.realValue[g_CalibrationBody.curCompletePieceSerial-1] = curValue;
+		switch ( g_ForceCalibration.curChannel )
+		{
+			case SMPL_FH_NUM:
+				ForceCalibrationWriteForce(GetCompletePieceSerialInCurrentPageSerial(),curValue);	
+				break;
+			case SMPL_WY_NUM:
+				ForceCalibrationWriteDisPlacement(GetCompletePieceSerialInCurrentPageSerial(),curValue);	
+				break;
+			case SMPL_BX_NUM:
+				ForceCalibrationWriteDeform(GetCompletePieceSerialInCurrentPageSerial(),curValue);	
+				break;
+			default:
+				break;
+		}
 		Show_ForceCalibrationTestResultTable(GetCompletePieceSerialInCurrentPageSerial(),OBJECT_FORCE);
 		
 		/* 处理力码 */
-		code = GetSammpleCode(g_ForceCalibration.tureChannel);
+		code = GetSammpleCode(g_ForceCalibration.curChannel);
 		g_CalibrationBody.code[g_CalibrationBody.curCompletePieceSerial-1] = code;
 		ForceCalibrationWriteCode(GetCompletePieceSerialInCurrentPageSerial(),code);
 		Show_ForceCalibrationTestResultTable(GetCompletePieceSerialInCurrentPageSerial(),OBJECT_CODE);
 		
 		/* 处理误差 */
-		standardForce = g_CalibrationBody.checkForce[g_CalibrationBody.curCompletePieceSerial-1];
-		deviation = ForceCalibrationGetDeviation(standardForce,curForce);
+		standardForce = g_CalibrationBody.checkValue[g_CalibrationBody.curCompletePieceSerial-1];
+		deviation = ForceCalibrationGetDeviation(standardForce,curValue);
 		g_CalibrationBody.deviation[g_CalibrationBody.curCompletePieceSerial-1] = deviation;
 		ForceCalibrationWriteDeviation(GetCompletePieceSerialInCurrentPageSerial(),deviation);
 		Show_ForceCalibrationTestResultTable(GetCompletePieceSerialInCurrentPageSerial(),OBJECT_ERROR);
@@ -2317,7 +2946,7 @@ static void ForceCalibrationCancelPointProcess( void )
 		}
 		
 		/* 处理力值 */	
-		g_CalibrationBody.realForce[g_CalibrationBody.curCompletePieceSerial-1] = 0;
+		g_CalibrationBody.realValue[g_CalibrationBody.curCompletePieceSerial-1] = 0;
 		ForceCalibrationClearForce(GetCompletePieceSerialInCurrentPageSerial());
 		Show_ForceCalibrationTestResultTable(GetCompletePieceSerialInCurrentPageSerial(),OBJECT_FORCE);
 		
@@ -2383,8 +3012,8 @@ static void ForceCalibrationTakePointCoreCycle( void )
  *------------------------------------------------------------*/
 static void ForceCalibrationExecuteCoreCycle( void )
 {
-	float force = get_smpl_force(g_ForceCalibration.tureChannel);
-	float startLoadForce = smpl_ctrl_entry_get(g_ForceCalibration.tureChannel);
+	float force = get_smpl_value(g_ForceCalibration.curChannel);
+	float startLoadForce = smpl_ctrl_entry_get(g_ForceCalibration.curChannel);
 	
 	switch ( GetCalibrationStatus() )
 	{

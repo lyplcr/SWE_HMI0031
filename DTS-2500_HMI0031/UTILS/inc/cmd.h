@@ -354,7 +354,7 @@ typedef struct
 /* Exported functions ------------------------------------------------------- */
 float spd_cal(uint8_t chn, uint16_t gap);
 void spd_cal_cycle(void);
-float get_smpl_force(uint8_t chn);
+float get_smpl_value(uint8_t chn);
 float get_smpl_code(uint8_t chn);
 float get_smpl_spd(uint8_t chn);
 uint16_t uart_get_cmd( void );

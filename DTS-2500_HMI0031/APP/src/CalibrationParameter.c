@@ -68,8 +68,10 @@ typedef struct
 	FunctionalState refreshShortcut;				//刷新快捷菜单
 	LEAVE_PAGE_TypeDef leavePage;					//离开页	
 	uint8_t fieldNum;								//字段个数
-	SMPL_NAME_TypeDef2 showChannel;					//显示通道
-	SMPL_NAME_TypeDef2 tureChannel;					//真实通道
+	FH_UINT_TypeDef fhChannelUnit;					//负荷通道单位
+	WY_UINT_TypeDef	wyChannelUnit;					//位移通道单位
+	BX_UINT_TypeDef	bxChannelUnit;					//变形通道单位
+	SMPL_NAME_TypeDef curChannel;					//当前通道
 	CALIBRATION_PARAMETER_AREA_TypeDef area;
 	FunctionalState exchangeNewSegment;				//切换新的分段点
 }CALIBRATION_PARAMETER_TypeDef;
@@ -80,13 +82,19 @@ const char * const pCalibrationParameterFieldName[] =
 	"序号",			//0
 	"检测点(kN)",	//1
 	"检测点(N)",		//2
+	"检测点(mm)",	//3
+	"检测点(cm)",	//4
+	"检测点(dm)",	//5
+	"检测点(m)",		//6
 };
 
 const char * const pCalibrationParameterWarn[] = 
 {
 	"标定点分段数输入范围：1 ~ 10",		//0
 	"标定点不能为0！",					//1
-	"检测点力值错误(不是递增趋势)！",		//2		
+	"力值检测点错误(不是递增趋势)！",		//2
+	"位移检测点错误(不是递增趋势)！",		//3
+	"变形检测点错误(不是递增趋势)！",		//4
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -184,7 +192,10 @@ static void CalibrationParameterInit( void )
 	g_calibrationParameter.leavePage.flagLeavePage = RESET;
 	g_calibrationParameter.leavePage.flagSaveData = RESET;
 	
-	g_calibrationParameter.tureChannel = GetChannelSelectChannel();
+	g_calibrationParameter.fhChannelUnit = GetFH_SmplUnit();
+	g_calibrationParameter.wyChannelUnit = GetWY_SmplUnit();
+	g_calibrationParameter.bxChannelUnit = GetBX_SmplUnit();
+	g_calibrationParameter.curChannel = GetChannelSelectChannel();
 }
 
 /*------------------------------------------------------------
@@ -223,7 +234,20 @@ static void CalibrationParameterConfig( void )
 	uint8_t i;
 	
 	/* 标题 */
-	g_calibrationParameter.pTitle = "标定参数设置";
+	switch ( g_calibrationParameter.curChannel )
+	{
+		case SMPL_FH_NUM:
+			g_calibrationParameter.pTitle = "负荷通道 | 标定参数设置";	
+			break;
+		case SMPL_WY_NUM:
+			g_calibrationParameter.pTitle = "位移通道 | 标定参数设置";		
+			break;
+		case SMPL_BX_NUM:
+			g_calibrationParameter.pTitle = "变形通道 | 标定参数设置";		
+			break;
+		default:
+			break;
+	}
 	
 	/* 字段个数 */
 	g_calibrationParameter.fieldNum = MAX_FIELD_NUM;
@@ -234,13 +258,58 @@ static void CalibrationParameterConfig( void )
 	
 	/* 字段名 */
 	g_calibrationParameter.pParameterNameArray[INDEX_SERIAL] 		= pCalibrationParameterFieldName[0];
-	if (g_calibrationParameter.showChannel == SMPL_KY_NUM)
+	switch ( g_calibrationParameter.curChannel )
 	{
-		g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationParameterFieldName[1];
-	}
-	else
-	{
-		g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationParameterFieldName[2];
+		case SMPL_FH_NUM:
+			if (g_calibrationParameter.fhChannelUnit == FH_UNIT_kN)
+			{
+				g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationParameterFieldName[1];
+			}
+			else
+			{
+				g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] 	= pCalibrationParameterFieldName[2];
+			}	
+			break;
+		case SMPL_WY_NUM:
+			switch ( g_calibrationParameter.wyChannelUnit )
+			{
+				case WY_UNIT_MM:
+					g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] = pCalibrationParameterFieldName[3];	
+					break;
+				case WY_UNIT_CM:
+					g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] = pCalibrationParameterFieldName[4];	
+					break;
+				case WY_UNIT_DM:
+					g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] = pCalibrationParameterFieldName[5];	
+					break;
+				case WY_UNIT_M:
+					g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] = pCalibrationParameterFieldName[6];	
+					break; 
+				default:
+					break;
+			}	
+			break;
+		case SMPL_BX_NUM:
+			switch ( g_calibrationParameter.bxChannelUnit )
+			{
+				case BX_UNIT_MM:
+					g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] = pCalibrationParameterFieldName[3];	
+					break;
+				case BX_UNIT_CM:
+					g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] = pCalibrationParameterFieldName[4];	
+					break;
+				case BX_UNIT_DM:
+					g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] = pCalibrationParameterFieldName[5];	
+					break;
+				case BX_UNIT_M:
+					g_calibrationParameter.pParameterNameArray[INDEX_CHECK_POINT] = pCalibrationParameterFieldName[6];	
+					break; 
+				default:
+					break;
+			}	
+			break;
+		default:
+			break;
 	}
 	
 	/* 数据对齐 */
@@ -300,7 +369,7 @@ static void CalibrationParameterReadParameter( void )
 	float tempf = 0;
 	uint8_t serial = 1;
 	
-	calibrationSegments = smpl_tab_num_get(g_calibrationParameter.tureChannel);
+	calibrationSegments = smpl_tab_num_get(g_calibrationParameter.curChannel);
 		
 	if ((calibrationSegments < 2) || (calibrationSegments > MAX_CALIBRATION_SEGS + 1))
 	{
@@ -326,13 +395,58 @@ static void CalibrationParameterReadParameter( void )
 		
 		if (g_calibrationParameter.exchangeNewSegment == DISABLE)
 		{
-			/* 读力值 */
 			fieldIndex = GetCalibrationParameterFieldIndex(OBJECT_CHECK_POINT);
-			tempf = smpl_tab_value_get(g_calibrationParameter.tureChannel,segmentIndex+1);
-			if (g_calibrationParameter.showChannel == SMPL_KY_NUM)
+			tempf = smpl_tab_value_get(g_calibrationParameter.curChannel,segmentIndex+1);
+			
+			/* 读力值 */
+			switch ( g_calibrationParameter.curChannel )
 			{
-				tempf /= 1000;
+				case SMPL_FH_NUM:
+					if (g_calibrationParameter.fhChannelUnit == FH_UNIT_kN)
+					{
+						tempf /= 1000;
+					}	
+					break;
+				case SMPL_WY_NUM:
+					switch ( g_calibrationParameter.wyChannelUnit )
+					{
+						case WY_UNIT_MM:						
+							break;
+						case WY_UNIT_CM:
+							tempf /= 10; 	
+							break;
+						case WY_UNIT_DM:
+							tempf /= 100;	
+							break;
+						case WY_UNIT_M:
+							tempf /= 1000;	
+							break; 
+						default:
+							break;
+					}	
+					break;
+				case SMPL_BX_NUM:
+					switch ( g_calibrationParameter.bxChannelUnit )
+					{
+						case BX_UNIT_MM:						
+							break;
+						case BX_UNIT_CM:
+							tempf /= 10; 	
+							break;
+						case BX_UNIT_DM:
+							tempf /= 100;	
+							break;
+						case BX_UNIT_M:
+							tempf /= 1000;	
+							break; 
+						default:
+							break;
+					}	
+					break;
+				default:
+					break;
 			}
+			
 			numtochar(MAX_DATA_BIT,(int32_t)tempf,g_calibrationParameter.fieldData[segmentIndex].parameterData[fieldIndex]);
 		}
 	}
@@ -351,7 +465,7 @@ static void CalibrationParameterWriteParameter( void )
 {
 	uint8_t i;
 	uint8_t calibrationSegments = 0;
-	int32_t force = 0;
+	int32_t tempi32 = 0;
 	uint8_t handle = 0;
 	
 	calibrationSegments = GetCalibrationParameterSegments();
@@ -360,14 +474,57 @@ static void CalibrationParameterWriteParameter( void )
 	
 	for (i=0; i<calibrationSegments; ++i)
 	{
-		force = ustrtoul(g_calibrationParameter.fieldData[i].parameterData[handle],0,10);
+		tempi32 = ustrtoul(g_calibrationParameter.fieldData[i].parameterData[handle],0,10);
 		
-		if (g_calibrationParameter.showChannel == SMPL_KY_NUM)
+		switch ( g_calibrationParameter.curChannel )
 		{
-			force *= 1000;
+			case SMPL_FH_NUM:
+				if (g_calibrationParameter.fhChannelUnit == FH_UNIT_kN)
+				{
+					tempi32 *= 1000;
+				}	
+				break;
+			case SMPL_WY_NUM:
+				switch ( g_calibrationParameter.wyChannelUnit )
+				{
+					case WY_UNIT_MM:						
+						break;
+					case WY_UNIT_CM:
+						tempi32 *= 10; 	
+						break;
+					case WY_UNIT_DM:
+						tempi32 *= 100;	
+						break;
+					case WY_UNIT_M:
+						tempi32 *= 1000;	
+						break; 
+					default:
+						break;
+				}	
+				break;
+			case SMPL_BX_NUM:
+				switch ( g_calibrationParameter.bxChannelUnit )
+				{
+					case BX_UNIT_MM:						
+						break;
+					case BX_UNIT_CM:
+						tempi32 *= 10; 	
+						break;
+					case BX_UNIT_DM:
+						tempi32 *= 100;	
+						break;
+					case BX_UNIT_M:
+						tempi32 *= 1000;	
+						break; 
+					default:
+						break;
+				}	
+				break;
+			default:
+				break;
 		}
 		
-		g_calibrationPoint.calibrationForce[i] = force;
+		g_calibrationPoint.calibrationValue[i] = tempi32;
 	}
 	
 	g_calibrationPoint.calibrationSegments = GetCalibrationParameterSegments();
@@ -1103,10 +1260,10 @@ static void CheckPointForceAutoFill( uint8_t calibrationPoint )
 {
 	uint8_t i = 0;
 	uint8_t fieldIndex = 0;
-	float averageForce = 0;
+	float averageForce = 0,averageDisplacement = 0,averageDeform = 0;
 	float tureMaxForce = 0;
-	float maxForce = 0;
-	float curForce = 0;
+	float maxForce = 0,maxDisplacement = 0,maxDeform = 0;
+	float curForce = 0,curDisplacement = 0,curDeform = 0;
 	uint8_t cof = 0;
 	const uint32_t PointCoef[] 		= {10,20,40,60,80,100};
 	const uint32_t PointCoef_1T[] 	= {1,2,3,4,5,6,8,10};
@@ -1122,91 +1279,160 @@ static void CheckPointForceAutoFill( uint8_t calibrationPoint )
 	
 	fieldIndex = GetCalibrationParameterFieldIndex(OBJECT_CHECK_POINT);
 	
-	tureMaxForce = smpl_ctrl_full_p_get(g_calibrationParameter.tureChannel);
-	
-	maxForce = tureMaxForce;
-	
-	if ( g_calibrationParameter.showChannel == SMPL_KY_NUM )
+	switch ( g_calibrationParameter.curChannel )
 	{
-		maxForce /= 1000;
-	}
-	averageForce = maxForce / 100;
-	
-	switch ( calibrationPoint )
-	{
-		case 6:
-			for (i=0; i<calibrationPoint; ++i)
-			{
-				curForce = (int32_t)(averageForce * PointCoef[i]);
-				
-				numtochar(MAX_DATA_BIT,(int32_t)curForce,g_calibrationParameter.fieldData[i].parameterData[fieldIndex]);
-			}
-			break;
+		case SMPL_FH_NUM:
+			tureMaxForce = smpl_ctrl_full_p_get(g_calibrationParameter.curChannel);
 			
-		case 8:
-			for (i=0; i<calibrationPoint; ++i)
-			{	
-				switch ( (int32_t)tureMaxForce )
-				{
-					case 10000:
-						if ( g_calibrationParameter.showChannel == SMPL_KY_NUM )
-						{
-							curForce = PointCoef_1T[i];
-						}
-						else
-						{
-							curForce = PointCoef_1T[i] * 1000;
-						}
-						break;
-					case 300000:
-						if ( g_calibrationParameter.showChannel == SMPL_KY_NUM )
-						{
-							curForce = PointCoef_30T[i];
-						}
-						else
-						{
-							curForce = PointCoef_30T[i] * 1000;
-						}
-						break;
-					case 2000000:
-						if ( g_calibrationParameter.showChannel == SMPL_KY_NUM )
-						{
-							curForce = PointCoef_200T[i];
-						}
-						else
-						{
-							curForce = PointCoef_200T[i] * 1000;
-						}
-						break;
-					case 3000000:
-						if ( g_calibrationParameter.showChannel == SMPL_KY_NUM )
-						{
-							curForce = PointCoef_300T[i];
-						}
-						else
-						{
-							curForce = PointCoef_300T[i] * 1000;
-						}
-						break;
-					default:
-						curForce = (int32_t)(averageForce * PointCoef_8Point[i]);
-						break;
-				}
-				
-				numtochar(MAX_DATA_BIT,(int32_t)curForce,g_calibrationParameter.fieldData[i].parameterData[fieldIndex]);
-			}
-			break;
+			maxForce = tureMaxForce;
 			
-		default:
-			for (i=0; i<calibrationPoint; ++i)
+			if ( g_calibrationParameter.fhChannelUnit == FH_UNIT_kN )
 			{
-				cof += 10;
-				curForce = averageForce * cof;
-				
-				numtochar(MAX_DATA_BIT,(int32_t)curForce,g_calibrationParameter.fieldData[i].parameterData[fieldIndex]);
+				maxForce /= 1000;
 			}
-			break;				
+			averageForce = maxForce / 100;
+			
+			switch ( calibrationPoint )
+			{
+				case 6:
+					for (i=0; i<calibrationPoint; ++i)
+					{
+						curForce = (int32_t)(averageForce * PointCoef[i]);
+						
+						numtochar(MAX_DATA_BIT,(int32_t)curForce,g_calibrationParameter.fieldData[i].parameterData[fieldIndex]);
+					}
+					break;
 					
+				case 8:
+					for (i=0; i<calibrationPoint; ++i)
+					{	
+						switch ( (int32_t)tureMaxForce )
+						{
+							case 10000:
+								if ( g_calibrationParameter.fhChannelUnit == FH_UNIT_kN )
+								{
+									curForce = PointCoef_1T[i];
+								}
+								else
+								{
+									curForce = PointCoef_1T[i] * 1000;
+								}
+								break;
+							case 300000:
+								if ( g_calibrationParameter.fhChannelUnit == FH_UNIT_kN )
+								{
+									curForce = PointCoef_30T[i];
+								}
+								else
+								{
+									curForce = PointCoef_30T[i] * 1000;
+								}
+								break;
+							case 2000000:
+								if ( g_calibrationParameter.fhChannelUnit == FH_UNIT_kN )
+								{
+									curForce = PointCoef_200T[i];
+								}
+								else
+								{
+									curForce = PointCoef_200T[i] * 1000;
+								}
+								break;
+							case 3000000:
+								if ( g_calibrationParameter.fhChannelUnit == FH_UNIT_kN )
+								{
+									curForce = PointCoef_300T[i];
+								}
+								else
+								{
+									curForce = PointCoef_300T[i] * 1000;
+								}
+								break;
+							default:
+								curForce = (int32_t)(averageForce * PointCoef_8Point[i]);
+								break;
+						}
+						
+						numtochar(MAX_DATA_BIT,(int32_t)curForce,g_calibrationParameter.fieldData[i].parameterData[fieldIndex]);
+					}
+					break;
+					
+				default:
+					for (i=0; i<calibrationPoint; ++i)
+					{
+						cof += 10;
+						curForce = averageForce * cof;
+						
+						numtochar(MAX_DATA_BIT,(int32_t)curForce,g_calibrationParameter.fieldData[i].parameterData[fieldIndex]);
+					}
+					break;				
+							
+			}	
+			break;
+		case SMPL_WY_NUM:
+			maxDisplacement = smpl_ctrl_full_p_get(g_calibrationParameter.curChannel);
+			
+			switch ( g_calibrationParameter.wyChannelUnit )
+			{
+				case WY_UNIT_MM:					
+					break;
+				case WY_UNIT_CM:
+					maxDisplacement /= 10;	
+					break;
+				case WY_UNIT_DM:
+					maxDisplacement /= 100;	
+					break;
+				case WY_UNIT_M:
+					maxDisplacement /= 1000;	
+					break; 
+				default:
+					break;
+			}
+			
+			averageDisplacement = (int32_t)(maxDisplacement / calibrationPoint);
+			
+			for (i=0; i<calibrationPoint; ++i)
+			{
+				curDisplacement = averageDisplacement * (i + 1);
+				
+				numtochar(MAX_DATA_BIT,(int32_t)curDisplacement,g_calibrationParameter.fieldData[i].parameterData[fieldIndex]);
+			}
+			/* 最后一点为最大值 */
+			numtochar(MAX_DATA_BIT,(int32_t)maxDisplacement,g_calibrationParameter.fieldData[calibrationPoint-1].parameterData[fieldIndex]);
+			break;
+		case SMPL_BX_NUM:
+			maxDeform = smpl_ctrl_full_p_get(g_calibrationParameter.curChannel);
+			
+			switch ( g_calibrationParameter.bxChannelUnit )
+			{
+				case BX_UNIT_MM:					
+					break;
+				case BX_UNIT_CM:
+					maxDeform /= 10;	
+					break;
+				case BX_UNIT_DM:
+					maxDeform /= 100;	
+					break;
+				case BX_UNIT_M:
+					maxDeform /= 1000;	
+					break; 
+				default:
+					break;
+			}
+			
+			averageDeform = (int32_t)(maxDeform / calibrationPoint);
+			
+			for (i=0; i<calibrationPoint; ++i)
+			{
+				curDeform = averageDeform * (i + 1);
+				
+				numtochar(MAX_DATA_BIT,(int32_t)curDeform,g_calibrationParameter.fieldData[i].parameterData[fieldIndex]);
+			}	
+			/* 最后一点为最大值 */
+			numtochar(MAX_DATA_BIT,(int32_t)maxDeform,g_calibrationParameter.fieldData[calibrationPoint-1].parameterData[fieldIndex]);
+			break;
+		default:
+			break;
 	}
 }
 
@@ -1367,7 +1593,7 @@ static TestStatus CalibrationParameterCheckDataCycle( TABLE_INDEX_TypeDef *pTabl
 	uint8_t fieldIndex = 0;
 	int32_t sourceCheckPoint = 0,targetCheckPoint = 0;
 	
-	pTableIndex->rowIndex = 0 ;
+	pTableIndex->rowIndex = 0;
 	pTableIndex->colIndex = 0;
 	
 	if (calibrationSegments < 1)
@@ -1388,7 +1614,20 @@ static TestStatus CalibrationParameterCheckDataCycle( TABLE_INDEX_TypeDef *pTabl
 			pTableIndex->rowIndex = rowIndex;
 			pTableIndex->colIndex = fieldIndex;
 			
-			SetPopWindowsInfomation(POP_PCM_CUE,1,&pCalibrationParameterWarn[2]);
+			switch ( g_calibrationParameter.curChannel )
+			{
+				case SMPL_FH_NUM:
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&pCalibrationParameterWarn[2]);	
+					break;
+				case SMPL_WY_NUM:
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&pCalibrationParameterWarn[3]);	
+					break;
+				case SMPL_BX_NUM:
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&pCalibrationParameterWarn[4]);	
+					break;
+				default:
+					break;
+			}
 			
 			return FAILED;
 		}

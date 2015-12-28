@@ -398,7 +398,7 @@ void RefreshDynamicForce( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t 
 	
 	if (absForce < 1000)
 	{
-		disp_value(force,DISP_CHN_FH,x,y,pointColor,backColor,3,2);
+		disp_value(force,DISP_CHN_FH,x,y,pointColor,backColor,4,2);
 	}
 	else if (absForce < 100000)
 	{
@@ -426,7 +426,7 @@ void RefreshDynamicSpeed( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t 
 	
 	if ( absSpeed < 100 )
 	{
-		disp_value(speed,DISP_CHN_SPEED,x,y,pointColor,backColor,2,2);
+		disp_value(speed,DISP_CHN_SPEED,x,y,pointColor,backColor,3,2);
 	}
 	else if ( absSpeed < 10000 )
 	{
@@ -759,7 +759,11 @@ void RefreshDynamicEthernetIco( uint16_t x, uint16_t y, uint16_t pointColor, uin
 void InitInterfaceElement( void )
 {
 	g_interfaceElement.force = 0;
-	g_interfaceElement.speed = 0;
+	g_interfaceElement.disPlacement = 0;
+	g_interfaceElement.deform = 0;
+	g_interfaceElement.fhSpeed = 0;
+	g_interfaceElement.wySpeed = 0;
+	g_interfaceElement.bxSpeed = 0;
 	g_interfaceElement.strength = 0;
 	g_interfaceElement.peak = 0;
 	g_interfaceElement.linkStatus = LINK_IDLE;
@@ -782,15 +786,63 @@ void SetInterfaceElementForce( float force )
 }
 
 /*------------------------------------------------------------
- * Function Name  : SetInterfaceElementSpeed
- * Description    : 设置界面速度
+ * Function Name  : SetInterfaceElementDisPlacement
+ * Description    : 设置界面位移
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-void SetInterfaceElementSpeed( float speed )
+void SetInterfaceElementDisPlacement( float disPlacement )
 {
-	g_interfaceElement.speed = speed;
+	g_interfaceElement.disPlacement = disPlacement;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetInterfaceElementDeform
+ * Description    : 设置界面变形
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetInterfaceElementDeform( float deform )
+{
+	g_interfaceElement.deform = deform;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetInterfaceElementFHSpeed
+ * Description    : 设置界面负荷速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetInterfaceElementFHSpeed( float speed )
+{
+	g_interfaceElement.fhSpeed = speed;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetInterfaceElementWYSpeed
+ * Description    : 设置界面位移速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetInterfaceElementWYSpeed( float speed )
+{
+	g_interfaceElement.wySpeed = speed;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetInterfaceElementBXSpeed
+ * Description    : 设置界面变形速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetInterfaceElementBXSpeed( float speed )
+{
+	g_interfaceElement.bxSpeed = speed;
 }
 
 /*------------------------------------------------------------
@@ -902,15 +954,63 @@ float GetInterfaceElementForce( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : GetInterfaceElementSpeed
- * Description    : 获取界面速度
+ * Function Name  : GetInterfaceElementDisPlacement
+ * Description    : 获取界面位移
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetInterfaceElementSpeed( void )
+float GetInterfaceElementDisPlacement( void )
 {
-	return g_interfaceElement.speed;
+	return g_interfaceElement.disPlacement;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetInterfaceElementDeform
+ * Description    : 获取界面变形
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float GetInterfaceElementDeform( void )
+{
+	return g_interfaceElement.deform;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetInterfaceElementFHSpeed
+ * Description    : 获取界面负荷速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float GetInterfaceElementFHSpeed( void )
+{
+	return g_interfaceElement.fhSpeed;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetInterfaceElementWYSpeed
+ * Description    : 获取界面位移速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float GetInterfaceElementWYSpeed( void )
+{
+	return g_interfaceElement.wySpeed;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetInterfaceElementBXSpeed
+ * Description    : 获取界面变形速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float GetInterfaceElementBXSpeed( void )
+{
+	return g_interfaceElement.bxSpeed;
 }
 
 /*------------------------------------------------------------
@@ -1485,7 +1585,7 @@ static void ClearErrorStatus( void )
  *------------------------------------------------------------*/
 static void CheckSystemMaxForceWarning( SMPL_NAME_TypeDef2 tureChannel )
 {
-	float force = get_smpl_force(tureChannel);
+	float force = get_smpl_value(tureChannel);
 	float maxForce = smpl_ctrl_full_p_get(tureChannel);
 	
 	if (force > maxForce * 1.03f)
@@ -1693,13 +1793,13 @@ void CoordinateDrawLineBodyCycle( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 }
 
 /*------------------------------------------------------------
- * Function Name  : SendKYChannelTareCmd
- * Description    : 抗压通道清零命令
+ * Function Name  : SendChannelTareCmd
+ * Description    : 通道清零命令
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-ErrorStatus SendChannelTareCmd( SMPL_NAME_TypeDef2 channel )
+ErrorStatus SendChannelTareCmd( SMPL_NAME_TypeDef channel )
 {
 	TARE_CMD_STATUS_TypeDef status = SEND_TARE_CMD;
 	CMD_STATUS_TypeDef cmdStatus;
@@ -2015,7 +2115,7 @@ void SetDynamicContentLinkStatus( void )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-void SetDynamicContentCode( SMPL_NAME_TypeDef2 tureChannel )
+void SetDynamicContentCode( SMPL_NAME_TypeDef tureChannel )
 {
 	SetInterfaceElementCode(GetSammpleCode(tureChannel));
 }
@@ -2206,7 +2306,7 @@ void JudgeBreakCalculateCycle( uint8_t chn )
 		g_judgeBreak.index[chn] = 0;
 		
 		g_judgeBreak.lastForcePoint[chn] = g_judgeBreak.nowForcePoint[chn];
-		g_judgeBreak.nowForcePoint[chn] = get_smpl_force(chn);
+		g_judgeBreak.nowForcePoint[chn] = get_smpl_value(chn);
 		
 		/* 计算下降点 */
 		if (fabs(g_judgeBreak.nowForcePoint[chn]) < fabs(g_judgeBreak.lastForcePoint[chn]))

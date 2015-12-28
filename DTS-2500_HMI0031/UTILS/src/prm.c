@@ -524,7 +524,7 @@ float smpl_cal(int32_t adc_code,uint8_t chn)
 	{
 		x1=0;
 		y1=0;
-		x2=prm_smpl_tab->table_pt[0].code;;
+		x2=prm_smpl_tab->table_pt[0].code;
 		y2=prm_smpl_tab->table_pt[0].value;
 	}	
 	else

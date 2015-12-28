@@ -10,7 +10,7 @@
 typedef struct
 {
 	uint8_t calibrationSegments;
-	int32_t calibrationForce[MAX_CALIBRATION_SEGS];		
+	int32_t calibrationValue[MAX_CALIBRATION_SEGS];		
 }CALIBRATION_POINT_TypeDef;
 
 /* Exported constants --------------------------------------------------------*/

@@ -28,7 +28,7 @@
 #pragma arm section rwdata = "RAM_CMD",zidata = "RAM_CMD"
 	static Spd_Cal_Typedef	g_speedCalculate; 	//速度计算
 	static SAMPLE_C_TypeDef g_sampleCycle;		//采样循环体
-	static float g_sampleForce[SMPL_NUM];		//传感器力值
+	static float g_sampleValue[SMPL_NUM];		//传感器值
 	static int32_t g_sampleCode[SMPL_NUM];		//传感器码值
 	static uint8_t g_uartPackageRxBuff[UART_PACKAGE_BUFF_SIZE];	//串口接收数据包缓存
 	static CMD_MUTUAL_TypeDef g_cmdMutual;		//命令交互
@@ -1315,20 +1315,14 @@ void sample_cycle( void )
 	#endif
 	
 	/* 填充码值 */
-	g_sampleCode[SMPL_KY_NUM] = g_sampleCycle.smpl[SMPL_KY_NUM];
-	g_sampleCode[SMPL_KZ_NUM] = g_sampleCycle.smpl[SMPL_KZ_NUM];
+	g_sampleCode[SMPL_FH_NUM] = g_sampleCycle.smpl[SMPL_FH_NUM];
+	g_sampleCode[SMPL_WY_NUM] = g_sampleCycle.smpl[SMPL_WY_NUM];
+	g_sampleCode[SMPL_BX_NUM] = g_sampleCycle.smpl[SMPL_BX_NUM];
 	
 	/* 填充力值 */
-	g_sampleForce[SMPL_KY_NUM] = smpl_cal(g_sampleCode[SMPL_KY_NUM],SMPL_KY_NUM);
-	g_sampleForce[SMPL_KZ_NUM] = smpl_cal(g_sampleCode[SMPL_KZ_NUM],SMPL_KZ_NUM);
-	
-	#ifdef DEBUG_FORCE_KY
-		printf("FORCE_KY：%f\r\n",g_sampleForce[SMPL_KY_NUM]);
-	#endif
-	
-	#ifdef DEBUG_FORCE_KZ
-		printf("FORCE_KZ：%f\r\n",g_sampleForce[SMPL_KZ_NUM]);
-	#endif
+	g_sampleValue[SMPL_FH_NUM] = smpl_cal(g_sampleCode[SMPL_FH_NUM],SMPL_FH_NUM);
+	g_sampleValue[SMPL_WY_NUM] = smpl_cal(g_sampleCode[SMPL_WY_NUM],SMPL_WY_NUM);
+	g_sampleValue[SMPL_BX_NUM] = smpl_cal(g_sampleCode[SMPL_BX_NUM],SMPL_BX_NUM);
 	
 	/* 填充速度 */
 	spd_cal_cycle();
@@ -1386,15 +1380,18 @@ void spd_cal_cycle(void)
  		
 	g_speedCalculate.time[g_speedCalculate.index] = g_sampleCycle.time_base;
 	
-	g_speedCalculate.val[SMPL_KY_NUM][g_speedCalculate.index]=get_smpl_force(SMPL_KY_NUM);
-	g_speedCalculate.val[SMPL_KZ_NUM][g_speedCalculate.index]=get_smpl_force(SMPL_KZ_NUM);
+	g_speedCalculate.val[SMPL_FH_NUM][g_speedCalculate.index]=get_smpl_value(SMPL_FH_NUM);
+	g_speedCalculate.val[SMPL_WY_NUM][g_speedCalculate.index]=get_smpl_value(SMPL_WY_NUM);
+	g_speedCalculate.val[SMPL_BX_NUM][g_speedCalculate.index]=get_smpl_value(SMPL_BX_NUM);
 	
-	g_speedCalculate.speed[SMPL_KY_NUM]=spd_cal(SMPL_KY_NUM,50);
-	g_speedCalculate.speed[SMPL_KZ_NUM]=spd_cal(SMPL_KZ_NUM,50);
+	g_speedCalculate.speed[SMPL_FH_NUM]=spd_cal(SMPL_FH_NUM,50);
+	g_speedCalculate.speed[SMPL_WY_NUM]=spd_cal(SMPL_WY_NUM,50);
+	g_speedCalculate.speed[SMPL_BX_NUM]=spd_cal(SMPL_BX_NUM,50);
 	
 	#ifdef DEBUG_SPEED
-		printf("KY_Speed：%f\r\n",g_speedCalculate.speed[SMPL_KY_NUM]);
-		printf("KZ_Speed：%f\r\n",g_speedCalculate.speed[SMPL_KZ_NUM]);
+		printf("FH_Speed：%f\r\n",g_speedCalculate.speed[SMPL_FH_NUM]);
+		printf("WY_Speed：%f\r\n",g_speedCalculate.speed[SMPL_WY_NUM]);
+		printf("BX_Speed：%f\r\n",g_speedCalculate.speed[SMPL_WY_NUM]);
 	#endif
 }
 
@@ -1411,15 +1408,15 @@ float get_smpl_spd(uint8_t chn)
 }
 
 /*------------------------------------------------------------
- * Function Name  : get_smpl_force
- * Description    : 获取传感器力值
+ * Function Name  : get_smpl_value
+ * Description    : 获取传感器值
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float get_smpl_force(uint8_t chn)
+float get_smpl_value(uint8_t chn)
 {
-	return g_sampleForce[chn];
+	return g_sampleValue[chn];
 }
 
 /*------------------------------------------------------------

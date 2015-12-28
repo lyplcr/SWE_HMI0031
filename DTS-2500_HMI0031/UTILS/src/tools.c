@@ -816,14 +816,14 @@ void StrFillSpecifyChar( const char *pSource, char *pTarget, const char specifyC
  *------------------------------------------------------------*/
 float SetValueNotEqualZero( float value )
 {
+	float tempValue = value;
+	
 	if (fabs(value) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
-		return MIN_FLOAT_PRECISION_DIFF_VALUE;
+		tempValue = MIN_FLOAT_PRECISION_DIFF_VALUE;
 	}
-	else
-	{
-		return value;
-	}
+	
+	return tempValue;
 }
 
 /*------------------------------------------------------------

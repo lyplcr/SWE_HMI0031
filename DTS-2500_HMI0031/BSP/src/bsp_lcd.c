@@ -1445,7 +1445,7 @@ void lcd_num48(uint16_t x,uint16_t y,uint16_t fc,uint16_t bc, char *s)
 
 
 #define	DISP_BUFF   10
-#define	DISP_CHN 	4
+#define	DISP_CHN 	6
 char disp_buff[DISP_CHN][DISP_BUFF];
  
 

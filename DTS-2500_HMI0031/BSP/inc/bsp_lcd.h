@@ -209,9 +209,9 @@ void bsp_InitFont( void );
 #define		DISP_CHN_WY			1		//位移
 #define		DISP_CHN_BX			2  		//变形
 
-#define		DISP_CHN_SPEED		1		//速度
-#define 	DISP_CHN_STRENGTH	2		//强度
-#define 	DISP_CHN_PEAK		3		//峰值
+#define 	DISP_CHN_STRENGTH	3		//强度
+#define 	DISP_CHN_PEAK		4		//峰值
+#define		DISP_CHN_SPEED		5		//速度
 
 void disp_syn(uint8_t chn);			//显示同步,当切换到显示值的界面时，需要重新刷新显示缓冲，不然显示最左边的数字会出现不更新的问题
 void disp_value(float val,uint8_t chn,uint16_t x,uint16_t y,uint16_t fc,uint16_t bc,uint8_t int_len,uint8_t dec_len);  	//显示主界面采集到的负荷/位移/变形数据，整形显示n位，小数点后显示n位
