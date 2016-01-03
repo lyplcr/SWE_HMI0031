@@ -22,13 +22,13 @@
 #define COLOR_POINT						WHITE
 #define	COLOR_BACK						BLACK
 
-#define MAX_PARAMETER_CNT				1
+#define MAX_PARAMETER_CNT				3
 #define MAX_PARAMETER_PUTIN_BIT			2
 
 /* Private typedef -----------------------------------------------------------*/
 typedef enum
 {
-	OBJECT_KY_UNIT = 0,
+	OBJECT_FH_UNIT = 0,
 }OBJECT_UNIT_SELECT_TypeDef;
 
 typedef enum

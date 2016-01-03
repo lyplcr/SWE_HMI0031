@@ -220,7 +220,7 @@ const char * const pForceCalibrationWarning[] =
 {
 	"当前处于脱机状态！",			//0
 	"标定点个数不能为0！",			//1
-	"是否修正标定表？",				//2
+	"是否写入标定表？",				//2
 	"标定数据不是递增趋势！",		//3
 	"标定表已更新！",				//4
 	"发送力值清零命令失败！",		//5
@@ -579,7 +579,7 @@ static void ForceCalibationConfig( void )
 	switch ( g_ForceCalibration.curChannel )
 	{
 		case SMPL_FH_NUM:
-			if (g_ForceCalibration.curChannel == FH_UNIT_kN)
+			if (g_ForceCalibration.fhChannelUnit == FH_UNIT_kN)
 			{
 				g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pForceCalibrationIndecateWindowsTitleName[0];
 				g_ForceCalibration.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pForceCalibrationIndecateWindowsTitleName[2];
@@ -762,7 +762,7 @@ static void ForceCalibrationReadParameter( void )
 			for (rowIndex=0; rowIndex<g_ForceCalibration.curPageSampleNum; ++rowIndex)
 			{		
 				force = g_CalibrationBody.checkValue[baseIndex+rowIndex];	
-				if (g_ForceCalibration.curChannel == FH_UNIT_kN)
+				if (g_ForceCalibration.fhChannelUnit == FH_UNIT_kN)
 				{
 					force /= 1000;
 				}
@@ -776,7 +776,7 @@ static void ForceCalibrationReadParameter( void )
 			{
 				force = g_CalibrationBody.realValue[baseIndex+rowIndex];
 				
-				if (g_ForceCalibration.curChannel == FH_UNIT_kN)
+				if (g_ForceCalibration.fhChannelUnit == FH_UNIT_kN)
 				{
 					force /= 1000;
 				}
@@ -1220,18 +1220,21 @@ static void Show_ForceCalibrationOneIndicateWindowsContent( uint8_t indexRow, ui
 			{
 				case SMPL_FH_NUM:
 					tempf = GetInterfaceElementForce();	
+					RefreshDynamicForce(x+104,y,pointColor,backColor,tempf);	
 					break;
 				case SMPL_WY_NUM:
 					tempf = GetInterfaceElementDisPlacement();	
+					RefreshDynamicDisplacement(x+104,y,pointColor,backColor,tempf);	
 					break;
 				case SMPL_BX_NUM:
 					tempf = GetInterfaceElementDeform();	
+					RefreshDynamicDeform(x+104,y,pointColor,backColor,tempf);	
 					break;
 				default:
 					break;
 			}
 			
-			RefreshDynamicForce(x+104,y,pointColor,backColor,tempf);		
+				
 			break;
 		case OBJECT_WINDOWS_SPEED:
 			switch ( g_ForceCalibration.curChannel )
@@ -1748,7 +1751,7 @@ static void Traverse_ForceCalibration( void )
 		Show_ForceCalibrationTestResultTable(indexRow,OBJECT_SERIAL);
 	}
 	
-	/* 遍历检测点力值 */
+	/* 遍历检测点 */
 	for (indexRow=1; indexRow<=g_ForceCalibration.curPageSampleNum; ++indexRow)
 	{
 		Show_ForceCalibrationTestResultTable(indexRow,OBJECT_CHECK_POINT);

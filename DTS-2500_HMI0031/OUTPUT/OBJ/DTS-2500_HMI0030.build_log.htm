@@ -5,10 +5,10 @@
 <h2>Tool Versions:</h2>
 IDE-Version: ¦ÌVision V5.16a
 Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
-License Information: SY Microsoft, Microsoft, LIC=P6F30-B27IT-5A1DF-68155-9BMK0-U5ENC
+License Information: SY Microsoft, Microsoft, LIC=----
  
 Tool Versions:
-Toolchain:       MDK-ARM Professional  Version: 5.16a
+Toolchain:       MDK-Lite  Version: 5.16a
 Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
 C Compiler:      Armcc.exe V5.06 (build 20)
 Assembler:       Armasm.exe V5.06 (build 20)
@@ -22,19 +22,20 @@ Dialog DLL:      TCM.DLL V1.14.5.0
  
 <h2>Project:</h2>
 E:\GIT\DTS-2500_HMI0031_SWE_MANUAL\DTS-2500_HMI0031\PROJECT\DTS-2500_HMI0030.uvprojx
-Project File Date:  12/25/2015
+Project File Date:  01/02/2016
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 (build 20)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'DTS-2500_HMI0030'
-compiling PageManage.c...
-compiling CalibrationParameter.c...
-compiling ForceCalibration.c...
-linking...
-Program Size: Code=249432 RO-data=29456 RW-data=920 ZI-data=125484  
-FromELF: creating hex file...
-After Build - User command #1: fromelf --bin -o ..\BIN\DTS-2500_HMI0030(SYOR1.0.0.0)_151221.bin ..\OUTPUT\OBJ\DTS-2500_HMI0030.axf
-"..\OUTPUT\OBJ\DTS-2500_HMI0030.axf" - 0 Error(s), 0 Warning(s).
+compiling UnitSelect.c...
+..\APP\src\UnitSelect.c(175): error:  #20: identifier "OBJECT_KY_UNIT" is undefined
+  	g_unitSelect.indexArray[INDEX_KY_UNIT] = OBJECT_KY_UNIT;
+..\APP\src\UnitSelect.c(222): error:  #20: identifier "OBJECT_KY_UNIT" is undefined
+  	index = GetUnitSelectIndex(OBJECT_KY_UNIT);
+..\APP\src\UnitSelect.c(247): error:  #20: identifier "OBJECT_KY_UNIT" is undefined
+  	index = GetUnitSelectIndex(OBJECT_KY_UNIT);
+..\APP\src\UnitSelect.c: 0 warnings, 3 errors
+"..\OUTPUT\OBJ\DTS-2500_HMI0030.axf" - 3 Error(s), 0 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -47,12 +48,13 @@ Package Vendor: ARM
 <h2>Collection of Component include folders:</h2>
   E:\GIT\DTS-2500_HMI0031_SWE_MANUAL\DTS-2500_HMI0031\PROJECT\RTE
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include
-  C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.6.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
+  C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
 
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:4.1.0
-Build Time Elapsed:  00:00:06
+Target not created.
+Build Time Elapsed:  00:00:03
 </pre>
 </body>
 </html>

@@ -159,7 +159,7 @@ const char * const pTwoLevelMenu[] =
 	"备份(U 盘)",		//82
 	"还原(U 盘)",		//83
 	" 进入标定 ",		//84
-	"修正标定表",		//85
+	"写入标定表",		//85
 };
 
 const char * const pUnitType[] = 
@@ -393,22 +393,100 @@ CMD_STATUS_TypeDef PCM_CmdSendCycle( void )
 void RefreshDynamicForce( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, float force )
 {
 	float absForce = fabs(force);
+	uint8_t intNum = 0,dotNum = 0;
 	
 	force = SetValueNotEqualZero(force);	
 	
 	if (absForce < 1000)
 	{
-		disp_value(force,DISP_CHN_FH,x,y,pointColor,backColor,4,2);
+		intNum = 3;
+		dotNum = 2;
 	}
 	else if (absForce < 100000)
 	{
-		disp_value(force,DISP_CHN_FH,x,y,pointColor,backColor,4,1);
+		intNum = 4;
+		dotNum = 1;
 	}
 	else
 	{
 		disp_syn(DISP_CHN_FH);
 		lcd_num48(x,y,pointColor,backColor,"------");
+		
+		return;
 	}
+	
+	disp_value(force,DISP_CHN_FH,x,y,pointColor,backColor,intNum,dotNum);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : RefreshDynamicDisplacement
+ * Description    : 刷新动态位移
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void RefreshDynamicDisplacement( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, float displacement )
+{
+	float absDisplacement = fabs(displacement);
+	uint8_t intNum = 0,dotNum = 0;
+	
+	displacement = SetValueNotEqualZero(displacement);	
+	
+	if (absDisplacement < 1000)
+	{
+		intNum = 3;
+		dotNum = 2;
+	}
+	else if (absDisplacement < 100000)
+	{
+		intNum = 4;
+		dotNum = 1;
+	}
+	else
+	{
+		disp_syn(DISP_CHN_WY);
+		lcd_num48(x,y,pointColor,backColor,"------");
+		
+		return;
+	}
+	
+	disp_value(displacement,DISP_CHN_WY,x,y,pointColor,backColor,intNum,dotNum);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : RefreshDynamicDeform
+ * Description    : 刷新动态变形值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void RefreshDynamicDeform( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, float deform )
+{
+	float absDeform = fabs(deform);
+	
+	uint8_t intNum = 0,dotNum = 0;
+	
+	deform = SetValueNotEqualZero(deform);	
+	
+	if (absDeform < 1000)
+	{
+		intNum = 3;
+		dotNum = 2;
+	}
+	else if (absDeform < 100000)
+	{
+		intNum = 4;
+		dotNum = 1;
+	}
+	else
+	{
+		disp_syn(DISP_CHN_BX);
+		lcd_num48(x,y,pointColor,backColor,"------");
+		
+		return;
+	}
+	
+	disp_value(deform,DISP_CHN_BX,x,y,pointColor,backColor,intNum,dotNum);
 }
 
 /*------------------------------------------------------------
@@ -421,22 +499,29 @@ void RefreshDynamicForce( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t 
 void RefreshDynamicSpeed( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, float speed )
 {	
 	float absSpeed = fabs(speed);
+	uint8_t intNum = 0,dotNum = 0;
 	
 	speed = SetValueNotEqualZero(speed);
 	
 	if ( absSpeed < 100 )
 	{
-		disp_value(speed,DISP_CHN_SPEED,x,y,pointColor,backColor,3,2);
+		intNum = 2;
+		dotNum = 2;
 	}
 	else if ( absSpeed < 10000 )
 	{
-		disp_value(speed,DISP_CHN_SPEED,x,y,pointColor,backColor,3,1);
+		intNum = 3;
+		dotNum = 1;
 	}
 	else
 	{
 		disp_syn(DISP_CHN_SPEED);
 		lcd_num48(x,y,pointColor,backColor,"-----");
+		
+		return;
 	}
+	
+	disp_value(speed,DISP_CHN_SPEED,x,y,pointColor,backColor,intNum,dotNum);
 }
 
 /*------------------------------------------------------------
@@ -473,22 +558,29 @@ void RefreshDynamicStrength( uint16_t x, uint16_t y, uint16_t pointColor, uint16
 void RefreshDynamicPeak( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, float peak )
 {
 	float absPeak = fabs(peak);
+	uint8_t intNum = 0,dotNum = 0;
 	
 	peak = SetValueNotEqualZero(peak);
 	
 	if (absPeak < 1000)
 	{
-		disp_value(peak,DISP_CHN_PEAK,x,y,pointColor,backColor,3,2);
+		intNum = 3;
+		dotNum = 2;
 	}
 	else if (absPeak < 100000)
 	{
-		disp_value(peak,DISP_CHN_PEAK,x,y,pointColor,backColor,4,1);
+		intNum = 4;
+		dotNum = 1;
 	}
 	else
 	{
 		disp_syn(DISP_CHN_PEAK);
 		lcd_num48(x,y,pointColor,backColor,"------");
+		
+		return;
 	}
+	
+	disp_value(peak,DISP_CHN_PEAK,x,y,pointColor,backColor,intNum,dotNum);
 }
 
 /*------------------------------------------------------------
@@ -1629,6 +1721,8 @@ void CheckSystemWarningStatusCycle( void )
 		case MODEL_KZKY:
 			CheckSystemMaxForceWarning(SMPL_KY_NUM);
 			CheckSystemMaxForceWarning(SMPL_KZ_NUM);
+			break;
+		default:
 			break;
 	}
 }

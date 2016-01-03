@@ -1921,7 +1921,7 @@ static void WritePrmParameterInit( void )
 {
 	g_WritePrm.pSourceAddr = get_prm();
 	g_WritePrm.targetAddr = 0;
-	g_WritePrm.len = PRM_MEM_SIZE;
+	g_WritePrm.len = PRM_MEM_SIZE_3CH;
 }				
 
 /*------------------------------------------------------------
@@ -2034,7 +2034,7 @@ static void LinkCmdReceiveBody( void )
 					g_WritePrm.pSourceAddr 	+= PRM_BUFF_CHECK;	//数据起始地址
 					g_WritePrm.targetAddr 	+= PRM_BUFF_CHECK;	//已写入地址	
 					g_WritePrm.len		 	-= PRM_BUFF_CHECK;	//剩余长度
-					g_linkMutual.process 	= (float)(PRM_MEM_SIZE - g_WritePrm.len) / PRM_MEM_SIZE * 100;
+					g_linkMutual.process 	= (float)(PRM_MEM_SIZE_3CH - g_WritePrm.len) / PRM_MEM_SIZE_3CH * 100;
 				}
 				else
 				{

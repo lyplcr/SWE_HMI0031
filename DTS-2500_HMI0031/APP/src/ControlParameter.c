@@ -306,7 +306,7 @@ static void ControlParameterConfig( void )
 			g_controlParameter.pParameterNameArray[INDEX_MAX_FORCE_DIFF] 			= pCntrolParameterName[7];
 
 			/* 单位 */
-			if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+			if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 			{
 				g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 			= pUnitType[1];
 				g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE] 			= pUnitType[1];
@@ -434,7 +434,7 @@ static void ControlParameterConfig( void )
 			g_controlParameter.pParameterNameArray[INDEX_SYSTEM_MAX_VALUE] 			= pCntrolParameterName[9];
 
 			/* 单位 */
-			switch ( g_controlParameter.wyChannelUnit )
+			switch ( g_controlParameter.bxChannelUnit )
 			{
 				case BX_UNIT_MM:
 					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[4];	
@@ -629,7 +629,7 @@ static void ControlParameterReadParameter( void )
 			if (index != 0xff)
 			{
 				tempf = smpl_ctrl_full_p_get(g_controlParameter.curChannel);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempf /= 1000;
 				}
@@ -640,7 +640,7 @@ static void ControlParameterReadParameter( void )
 			if (index != 0xff)
 			{
 				tempf = smpl_ctrl_entry_get(g_controlParameter.curChannel);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempf /= 1000;
 				}
@@ -651,7 +651,7 @@ static void ControlParameterReadParameter( void )
 			if (index != 0xff)
 			{
 				tempf = pHmi->start_force[g_controlParameter.curChannel];
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempf /= 1000;
 				}
@@ -662,7 +662,7 @@ static void ControlParameterReadParameter( void )
 			if (index != 0xff)
 			{
 				tempf = pHmi->break_judge_value[g_controlParameter.curChannel];
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempf /= 1000;
 				}
@@ -709,7 +709,7 @@ static void ControlParameterReadParameter( void )
 			if (index != 0xff)
 			{
 				tempf = pHmi->break_max_value[g_controlParameter.curChannel];
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempf /= 1000;
 				}
@@ -789,7 +789,7 @@ static void ControlParameterWriteParameter( void )
 			if (index != 0xff)
 			{
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempu *= 1000;
 				}
@@ -800,7 +800,7 @@ static void ControlParameterWriteParameter( void )
 			if (index != 0xff)
 			{
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempu *= 1000;
 				}
@@ -811,7 +811,7 @@ static void ControlParameterWriteParameter( void )
 			if (index != 0xff)
 			{
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempu *= 1000;
 				}
@@ -822,7 +822,7 @@ static void ControlParameterWriteParameter( void )
 			if (index != 0xff)
 			{
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempu *= 1000;
 				}
@@ -862,7 +862,7 @@ static void ControlParameterWriteParameter( void )
 			if (index != 0xff)
 			{
 				tempf = str2float(g_controlParameter.parameterData[index]);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempf *= 1000;
 				}
@@ -1467,14 +1467,11 @@ static TestStatus ControlParameterCheckDataCycle( void )
 				
 				switch ( g_controlParameter.curChannel )
 				{
-					case SMPL_FH_NUM:
-						if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+					case SMPL_FH_NUM:	
+						if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 						{
 							tempu *= 1000;
-						}
-						
-						if (g_controlParameter.curChannel == SMPL_FH_NUM)
-						{
+							
 							if ((tempu < 10000) || (tempu > 10000000))
 							{
 								SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[0]);
@@ -1548,13 +1545,11 @@ static TestStatus ControlParameterCheckDataCycle( void )
 				break;
 			case OBJECT_LOAD_START_VALUE:
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempu *= 1000;
-				}
-				
-				if (g_controlParameter.curChannel == SMPL_FH_NUM)
-				{
+					
 					if ((tempu < 1000) || (tempu > 100000))
 					{
 						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[2]);
@@ -1574,13 +1569,9 @@ static TestStatus ControlParameterCheckDataCycle( void )
 				break;
 			case OBJECT_CURVE_SHOW_START_VALUE:
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempu *= 1000;
-				}
-				
-				if (g_controlParameter.curChannel == SMPL_FH_NUM)
-				{
 					if ((tempu < 1000) || (tempu > 100000))
 					{
 						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[4]);
@@ -1600,13 +1591,9 @@ static TestStatus ControlParameterCheckDataCycle( void )
 				break;
 			case OBJECT_BREAK_START_FORCE:
 				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
 					tempu *= 1000;
-				}
-				
-				if (g_controlParameter.curChannel == SMPL_FH_NUM)
-				{
 					if ((tempu < 1000) || (tempu > 1000000))
 					{
 						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[6]);
@@ -1646,13 +1633,9 @@ static TestStatus ControlParameterCheckDataCycle( void )
 			
 			case OBJECT_MAX_FORCE_DIFF:
 				tempf = str2float(g_controlParameter.parameterData[index]);
-				if (g_controlParameter.fhChannelUnit == SMPL_FH_NUM)
+				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
-					tempf *= 1000;
-				}
-				
-				if (g_controlParameter.curChannel == SMPL_FH_NUM)
-				{
+					tempu *= 1000;
 					if ((tempf < 100) || (tempf > 100000))
 					{
 						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[10]);

@@ -15,7 +15,7 @@
  		   
 #define		PRM_MEM_SIZE			(sizeof(SYS_PRM_TypeDef))				//参数存储器字节数	
 #define		PRV_MEM_SIZE			(sizeof(SYS_PRV_TypeDef))				//特权存储器字节数	
-#define		PRM_MEM_SIZE_2CH		(400+2*sizeof(PRM_SMPL_TypeDef))		//参数+2个通道的参数(对于抗折抗压机只有2个通道可用)
+#define		PRM_MEM_SIZE_3CH		(400+3*sizeof(PRM_SMPL_TypeDef))		//参数+3个通道的参数(万能机)
 
 #pragma pack(1)
 
