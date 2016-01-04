@@ -54,12 +54,14 @@ typedef struct
  	uint8_t  	step_num;									//当前控制步骤数量
  	char 		paseword_system[11];						//系统密码
 	uint8_t		factory_debug;								//厂家调试模式开关
-	uint8_t		unit;										//单位选择
+	uint8_t		fhUnit;										//负荷单位
 	uint8_t		redo_test;									//重做试验
 	uint8_t		check_flash;								//检测FLASH是否未被初始化;声明该变量一定要在该结构体的末尾
 	uint8_t 	attenuationRate[CTRL_CHN];					//衰减率
 	uint8_t 	curveStayTime;								//曲线停留时间
-}HMI_TypeDef; 	
+	uint8_t 	wyUnit;										//位移单位
+	uint8_t 	bxUnit;										//变形单位
+}HMI_TypeDef; 	/* 111Byte */
 
 //记忆功能    
 typedef struct

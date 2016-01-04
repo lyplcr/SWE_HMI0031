@@ -32,6 +32,20 @@
 #define DECORD_COORDINATE_FORCE_NUM		(RECORD_COORDINATE_TIME_SECOND * RECORD_COORDINATE_FREQ) 
 
 /* Exported types ------------------------------------------------------------*/
+/* 可读写输出位 */
+typedef enum
+{
+	BIT_PUMP = 0XF,		/* 启停油泵位 */
+}SW_RW_OUTPUT_TypeDef;
+
+/* 输入位 */
+typedef enum
+{
+	BIT_UP_LIMIT 	= 0X01,
+	BIT_DOWN_LIMIT 	= 0X02,
+	BIT_OIL_LIMIT	= 0X03,
+}ST_INPUT_TypeDef;
+
 typedef struct
 {
 	uint16_t x;

@@ -26,11 +26,6 @@
 /* Private typedef -----------------------------------------------------------*/
 typedef enum
 {
-	BIT_PUMP = 0XF,		/* 启停油泵位 */
-}SW_RW_OUTPUT_TypeDef;
-
-typedef enum
-{
 	STATUS_BOUND_SHOW = 0,
 	STATUS_BOUND_SHOW_KEEP,
 	STATUS_BOUND_ERASE,
@@ -233,7 +228,7 @@ TEST_TypeDef *pTest = NULL;			//试验参数
  *------------------------------------------------------------*/
 FH_UINT_TypeDef GetFH_SmplUnit( void )
 {
-	if ( pHmi->unit )
+	if ( pHmi->fhUnit )
 	{
 		return FH_UNIT_N;	  //以N为单位
 	}
@@ -252,7 +247,14 @@ FH_UINT_TypeDef GetFH_SmplUnit( void )
  *------------------------------------------------------------*/
 WY_UINT_TypeDef GetWY_SmplUnit( void )
 {
-	return WY_UNIT_MM;
+	if (pHmi->wyUnit > WY_UNIT_M)
+	{
+		return WY_UNIT_MM;
+	}
+	else
+	{
+		return pHmi->wyUnit;
+	}
 }
 
 /*------------------------------------------------------------
@@ -264,7 +266,14 @@ WY_UINT_TypeDef GetWY_SmplUnit( void )
  *------------------------------------------------------------*/
 BX_UINT_TypeDef GetBX_SmplUnit( void )
 {
-	return BX_UNIT_MM;
+	if (pHmi->bxUnit > BX_UNIT_M)
+	{
+		return BX_UNIT_M;
+	}
+	else
+	{
+		return pHmi->bxUnit;
+	}
 }
 
 /*------------------------------------------------------------

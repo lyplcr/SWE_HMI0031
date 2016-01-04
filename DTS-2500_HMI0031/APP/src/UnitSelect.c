@@ -29,31 +29,32 @@
 typedef enum
 {
 	OBJECT_FH_UNIT = 0,
+	OBJECT_WY_UNIT,
+	OBJECT_BX_UNIT,
 }OBJECT_UNIT_SELECT_TypeDef;
 
 typedef enum
 {
-	INDEX_KY_UNIT = 0,
+	INDEX_FH_UNIT = 0,
+	INDEX_WY_UNIT,
+	INDEX_BX_UNIT,
 }INDEX_UNIT_SELECT_TypeDef;
-
-typedef enum
-{
-	INDEX_KN = 0,
-	INDEX_N,
-}KY_UNIT_INDEX_TypeDef;
 
 typedef struct
 {
 	uint8_t nowIndex;
 	uint8_t recordIndex;
+	
 	char parameterData[MAX_PARAMETER_CNT][MAX_PARAMETER_PUTIN_BIT+1];
 	ONE_LEVEL_MENU_TYPE_TypeDef oneLevelMenu[MAX_PARAMETER_CNT];
 	const char *pParameterNameArray[MAX_PARAMETER_CNT];
-	const char *pBoolSelect[2];
 	uint8_t indexArray[MAX_PARAMETER_CNT];
 	uint8_t curParameterNum;						//参数个数
+	
+	TWO_LEVEL_MENU_TYPE_TypeDef twoLevelMenu[MAX_PARAMETER_CNT];
+	
+	FunctionalState enableArrow;					//使能箭头
 	BoolStatus isIndexMove;							//索引值移动
-	uint8_t putinNum;								//输入字符个数
 	const char * pTitle;							//标题
 	FunctionalState refreshShortcut;				//刷新快捷菜单
 	LEAVE_PAGE_TypeDef leavePage;					//离开页
@@ -62,13 +63,31 @@ typedef struct
 /* Private constants ---------------------------------------------------------*/
 const char * const pUnitSelectName[] =
 {
-	"抗压单位：",
+	"负荷通道：",
+	"位移通道：",
+	"变形通道：",
 };
 
-const char * const pUnitSelectParameterName[] =
+const char * const pUnitFH[] =
 {
-	"kN",
-	"N",
+	"kN",	//0
+	"N",	//1
+};
+
+const char * const pUnitWY[] = 
+{
+	"mm",	//0
+	"cm",	//1
+	"dm",	//2
+	"m",	//3
+};
+
+const char * const pUnitBX[] = 
+{
+	"mm",	//0
+	"cm",	//1
+	"dm",	//2
+	"m",	//3
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -86,6 +105,8 @@ static void UnitSelectMoveCursorProcess( void );
 static void UnitSelectShortcutCycleTask( void );
 static void UnitSelectKeyProcess( void );
 static void UnitSelectLeavePageCheckCycle( void );
+static void UnitSelectIndexCrossTheBorderProcess( void );
+static void UnitSelectStatusProcess( void );
 
 /* Private functions ---------------------------------------------------------*/
 /*------------------------------------------------------------
@@ -109,6 +130,9 @@ void LoadUnitSelectPage( void )
 	/* 获取参数 */
 	UnitSelectReadParameter();
 	
+	/* 索引值越界处理 */
+	UnitSelectIndexCrossTheBorderProcess();
+	
 	/* 画GUI框架 */
 	GUI_UnitSelect();
 	
@@ -125,6 +149,9 @@ void LoadUnitSelectPage( void )
 		
 		/* 移动索引值 */
 		UnitSelectMoveIndexProcess();
+		
+		/* 状态处理 */
+		UnitSelectStatusProcess();
 		
 		/* 移动光标 */
 		UnitSelectMoveCursorProcess();
@@ -168,20 +195,36 @@ static void UnitSelectInit( void )
  *------------------------------------------------------------*/
 static void UnitSelectParameterConfig( void )
 {
+	/* 标题 */
+	g_unitSelect.pTitle = "单位选择";
+	
 	/* 试块个数 */
 	g_unitSelect.curParameterNum = MAX_PARAMETER_CNT;
 	
 	/* 索引值 */
-	g_unitSelect.indexArray[INDEX_KY_UNIT] = OBJECT_KY_UNIT;
+	g_unitSelect.indexArray[INDEX_FH_UNIT] = OBJECT_FH_UNIT;
+	g_unitSelect.indexArray[INDEX_WY_UNIT] = OBJECT_WY_UNIT;
+	g_unitSelect.indexArray[INDEX_BX_UNIT] = OBJECT_BX_UNIT;
 	
 	/* 参数名称 */
-	g_unitSelect.pParameterNameArray[INDEX_KY_UNIT] = pUnitSelectName[0];
+	g_unitSelect.pParameterNameArray[INDEX_FH_UNIT] = pUnitSelectName[0];
+	g_unitSelect.pParameterNameArray[INDEX_WY_UNIT] = pUnitSelectName[1];
+	g_unitSelect.pParameterNameArray[INDEX_BX_UNIT] = pUnitSelectName[2];
 	
-	g_unitSelect.pBoolSelect[INDEX_KN] = pUnitSelectParameterName[0];
-	g_unitSelect.pBoolSelect[INDEX_N] = pUnitSelectParameterName[1];
+	/* 二级菜单参数个数 */
+	g_unitSelect.twoLevelMenu[INDEX_FH_UNIT].parameterCnt 	= 2;
+	g_unitSelect.twoLevelMenu[INDEX_WY_UNIT].parameterCnt 	= 4;
+	g_unitSelect.twoLevelMenu[INDEX_BX_UNIT].parameterCnt 	= 4;
 	
-	/* 标题 */
-	g_unitSelect.pTitle = "单位选择";
+	/* 二级菜单类型 */
+	g_unitSelect.twoLevelMenu[INDEX_FH_UNIT].parameterType 	= NONE_USE_USER_DEFINE;
+	g_unitSelect.twoLevelMenu[INDEX_WY_UNIT].parameterType 	= NONE_USE_USER_DEFINE;
+	g_unitSelect.twoLevelMenu[INDEX_BX_UNIT].parameterType 	= NONE_USE_USER_DEFINE;
+	
+	/* 二级菜单参数名 */
+	g_unitSelect.twoLevelMenu[INDEX_FH_UNIT].pParameterNameArray 	= pUnitFH;
+	g_unitSelect.twoLevelMenu[INDEX_WY_UNIT].pParameterNameArray 	= pUnitWY;
+	g_unitSelect.twoLevelMenu[INDEX_BX_UNIT].pParameterNameArray 	= pUnitBX;
 }
 
 /*------------------------------------------------------------
@@ -219,17 +262,63 @@ static void UnitSelectReadParameter( void )
 {
 	uint8_t index = 0;
 	
-	index = GetUnitSelectIndex(OBJECT_KY_UNIT);
+	index = GetUnitSelectIndex(OBJECT_FH_UNIT);
 	if (index != 0xff)
 	{
-		if ( pHmi->unit )	//自动打印
+		if (pHmi->fhUnit == 0)	
 		{
-			strcpy(g_unitSelect.parameterData[index],g_unitSelect.pBoolSelect[INDEX_N]);
+			strcpy(g_unitSelect.parameterData[index],pUnitFH[FH_UNIT_kN]);
 		}
 		else
 		{
-			strcpy(g_unitSelect.parameterData[index],g_unitSelect.pBoolSelect[INDEX_KN]);
+			strcpy(g_unitSelect.parameterData[index],pUnitFH[FH_UNIT_N]);
 		}
+		
+		g_unitSelect.twoLevelMenu[index].index = pHmi->fhUnit;
+	}
+	
+	index = GetUnitSelectIndex(OBJECT_WY_UNIT);
+	if (index != 0xff)
+	{
+		switch (pHmi->wyUnit)	
+		{
+			case WY_UNIT_MM:
+				strcpy(g_unitSelect.parameterData[index],pUnitWY[WY_UNIT_MM]);
+				break;
+			case WY_UNIT_CM:
+				strcpy(g_unitSelect.parameterData[index],pUnitWY[WY_UNIT_CM]);
+				break;
+			case WY_UNIT_DM:
+				strcpy(g_unitSelect.parameterData[index],pUnitWY[WY_UNIT_DM]);
+				break;
+			case WY_UNIT_M:
+				strcpy(g_unitSelect.parameterData[index],pUnitWY[WY_UNIT_M]);
+				break;
+		}
+		
+		g_unitSelect.twoLevelMenu[index].index = pHmi->wyUnit;
+	}
+	
+	index = GetUnitSelectIndex(OBJECT_BX_UNIT);
+	if (index != 0xff)
+	{
+		switch (pHmi->bxUnit)	
+		{
+			case BX_UNIT_MM:
+				strcpy(g_unitSelect.parameterData[index],pUnitBX[BX_UNIT_MM]);
+				break;
+			case BX_UNIT_CM:
+				strcpy(g_unitSelect.parameterData[index],pUnitBX[BX_UNIT_CM]);
+				break;
+			case BX_UNIT_DM:
+				strcpy(g_unitSelect.parameterData[index],pUnitBX[BX_UNIT_DM]);
+				break;
+			case BX_UNIT_M:
+				strcpy(g_unitSelect.parameterData[index],pUnitBX[BX_UNIT_M]);
+				break;
+		}
+		
+		g_unitSelect.twoLevelMenu[index].index = pHmi->bxUnit;
 	}
 }	
 
@@ -244,20 +333,45 @@ static void UnitSelectWriteParameter( void )
 {
 	uint8_t index = 0;
 	
-	index = GetUnitSelectIndex(OBJECT_KY_UNIT);
+	index = GetUnitSelectIndex(OBJECT_FH_UNIT);
 	if (index != 0xff)
 	{
-		if ( strcmp(g_unitSelect.parameterData[index],g_unitSelect.pBoolSelect[INDEX_N]) == 0 )
-		{
-			pHmi->unit = 1;
-		}
-		else
-		{
-			pHmi->unit = 0;
-		}
+		pHmi->fhUnit = g_unitSelect.twoLevelMenu[index].index;
+	}
+	
+	index = GetUnitSelectIndex(OBJECT_WY_UNIT);
+	if (index != 0xff)
+	{
+		pHmi->wyUnit = g_unitSelect.twoLevelMenu[index].index;
+	}
+	
+	index = GetUnitSelectIndex(OBJECT_BX_UNIT);
+	if (index != 0xff)
+	{
+		pHmi->bxUnit = g_unitSelect.twoLevelMenu[index].index;
 	}
 	
 	pcm_save();
+}
+
+/*------------------------------------------------------------
+ * Function Name  : UnitSelectIndexCrossTheBorderProcess
+ * Description    : 参数索引值越界处理
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void UnitSelectIndexCrossTheBorderProcess( void )
+{
+	uint8_t i;
+	
+	for (i=0; i<g_unitSelect.curParameterNum; ++i)
+	{
+		if (g_unitSelect.twoLevelMenu[i].index >= g_unitSelect.twoLevelMenu[i].parameterCnt)
+		{
+			g_unitSelect.twoLevelMenu[i].index = 0;
+		}
+	}
 }
 
 /*------------------------------------------------------------
@@ -269,7 +383,7 @@ static void UnitSelectWriteParameter( void )
  *------------------------------------------------------------*/
 static void ConfigUnitSelectParameterRectangleFrameCoordinate( void )
 {
-	const uint16_t START_X = 445;
+	const uint16_t START_X = 349;
 	const uint16_t START_Y = 150;
 	uint16_t startX = START_X;
 	uint16_t startY = START_Y;
@@ -283,14 +397,30 @@ static void ConfigUnitSelectParameterRectangleFrameCoordinate( void )
 		g_unitSelect.oneLevelMenu[i].backColor = COLOR_BACK;
 		g_unitSelect.oneLevelMenu[i].recordPointColor = COLOR_POINT;
 		g_unitSelect.oneLevelMenu[i].recordBackColor = COLOR_BACK;
-		g_unitSelect.oneLevelMenu[i].lenth = 30;
+		g_unitSelect.oneLevelMenu[i].lenth = 102;
 		g_unitSelect.oneLevelMenu[i].width = 30;
 		g_unitSelect.oneLevelMenu[i].fontSize = 24;
-		g_unitSelect.oneLevelMenu[i].rowDistance = 48;
+		g_unitSelect.oneLevelMenu[i].rowDistance = 24;
 		g_unitSelect.oneLevelMenu[i].columnDistance = 48;
 		g_unitSelect.oneLevelMenu[i].lineWidth = 2;
 		
-		startX += g_unitSelect.oneLevelMenu[i].lenth + g_unitSelect.oneLevelMenu[i].columnDistance;
+		g_unitSelect.twoLevelMenu[i].x = g_unitSelect.oneLevelMenu[i].x + g_unitSelect.oneLevelMenu[i].lenth + 36;
+		g_unitSelect.twoLevelMenu[i].y = g_unitSelect.oneLevelMenu[i].y;
+		g_unitSelect.twoLevelMenu[i].pointColor = g_unitSelect.oneLevelMenu[i].pointColor;
+		g_unitSelect.twoLevelMenu[i].backColor = g_unitSelect.oneLevelMenu[i].backColor;
+		g_unitSelect.twoLevelMenu[i].lenth = 102;
+		g_unitSelect.twoLevelMenu[i].fontSize = 24;
+		g_unitSelect.twoLevelMenu[i].rowDistance = 2;
+		g_unitSelect.twoLevelMenu[i].columnDistance = 0;
+		g_unitSelect.twoLevelMenu[i].lineWidth = 2;				
+		g_unitSelect.twoLevelMenu[i].width = g_unitSelect.twoLevelMenu[i].parameterCnt * \
+												(g_unitSelect.twoLevelMenu[i].fontSize + g_unitSelect.twoLevelMenu[i].rowDistance) + \
+												g_unitSelect.twoLevelMenu[i].rowDistance + 2 * g_unitSelect.twoLevelMenu[i].lineWidth;
+		g_unitSelect.twoLevelMenu[i].maxUpY = MAX_TWO_MENU_HIGH_POS;
+		g_unitSelect.twoLevelMenu[i].maxDownY = MIN_TWO_MENU_HIGH_POS;
+		
+		startY += g_unitSelect.oneLevelMenu[i].width + g_unitSelect.oneLevelMenu[i].rowDistance - \
+				  g_unitSelect.oneLevelMenu[i].lineWidth;
 	}
 }
 
@@ -462,6 +592,105 @@ static void UnitSelectMoveIndexProcess( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : UnitSelectStatusProcess
+ * Description    : 状态处理
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void UnitSelectStatusProcess( void )
+{
+	uint8_t index = g_unitSelect.nowIndex;
+	
+	g_unitSelect.nowIndex %= g_unitSelect.curParameterNum;
+	
+	switch ( g_unitSelect.twoLevelMenu[index].parameterType )
+	{
+		case NONE_USE_USER_DEFINE:
+		case USE_USER_DEFINE:
+			g_unitSelect.enableArrow = ENABLE;
+			break;
+		
+		default:
+			g_unitSelect.enableArrow = DISABLE;
+			break;
+	}
+	
+}
+
+/*------------------------------------------------------------
+ * Function Name  : Show_UnitSelectOneRowOneLevelMenuArrow
+ * Description    : 显示一行参数箭头
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void Show_UnitSelectOneRowOneLevelMenuArrow( uint8_t index )
+{
+	const uint16_t x = g_unitSelect.oneLevelMenu[index].x + g_unitSelect.oneLevelMenu[index].lenth + 12;
+	const uint16_t y = g_unitSelect.oneLevelMenu[index].y + g_unitSelect.oneLevelMenu[index].lineWidth + 1;
+	const uint16_t pointColor = COLOR_SELECT_BACK;//g_unitSelect.oneLevelMenu[index].pointColor;
+	const uint16_t backColor = COLOR_BACK;
+	
+	GUI_DispStr24At(x,y,pointColor,backColor,">");
+}
+
+/*------------------------------------------------------------
+ * Function Name  : Clear_UnitSelectOneRowOneLevelMenuArrow
+ * Description    : 清除一行参数箭头
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void Clear_UnitSelectOneRowOneLevelMenuArrow( uint8_t index )
+{
+	const uint16_t x = g_unitSelect.oneLevelMenu[index].x + g_unitSelect.oneLevelMenu[index].lenth + 12;
+	const uint16_t y = g_unitSelect.oneLevelMenu[index].y + g_unitSelect.oneLevelMenu[index].lineWidth + 1;
+	const uint16_t backColor = g_unitSelect.oneLevelMenu[index].backColor;
+	
+	GUI_DispStr24At(x,y,backColor,backColor,">");
+}
+
+/*------------------------------------------------------------
+ * Function Name  : UnitSelectRestoreShowOneMenu
+ * Description    : 还原显示一个菜单项
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void UnitSelectRestoreShowOneMenu( uint8_t index )
+{
+	g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].pointColor = g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].recordPointColor;
+	g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].backColor = g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].recordBackColor;
+	
+	Show_UnitSelectOneRowOneLevelMenuContent(g_unitSelect.recordIndex);	
+	Clear_UnitSelectOneRowOneLevelMenuArrow(g_unitSelect.recordIndex);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : UnitSelectShowOneMenuWithCursor
+ * Description    : 显示一个带光标的菜单项
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void UnitSelectShowOneMenuWithCursor( uint8_t index )
+{
+	g_unitSelect.oneLevelMenu[index].pointColor = COLOR_SELECT_POINT;
+	g_unitSelect.oneLevelMenu[index].backColor = COLOR_SELECT_BACK;
+	
+	g_unitSelect.oneLevelMenu[g_unitSelect.nowIndex].pointColor = COLOR_SELECT_POINT;
+	g_unitSelect.oneLevelMenu[g_unitSelect.nowIndex].backColor = COLOR_SELECT_BACK;
+	
+	Show_UnitSelectOneRowOneLevelMenuContent(g_unitSelect.nowIndex);
+	
+	if (g_unitSelect.enableArrow == ENABLE)
+	{
+		Show_UnitSelectOneRowOneLevelMenuArrow(g_unitSelect.nowIndex);
+	}
+}
+
+/*------------------------------------------------------------
  * Function Name  : UnitSelectMoveCursorProcess
  * Description    : 移动光标处理
  * Input          : None
@@ -474,22 +703,13 @@ static void UnitSelectMoveCursorProcess( void )
 	{		
 		if (g_unitSelect.recordIndex != 0xff)
 		{
-			g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].pointColor = g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].recordPointColor;
-			g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].backColor = g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].recordBackColor;
+			UnitSelectRestoreShowOneMenu(g_unitSelect.recordIndex);
 			
-			Show_UnitSelectOneRowOneLevelMenuContent(g_unitSelect.recordIndex);		
-			
-			g_unitSelect.oneLevelMenu[g_unitSelect.nowIndex].pointColor = COLOR_SELECT_POINT;
-			g_unitSelect.oneLevelMenu[g_unitSelect.nowIndex].backColor = COLOR_SELECT_BACK;
-			
-			Show_UnitSelectOneRowOneLevelMenuContent(g_unitSelect.nowIndex);	
+			UnitSelectShowOneMenuWithCursor(g_unitSelect.nowIndex);
 		}
 		else
 		{
-			g_unitSelect.oneLevelMenu[g_unitSelect.nowIndex].pointColor = COLOR_SELECT_POINT;
-			g_unitSelect.oneLevelMenu[g_unitSelect.nowIndex].backColor = COLOR_SELECT_BACK;
-			
-			Show_UnitSelectOneRowOneLevelMenuContent(g_unitSelect.nowIndex);
+			UnitSelectShowOneMenuWithCursor(g_unitSelect.nowIndex);
 		}
 		
 		g_unitSelect.recordIndex = g_unitSelect.nowIndex;
@@ -530,7 +750,8 @@ static void UnitSelectShortcutCycleTask( void )
  *------------------------------------------------------------*/
 static void UnitSelectIndexUpdate( void )
 {
-	g_unitSelect.recordIndex = 0xff;
+	g_unitSelect.nowIndex++;
+	g_unitSelect.nowIndex %= g_unitSelect.curParameterNum;
 }
 
 /*------------------------------------------------------------
@@ -557,21 +778,61 @@ static void UnitSelectUpdateStatus( void )
 static void UnitSelectKeyProcess( void )
 {
 	uint8_t index = g_unitSelect.nowIndex;	
+	TWO_LEVEL_MENU_TypeDef *pMenu = NULL;
 	
 	if (IsPressKey() == YES)
 	{
 		switch ( GetKeyVal() )
 		{
+			case KEY_RIGHT:
+				if ( (g_unitSelect.twoLevelMenu[index].parameterType == NONE_USE_USER_DEFINE) || \
+				     (g_unitSelect.twoLevelMenu[index].parameterType == USE_USER_DEFINE) )
+				{
+					/* 处理快捷菜单 */
+					GUI_ClearShortcutMenu();
+					
+					/* 还原一级菜单 */
+					g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].pointColor = \
+						g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].recordPointColor;
+					g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].backColor = \
+						g_unitSelect.oneLevelMenu[g_unitSelect.recordIndex].recordBackColor;
+					
+					Show_UnitSelectOneRowOneLevelMenuContent(g_unitSelect.recordIndex);
+					
+					/* 配置二级菜单 */
+					pMenu = GetTwoLevelMenuAddr();
+					
+					pMenu->x = g_unitSelect.twoLevelMenu[index].x;
+					pMenu->y = g_unitSelect.twoLevelMenu[index].y;
+					pMenu->nowIndex = g_unitSelect.twoLevelMenu[index].index;
+					pMenu->maxUpY = g_unitSelect.twoLevelMenu[index].maxUpY;
+					pMenu->maxDownY = g_unitSelect.twoLevelMenu[index].maxDownY;
+					pMenu->rowSpacing = g_unitSelect.twoLevelMenu[index].rowDistance;
+					pMenu->lineWidth = g_unitSelect.twoLevelMenu[index].lineWidth;
+					pMenu->lenth = g_unitSelect.twoLevelMenu[index].lenth;
+					pMenu->width = g_unitSelect.twoLevelMenu[index].width;
+					pMenu->pointColor = g_unitSelect.twoLevelMenu[index].pointColor;
+					pMenu->backColor = g_unitSelect.twoLevelMenu[index].backColor;
+					pMenu->recordBackColor = g_unitSelect.twoLevelMenu[index].backColor;
+					pMenu->lineColor = g_unitSelect.twoLevelMenu[index].pointColor;
+					pMenu->nums = g_unitSelect.twoLevelMenu[index].parameterCnt;
+					pMenu->pParameterNameArray = g_unitSelect.twoLevelMenu[index].pParameterNameArray;
+					pMenu->fontSize = g_unitSelect.twoLevelMenu[index].fontSize;
+					
+					LoadTwoLevelMenuPage(pMenu);
+					
+					if (pMenu->isSelect == YES)
+					{
+						g_unitSelect.twoLevelMenu[index].index = pMenu->nowIndex;
+						
+						strcpy(g_unitSelect.parameterData[index],pMenu->pParameterNameArray[pMenu->nowIndex]);
+					}
+					
+					UnitSelectUpdateStatus();				
+				}
+				break;
+			
 			case KEY_ENTER:
-				if ( strcmp(g_unitSelect.parameterData[index],g_unitSelect.pBoolSelect[YES]) == 0 )
-				{
-					strcpy(g_unitSelect.parameterData[index],g_unitSelect.pBoolSelect[NO]);
-				}
-				else
-				{
-					strcpy(g_unitSelect.parameterData[index],g_unitSelect.pBoolSelect[YES]);
-				}
-				UnitSelectUpdateStatus();
 				break;
 				
 			case KEY_F3:

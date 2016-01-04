@@ -5,10 +5,10 @@
 <h2>Tool Versions:</h2>
 IDE-Version: ¦ÌVision V5.16a
 Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
-License Information: SY Microsoft, Microsoft, LIC=----
+License Information: SY Microsoft, Microsoft, LIC=3UURA-1PEMU-8YIVV-PHUKN-NT059-V03GL
  
 Tool Versions:
-Toolchain:       MDK-Lite  Version: 5.16a
+Toolchain:       MDK-ARM Professional  Version: 5.16a
 Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
 C Compiler:      Armcc.exe V5.06 (build 20)
 Assembler:       Armasm.exe V5.06 (build 20)
@@ -27,15 +27,41 @@ Project File Date:  01/02/2016
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 (build 20)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'DTS-2500_HMI0030'
-compiling UnitSelect.c...
-..\APP\src\UnitSelect.c(175): error:  #20: identifier "OBJECT_KY_UNIT" is undefined
-  	g_unitSelect.indexArray[INDEX_KY_UNIT] = OBJECT_KY_UNIT;
-..\APP\src\UnitSelect.c(222): error:  #20: identifier "OBJECT_KY_UNIT" is undefined
-  	index = GetUnitSelectIndex(OBJECT_KY_UNIT);
-..\APP\src\UnitSelect.c(247): error:  #20: identifier "OBJECT_KY_UNIT" is undefined
-  	index = GetUnitSelectIndex(OBJECT_KY_UNIT);
-..\APP\src\UnitSelect.c: 0 warnings, 3 errors
-"..\OUTPUT\OBJ\DTS-2500_HMI0030.axf" - 3 Error(s), 0 Warning(s).
+compiling HardTest.c...
+..\APP\src\HardTest.c(481): warning:  #1294-D: Old-style function GUI_HardTestDrawOneLimitRectangleFrame
+  static void GUI_HardTestDrawOneLimitRectangleFrame( index )
+..\APP\src\HardTest.c(825): warning:  #177-D: variable "stInput" was declared but never referenced
+  	uint8_t stInput = pSample->input;
+..\APP\src\HardTest.c(912): warning:  #223-D: function "Show_HardTestOneRowOneLevelMenuContent" declared implicitly
+  				Show_HardTestOneRowOneLevelMenuContent(index);
+..\APP\src\HardTest.c(915): warning:  #223-D: function "GetHardTestIndex" declared implicitly
+  			index = GetHardTestIndex(OBJECT_KZ_ABSOLUTE_CODE);
+..\APP\src\HardTest.c(915): error:  #20: identifier "OBJECT_KZ_ABSOLUTE_CODE" is undefined
+  			index = GetHardTestIndex(OBJECT_KZ_ABSOLUTE_CODE);
+..\APP\src\HardTest.c(918): warning:  #223-D: function "Show_HardTestOneRowOneLevelMenuContent" declared implicitly
+  				Show_HardTestOneRowOneLevelMenuContent(index);
+..\APP\src\HardTest.c(923): error:  #20: identifier "OBJECT_KY_RELATIVE_CODE" is undefined
+  			index = GetHardTestIndex(OBJECT_KY_RELATIVE_CODE);
+..\APP\src\HardTest.c(926): warning:  #223-D: function "Show_HardTestOneRowOneLevelMenuContent" declared implicitly
+  				Show_HardTestOneRowOneLevelMenuContent(index);
+..\APP\src\HardTest.c(929): error:  #20: identifier "OBJECT_KZ_RELATIVE_CODE" is undefined
+  			index = GetHardTestIndex(OBJECT_KZ_RELATIVE_CODE);
+..\APP\src\HardTest.c(932): warning:  #223-D: function "Show_HardTestOneRowOneLevelMenuContent" declared implicitly
+  				Show_HardTestOneRowOneLevelMenuContent(index);
+..\APP\src\HardTest.c(937): warning:  #223-D: function "GetHardTestIndex" declared implicitly
+  	index = GetHardTestIndex(OBJECT_UP_LIMIT);
+..\APP\src\HardTest.c(940): warning:  #223-D: function "Show_HardTestOneRowOneLevelMenuContent" declared implicitly
+  		Show_HardTestOneRowOneLevelMenuContent(index);
+..\APP\src\HardTest.c(946): warning:  #223-D: function "Show_HardTestOneRowOneLevelMenuContent" declared implicitly
+  		Show_HardTestOneRowOneLevelMenuContent(index);
+..\APP\src\HardTest.c(1005): warning:  #223-D: function "RefreshHardTest" declared implicitly
+  				RefreshHardTest(ABSOLUTE_CODE);
+..\APP\src\HardTest.c(1028): warning:  #223-D: function "RefreshHardTest" declared implicitly
+  				RefreshHardTest(OPPOSITE_CODE);
+..\APP\src\HardTest.c(902): warning:  #177-D: function "RefreshHardTestChannelArea" was declared but never referenced
+  static void RefreshHardTestChannelArea( CODE_TYPE_TypeDef type )
+..\APP\src\HardTest.c: 13 warnings, 3 errors
+"..\OUTPUT\OBJ\DTS-2500_HMI0030.axf" - 3 Error(s), 13 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -54,7 +80,7 @@ Package Vendor: ARM
 
    * Component: ARM::CMSIS:CORE:4.1.0
 Target not created.
-Build Time Elapsed:  00:00:03
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>

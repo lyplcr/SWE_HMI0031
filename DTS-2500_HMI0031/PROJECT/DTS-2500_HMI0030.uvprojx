@@ -467,11 +467,6 @@
               <FilePath>..\APP\src\initial.c</FilePath>
             </File>
             <File>
-              <FileName>PageManage.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\APP\src\PageManage.c</FilePath>
-            </File>
-            <File>
               <FileName>MainPage.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\APP\src\MainPage.c</FilePath>
@@ -510,6 +505,11 @@
               <FileName>ControlParameter.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\APP\src\ControlParameter.c</FilePath>
+            </File>
+            <File>
+              <FileName>PageManage.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\src\PageManage.c</FilePath>
             </File>
             <File>
               <FileName>CalibrationTable.c</FileName>

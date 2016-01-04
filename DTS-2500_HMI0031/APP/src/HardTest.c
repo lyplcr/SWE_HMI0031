@@ -22,13 +22,16 @@
 #define COLOR_POINT						WHITE
 #define	COLOR_BACK						BLACK
 
-#define MAX_PARAMETER_CNT				6
+/* 通道区域 */
+#define MAX_CHANNEL_ROW_CNT				2
+#define MAX_CHANNEL_COLUMN_NUM			3
+
+/* 限位区域 */
+#define MAX_LIMIT_ROW_CNT				3
+
 #define MAX_PARAMETER_BIT				8
 
-#define	NO_LIMIT_TOUCH					0x0000			//无限位触发
-#define	UP_LIMIT_TOUCH					0x0001			//上限位触发
-#define	DOWN_LIMIT_TOUCH				0x0002			//下限位触发
-#define	UP_AND_DOWN_TOUCH				0x0003			//上下限位同时触发
+
 
 /* Private typedef -----------------------------------------------------------*/
 typedef enum
@@ -48,38 +51,55 @@ typedef enum
 
 typedef enum
 {
-	UP_LIMIT = 0,
-	DOWN_LIMIT,
-}HARD_TEST_LIMIT_NAME_TypeDef;
+	OBJECT_FH_CHANNEL = 0,
+	OBJECT_WY_CHANNEL,
+	OBJECT_BX_CHANNEL,
+}OBJECT_CHANNEL_BOX_TypeDef;
 
 typedef enum
 {
-	OBJECT_KY_ABSOLUTE_CODE = 0,
-	OBJECT_KY_RELATIVE_CODE,
-	OBJECT_UP_LIMIT,
-	OBJECT_KZ_ABSOLUTE_CODE,
-	OBJECT_KZ_RELATIVE_CODE,
+	INDEX_FH_CHANNEL = 0,
+	INDEX_WY_CHANNEL,
+	INDEX_BX_CHANNEL,
+}INDEX_CHANNEL_BOX_TypeDef;
+
+typedef enum
+{
+	OBJECT_UP_LIMIT = 0,
 	OBJECT_DOWN_LIMIT,
-}OBJECT_HARD_TEST_TypeDef;
+	OBJECT_OIL_LIMIT,
+}OBJECT_LIMIT_TypeDef;
 
 typedef enum
 {
-	INDEX_KY_ABSOLUTE_CODE = 0,
-	INDEX_KY_RELATIVE_CODE,
-	INDEX_UP_LIMIT,
-	INDEX_KZ_ABSOLUTE_CODE,
-	INDEX_KZ_RELATIVE_CODE,
+	INDEX_UP_LIMIT = 0,
 	INDEX_DOWN_LIMIT,
-}INDEX_HARD_TEST_TypeDef;
+	INDEX_OIL_LIMIT,
+}INDEX_LIMIT_TypeDef;
 
 typedef struct
 {
-	char parameterData[MAX_PARAMETER_CNT][MAX_PARAMETER_BIT+1];
-	ONE_LEVEL_MENU_TYPE_TypeDef oneLevelMenu[MAX_PARAMETER_CNT];
-	const char *pParameterNameArray[MAX_PARAMETER_CNT];
-	uint8_t indexArray[MAX_PARAMETER_CNT];
-	uint8_t curParameterNum;						//参数个数
-	uint8_t rowNum;
+	char data[MAX_PARAMETER_BIT+1];
+}CHANNEL_DATA_TypeDef;
+
+typedef struct
+{
+	/* 通道区 */
+	CHANNEL_DATA_TypeDef parameterDataChannel[MAX_CHANNEL_ROW_CNT][MAX_CHANNEL_COLUMN_NUM];
+	ONE_LEVEL_MENU_TYPE_TypeDef oneLevelMenuChannel[MAX_CHANNEL_ROW_CNT][MAX_CHANNEL_COLUMN_NUM];
+	const char *pParameterNameArrayChannel[MAX_CHANNEL_COLUMN_NUM];
+	uint8_t indexArrayChannel[MAX_CHANNEL_COLUMN_NUM];
+	uint8_t channelRowNum;				
+	uint8_t channelColumnNum;
+	
+	/* 限位区 */
+	char parameterDataLimit[MAX_LIMIT_ROW_CNT][MAX_PARAMETER_BIT+1];
+	ONE_LEVEL_MENU_TYPE_TypeDef oneLevelMenuLimit[MAX_LIMIT_ROW_CNT];
+	const char *pParameterNameArrayLimit[MAX_LIMIT_ROW_CNT];
+	uint8_t indexArrayLimit[MAX_LIMIT_ROW_CNT];
+	uint8_t limitRowNum;				
+	uint8_t limitColumnNum;
+	
 	const char * pTitle;							//标题
 	LEAVE_PAGE_TypeDef leavePage;					//离开页
 	STATUS_CMD_ENCHANGE_TypeDef statusCmd;
@@ -88,12 +108,16 @@ typedef struct
 /* Private constants ---------------------------------------------------------*/
 const char * const pHardTestName[] =
 {
-	"抗压绝对码：",
-	"抗压相对码：",
-	"上限位：",
-	"抗折绝对码：",
-	"抗折相对码：",
-	"下限位：",
+	"负荷通道",		//0
+	"位移通道",		//1
+	"变形通道",		//2
+	"绝对码：",		//3
+	"相对码：",		//4
+	"上限位：",		//5
+	"下限位：",		//6
+	"油缸限位：",	//7
+	"油泵：",		//8
+	"急停按钮：",	//9
 };
 
 const char * const pHardTestCue[] = 
@@ -114,7 +138,7 @@ static void Traverse_HardTest( void );
 static void HardTestKeyProcess( void );
 static void HardTestLeavePageCheckCycle( void );
 static void DataInteractionWithPRM( void );
-static void SendTareCmdInteractionTask( void );
+static void SendTareCmdInteractionTask( SMPL_NAME_TypeDef channel );
 
 /* Private functions ---------------------------------------------------------*/
 /*------------------------------------------------------------
@@ -182,20 +206,44 @@ static void HardTestInit( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : GetHardTestIndex
- * Description    : 获取参数索引
+ * Function Name  : GetHardTestChannelIndex
+ * Description    : 获取通道参数索引
  * Input          : None
  * Output         : None
  * Return         : 0xff：表示未找到配置项
  *------------------------------------------------------------*/
-static uint8_t GetHardTestIndex( uint8_t handle )
+static uint8_t GetHardTestChannelIndex( uint8_t handle )
 {
 	uint8_t i;
 	uint8_t index = 0xff;	//错误的值
 	
-	for (i=0; i<g_hardTest.curParameterNum; ++i)
+	for (i=0; i<g_hardTest.channelColumnNum; ++i)
 	{
-		if (g_hardTest.indexArray[i] == handle)
+		if (g_hardTest.indexArrayChannel[i] == handle)
+		{
+			index = i;
+			break;
+		}
+	}
+	
+	return index;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetHardTestLimitIndex
+ * Description    : 获取限位参数索引
+ * Input          : None
+ * Output         : None
+ * Return         : 0xff：表示未找到配置项
+ *------------------------------------------------------------*/
+static uint8_t GetHardTestLimitIndex( uint8_t handle )
+{
+	uint8_t i;
+	uint8_t index = 0xff;	//错误的值
+	
+	for (i=0; i<g_hardTest.limitRowNum; ++i)
+	{
+		if (g_hardTest.indexArrayLimit[i] == handle)
 		{
 			index = i;
 			break;
@@ -214,144 +262,284 @@ static uint8_t GetHardTestIndex( uint8_t handle )
  *------------------------------------------------------------*/
 static void HardTestConfig( void )
 {
-	/* 试块个数 */
-	g_hardTest.curParameterNum = MAX_PARAMETER_CNT;
-	g_hardTest.rowNum = 3;
-	
-	/* 索引值 */
-	g_hardTest.indexArray[INDEX_KY_ABSOLUTE_CODE] 		= OBJECT_KY_ABSOLUTE_CODE;
-	g_hardTest.indexArray[INDEX_KY_RELATIVE_CODE] 		= OBJECT_KY_RELATIVE_CODE;
-	g_hardTest.indexArray[INDEX_UP_LIMIT] 				= OBJECT_UP_LIMIT;
-	g_hardTest.indexArray[INDEX_KZ_ABSOLUTE_CODE] 		= OBJECT_KZ_ABSOLUTE_CODE;
-	g_hardTest.indexArray[INDEX_KZ_RELATIVE_CODE] 		= OBJECT_KZ_RELATIVE_CODE;
-	g_hardTest.indexArray[INDEX_DOWN_LIMIT] 			= OBJECT_DOWN_LIMIT;
-	
-	/* 参数名称 */
-	g_hardTest.pParameterNameArray[INDEX_KY_ABSOLUTE_CODE] 	= pHardTestName[0];
-	g_hardTest.pParameterNameArray[INDEX_KY_RELATIVE_CODE] 	= pHardTestName[1];
-	g_hardTest.pParameterNameArray[INDEX_UP_LIMIT] 			= pHardTestName[2];
-	g_hardTest.pParameterNameArray[INDEX_KZ_ABSOLUTE_CODE] 	= pHardTestName[3];
-	g_hardTest.pParameterNameArray[INDEX_KZ_RELATIVE_CODE] 	= pHardTestName[4];
-	g_hardTest.pParameterNameArray[INDEX_DOWN_LIMIT] 		= pHardTestName[5];
-	
 	/* 标题 */
 	g_hardTest.pTitle = "硬件测试";
+	
+	/* 试块个数 */
+	g_hardTest.channelRowNum = MAX_CHANNEL_ROW_CNT;
+	g_hardTest.channelColumnNum = MAX_CHANNEL_COLUMN_NUM;
+	
+	/* 索引值 */
+	g_hardTest.indexArrayChannel[INDEX_FH_CHANNEL] 		= OBJECT_FH_CHANNEL;
+	g_hardTest.indexArrayChannel[INDEX_WY_CHANNEL] 		= OBJECT_WY_CHANNEL;
+	g_hardTest.indexArrayChannel[INDEX_BX_CHANNEL] 		= OBJECT_BX_CHANNEL;
+	
+	/* 参数名称 */
+	g_hardTest.pParameterNameArrayChannel[INDEX_FH_CHANNEL] 	= pHardTestName[0];
+	g_hardTest.pParameterNameArrayChannel[INDEX_WY_CHANNEL] 	= pHardTestName[1];
+	g_hardTest.pParameterNameArrayChannel[INDEX_BX_CHANNEL] 	= pHardTestName[2];
+	
+	/* 试块个数 */
+	g_hardTest.channelRowNum = MAX_LIMIT_ROW_CNT;
+	g_hardTest.channelColumnNum = 1;
+	
+	/* 索引值 */
+	g_hardTest.indexArrayChannel[INDEX_UP_LIMIT] 		= OBJECT_UP_LIMIT;
+	g_hardTest.indexArrayChannel[INDEX_DOWN_LIMIT] 		= OBJECT_DOWN_LIMIT;
+	g_hardTest.indexArrayChannel[INDEX_OIL_LIMIT] 		= OBJECT_OIL_LIMIT;
+	
+	/* 参数名称 */
+	g_hardTest.pParameterNameArrayChannel[INDEX_UP_LIMIT] 		= pHardTestName[5];
+	g_hardTest.pParameterNameArrayChannel[INDEX_DOWN_LIMIT] 	= pHardTestName[6];
+	g_hardTest.pParameterNameArrayChannel[INDEX_OIL_LIMIT] 		= pHardTestName[7];
 }
 
 /*------------------------------------------------------------
- * Function Name  : ConfigHardTestParameterRectangleFrameCoordinate
- * Description    : 配置界面GUI坐标
+ * Function Name  : ConfigHardTestChannelRectangleFrameCoordinate
+ * Description    : 配置界面通道GUI坐标
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void ConfigHardTestParameterRectangleFrameCoordinate( void )
+static void ConfigHardTestChannelRectangleFrameCoordinate( void )
 {
 	const uint16_t INIT_START_X = 238;
 	const uint16_t INIT_START_Y = 175;
 	uint16_t startX = INIT_START_X;
 	uint16_t startY = INIT_START_Y;
-	uint8_t i;
+	uint8_t i,j;
 	
-	for (i=0; i<g_hardTest.curParameterNum; ++i)
+	for (i=0; i<g_hardTest.channelRowNum; ++i)
 	{
-		g_hardTest.oneLevelMenu[i].x = startX;
-		g_hardTest.oneLevelMenu[i].y = startY;
-		g_hardTest.oneLevelMenu[i].pointColor = COLOR_POINT;
-		g_hardTest.oneLevelMenu[i].backColor = COLOR_BACK;
-		g_hardTest.oneLevelMenu[i].recordPointColor = COLOR_POINT;
-		g_hardTest.oneLevelMenu[i].recordBackColor = COLOR_BACK;
-		g_hardTest.oneLevelMenu[i].lenth = 102;
-		g_hardTest.oneLevelMenu[i].width = 30;
-		g_hardTest.oneLevelMenu[i].fontSize = 24;
-		g_hardTest.oneLevelMenu[i].rowDistance = 24;
-		g_hardTest.oneLevelMenu[i].columnDistance = 0;
-		g_hardTest.oneLevelMenu[i].lineWidth = 2;
+		for (j=0; j<g_hardTest.channelColumnNum; ++j)
+		{
+			g_hardTest.oneLevelMenuChannel[i][j].x = startX;
+			g_hardTest.oneLevelMenuChannel[i][j].y = startY;
+			g_hardTest.oneLevelMenuChannel[i][j].pointColor = COLOR_POINT;
+			g_hardTest.oneLevelMenuChannel[i][j].backColor = COLOR_BACK;
+			g_hardTest.oneLevelMenuChannel[i][j].recordPointColor = COLOR_POINT;
+			g_hardTest.oneLevelMenuChannel[i][j].recordBackColor = COLOR_BACK;
+			g_hardTest.oneLevelMenuChannel[i][j].lenth = 102;
+			g_hardTest.oneLevelMenuChannel[i][j].width = 30;
+			g_hardTest.oneLevelMenuChannel[i][j].fontSize = 24;
+			g_hardTest.oneLevelMenuChannel[i][j].rowDistance = 0;
+			g_hardTest.oneLevelMenuChannel[i][j].columnDistance = 0;
+			g_hardTest.oneLevelMenuChannel[i][j].lineWidth = 2;
+			
+			startX += g_hardTest.oneLevelMenuChannel[i][j].lenth + \
+						g_hardTest.oneLevelMenuChannel[i][j].columnDistance - \
+						g_hardTest.oneLevelMenuChannel[i][j].lineWidth;
+		}
 		
-		if (i == g_hardTest.rowNum - 1)
-		{
-			startX += 360;
-			startY = INIT_START_Y;
-		}
-		else
-		{
-			startY += g_hardTest.oneLevelMenu[i].rowDistance + g_hardTest.oneLevelMenu[i].width;
-		}
+		startX = INIT_START_X;
+		startY = g_hardTest.oneLevelMenuChannel[i][j].width + \
+					g_hardTest.oneLevelMenuChannel[i][j].rowDistance - \
+					g_hardTest.oneLevelMenuChannel[i][j].lineWidth;
 	}
 }
 
 /*------------------------------------------------------------
- * Function Name  : GUI_HardTestDrawOneRectangleFrame
- * Description    : 参数界面GUI
+ * Function Name  : GUI_HardTestDrawOneChannelRectangleFrame
+ * Description    : 画一个通道GUI矩形框
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_HardTestDrawOneRectangleFrame( uint8_t index )
+static void GUI_HardTestDrawOneChannelRectangleFrame( uint8_t rowIndex, uint8_t columnIndex )
 {
 	RECTANGLE_FRAME_TypeDef rectangle;
 	
-	rectangle.x = g_hardTest.oneLevelMenu[index].x;
-	rectangle.y = g_hardTest.oneLevelMenu[index].y;
-	rectangle.lenth = g_hardTest.oneLevelMenu[index].lenth;
-	rectangle.width = g_hardTest.oneLevelMenu[index].width;
-	rectangle.lineWidth = g_hardTest.oneLevelMenu[index].lineWidth;
-	rectangle.lineColor = g_hardTest.oneLevelMenu[index].pointColor;
+	rectangle.x = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].x;
+	rectangle.y = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].y;
+	rectangle.lenth = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].lenth;
+	rectangle.width = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].width;
+	rectangle.lineWidth = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].lineWidth;
+	rectangle.lineColor = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].pointColor;
 	
 	GUI_DrawRectangleFrame(&rectangle);
 }
 
 /*------------------------------------------------------------
- * Function Name  : GUI_HardTestRectangleFrame
- * Description    : 参数界面GUI
+ * Function Name  : GUI_HardTestChannelRectangleFrame
+ * Description    : 通道界面GUI
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_HardTestRectangleFrame( void )
+static void GUI_HardTestChannelRectangleFrame( void )
 {
-	uint8_t i;
+	uint8_t i,j;
 	
-	for (i=0; i<g_hardTest.curParameterNum; ++i)
+	for (i=0; i<g_hardTest.channelRowNum; ++i)
 	{
-		GUI_HardTestDrawOneRectangleFrame(i);
+		for (j=0; j<g_hardTest.channelColumnNum; ++j)
+		{
+			GUI_HardTestDrawOneChannelRectangleFrame(i,j);
+		}
 	}	
 }
 
 /*------------------------------------------------------------
- * Function Name  : GUI_HardTestDrawOneRowOneLevelMenu
- * Description    : 试验参数界面GUI
+ * Function Name  : GUI_HardTestDrawChannelUpOneRowOneLevelMenu
+ * Description    : 通道区域上方一级菜单标题
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_HardTestDrawOneRowOneLevelMenu( uint8_t index )
+static void GUI_HardTestDrawChannelUpOneRowOneLevelMenu( uint8_t rowIndex, uint8_t columnIndex )
 {
-	const uint16_t x = g_hardTest.oneLevelMenu[index].x - 6 * g_hardTest.oneLevelMenu[index].fontSize;
-	const uint16_t y = g_hardTest.oneLevelMenu[index].y + g_hardTest.oneLevelMenu[index].lineWidth + 1;
-	const uint16_t pointColor = g_hardTest.oneLevelMenu[index].pointColor;
-	const uint16_t backColor = g_hardTest.oneLevelMenu[index].backColor;
-	const uint16_t lenth = g_hardTest.oneLevelMenu[index].lenth - 2 * g_hardTest.oneLevelMenu[index].lineWidth - 2;
-	const uint16_t width = g_hardTest.oneLevelMenu[index].width - 2 * g_hardTest.oneLevelMenu[index].lineWidth - 2;
+	const uint16_t x = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].x;
+	const uint16_t y = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].y - 40;
+	const uint16_t pointColor = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].pointColor;
+	const uint16_t backColor = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].backColor;
 	
-	lcd_fill(x,y,lenth,width,backColor);
-	GUI_DispStr24At(x,y,pointColor,backColor,g_hardTest.pParameterNameArray[index]);
+	GUI_DispStr24At(x,y,pointColor,backColor,g_hardTest.pParameterNameArrayChannel[columnIndex]);
 }
 
 /*------------------------------------------------------------
- * Function Name  : GUI_HardTestOneLevelMenu
- * Description    : 参数界面一级菜单
+ * Function Name  : GUI_HardTestDrawChannelLeftOneRowOneLevelMenu
+ * Description    : 通道区域左方一级菜单标题
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_HardTestOneLevelMenu( void )
+static void GUI_HardTestDrawChannelLeftOneRowOneLevelMenu( uint8_t rowIndex, uint8_t columnIndex )
+{
+	const uint16_t x = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].x - \
+						4 * g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].fontSize;
+	const uint16_t y = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].y + \
+						g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].lineWidth;
+	const uint16_t pointColor = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].pointColor;
+	const uint16_t backColor = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].backColor;
+	
+	GUI_DispStr24At(x,y,pointColor,backColor,g_hardTest.pParameterNameArrayChannel[columnIndex]);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_HardTestChannelOneLevelMenu
+ * Description    : 通道界面一级菜单标题
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_HardTestChannelOneLevelMenu( void )
 {
 	uint8_t i;
 	
-	for (i=0; i<g_hardTest.curParameterNum; ++i)
+	for (i=0; i<g_hardTest.channelColumnNum; ++i)
 	{
-		GUI_HardTestDrawOneRowOneLevelMenu(i);
+		GUI_HardTestDrawChannelUpOneRowOneLevelMenu(0,i);
+	}	
+	
+	for (i=0; i<g_hardTest.channelRowNum; ++i)
+	{
+		GUI_HardTestDrawChannelLeftOneRowOneLevelMenu(i,0);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : ConfigHardTestLimitParameterRectangleFrameCoordinate
+ * Description    : 配置限位界面GUI坐标
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void ConfigHardTestLimitParameterRectangleFrameCoordinate( void )
+{
+	const uint16_t START_X = 400;
+	const uint16_t START_Y = 175;
+	uint16_t startX = START_X;
+	uint16_t startY = START_Y;
+	uint8_t i;
+	
+	for (i=0; i<g_hardTest.limitRowNum; ++i)
+	{
+		g_hardTest.oneLevelMenuLimit[i].x = startX;
+		g_hardTest.oneLevelMenuLimit[i].y = startY;
+		g_hardTest.oneLevelMenuLimit[i].pointColor = COLOR_POINT;
+		g_hardTest.oneLevelMenuLimit[i].backColor = COLOR_BACK;
+		g_hardTest.oneLevelMenuLimit[i].recordPointColor = COLOR_POINT;
+		g_hardTest.oneLevelMenuLimit[i].recordBackColor = COLOR_BACK;
+		g_hardTest.oneLevelMenuLimit[i].lenth = 102;
+		g_hardTest.oneLevelMenuLimit[i].width = 30;
+		g_hardTest.oneLevelMenuLimit[i].fontSize = 24;
+		g_hardTest.oneLevelMenuLimit[i].rowDistance = 24;
+		g_hardTest.oneLevelMenuLimit[i].columnDistance = 0;
+		g_hardTest.oneLevelMenuLimit[i].lineWidth = 2;
+		
+		startY += g_hardTest.oneLevelMenuLimit[i].width + g_hardTest.oneLevelMenuLimit[i].rowDistance;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_HardTestDrawOneLimitRectangleFrame
+ * Description    : 画一个限位GUI矩形框
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_HardTestDrawOneLimitRectangleFrame( index )
+{
+	RECTANGLE_FRAME_TypeDef rectangle;
+	
+	rectangle.x = g_hardTest.oneLevelMenuLimit[index].x;
+	rectangle.y = g_hardTest.oneLevelMenuLimit[index].y;
+	rectangle.lenth = g_hardTest.oneLevelMenuLimit[index].lenth;
+	rectangle.width = g_hardTest.oneLevelMenuLimit[index].width;
+	rectangle.lineWidth = g_hardTest.oneLevelMenuLimit[index].lineWidth;
+	rectangle.lineColor = g_hardTest.oneLevelMenuLimit[index].pointColor;
+	
+	GUI_DrawRectangleFrame(&rectangle);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_HardTestLimitRectangleFrame
+ * Description    : 限位界面GUI
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_HardTestLimitRectangleFrame( void )
+{
+	uint8_t i;
+	
+	for (i=0; i<g_hardTest.limitRowNum; ++i)
+	{
+		GUI_HardTestDrawOneLimitRectangleFrame(i);
+	}	
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_HardTestDrawLimitOneRowOneLevelMenu
+ * Description    : 限位区域一级菜单标题
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_HardTestDrawLimitOneRowOneLevelMenu( uint8_t index )
+{
+	const uint16_t x = g_hardTest.oneLevelMenuLimit[index].x;
+	const uint16_t y = g_hardTest.oneLevelMenuLimit[index].y - 40;
+	const uint16_t pointColor = g_hardTest.oneLevelMenuLimit[index].pointColor;
+	const uint16_t backColor = g_hardTest.oneLevelMenuLimit[index].backColor;
+	
+	GUI_DispStr24At(x,y,pointColor,backColor,g_hardTest.pParameterNameArrayLimit[index]);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_HardTestChannelOneLevelMenu
+ * Description    : 通道界面一级菜单标题
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_HardTestLimitOneLevelMenu( void )
+{
+	uint8_t i;
+	
+	for (i=0; i<g_hardTest.limitRowNum; ++i)
+	{
+		GUI_HardTestDrawLimitOneRowOneLevelMenu(i);
 	}	
 }
 
@@ -364,13 +552,27 @@ static void GUI_HardTestOneLevelMenu( void )
  *------------------------------------------------------------*/
 static void GUI_HardTest( void )
 {
+	/* 标题 */
 	GUI_DrawGeneralTitleRectangleFrame(g_hardTest.pTitle);
 	
-	ConfigHardTestParameterRectangleFrameCoordinate();
+	/* 配置通道区域坐标 */
+	ConfigHardTestChannelRectangleFrameCoordinate();
 	
-	GUI_HardTestRectangleFrame();
+	/* 通道区域矩形框 */
+	GUI_HardTestChannelRectangleFrame();
 	
-	GUI_HardTestOneLevelMenu();
+	/* 通道区域菜单 */
+	GUI_HardTestChannelOneLevelMenu();
+	
+	
+	/* 配置限位区域坐标 */
+	ConfigHardTestLimitParameterRectangleFrameCoordinate();
+	
+	/* 限位区域矩形框 */
+	GUI_HardTestLimitRectangleFrame();
+	
+	/* 限位区域菜单 */
+	GUI_HardTestLimitOneLevelMenu();
 }
 
 /*------------------------------------------------------------
@@ -382,45 +584,96 @@ static void GUI_HardTest( void )
  *------------------------------------------------------------*/
 static void HardTestReadParameter( void )
 {
-	uint8_t i;
-
-	for (i=0; i<g_hardTest.curParameterNum; ++i)
+	uint8_t i,j;
+	
+	/* 通道区域初始化 */
+	for (i=0; i<g_hardTest.channelRowNum; ++i)
 	{
-		strcpy(g_hardTest.parameterData[i],"--------");
+		for (j=0; j<g_hardTest.channelColumnNum; ++j)
+		{
+			strcpy(g_hardTest.parameterDataChannel[i][j].data,"--------");
+		}
+	}
+	
+	/* 限位区域初始化 */
+	for (i=0; i<g_hardTest.limitRowNum; ++i)
+	{
+		strcpy(g_hardTest.parameterDataLimit[i],"--------");
 	}
 }
 
 /*------------------------------------------------------------
- * Function Name  : Show_HardTestOneRowOneLevelMenuContent
- * Description    : 显示一行试验参数
+ * Function Name  : Show_HardTestChannelOneRowOneLevelMenuContent
+ * Description    : 显示一行通道区域参数
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void Show_HardTestOneRowOneLevelMenuContent( uint8_t index )
+static void Show_HardTestChannelOneRowOneLevelMenuContent( uint8_t rowIndex, uint8_t columnIndex )
 {
-	const uint16_t x = g_hardTest.oneLevelMenu[index].x + g_hardTest.oneLevelMenu[index].lineWidth + 1;
-	const uint16_t y = g_hardTest.oneLevelMenu[index].y + g_hardTest.oneLevelMenu[index].lineWidth + 1;
-	const uint16_t pointColor = g_hardTest.oneLevelMenu[index].pointColor;
-	const uint16_t backColor = g_hardTest.oneLevelMenu[index].backColor;
+	const uint16_t x = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].x + \
+						g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].lineWidth + 1;
+	const uint16_t y = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].y + \
+						g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].lineWidth + 1;
+	const uint16_t pointColor = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].pointColor;
+	const uint16_t backColor = g_hardTest.oneLevelMenuChannel[rowIndex][columnIndex].backColor;
 	
-	GUI_DispStr24At(x,y,pointColor,backColor,g_hardTest.parameterData[index]);
+	GUI_DispStr24At(x,y,pointColor,backColor,g_hardTest.parameterDataChannel[rowIndex][columnIndex].data);
 }
 
 /*------------------------------------------------------------
- * Function Name  : Show_HardTestOneLevelMenuContent
- * Description    : 显示一级菜单内容
+ * Function Name  : Show_HardTestChannelOneLevelMenuContent
+ * Description    : 显示通道区域一级菜单内容
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void Show_HardTestOneLevelMenuContent( void )
+static void Show_HardTestChannelOneLevelMenuContent( void )
+{
+	uint8_t i,j;
+	
+	for (i=0; i<g_hardTest.channelRowNum; ++i)
+	{
+		for (j=0; j<g_hardTest.channelColumnNum; ++j)
+		{
+			Show_HardTestChannelOneRowOneLevelMenuContent(i,j);
+		}
+	}	
+}
+
+/*------------------------------------------------------------
+ * Function Name  : Show_HardTestLimitOneRowOneLevelMenuContent
+ * Description    : 显示一行限位区域参数
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void Show_HardTestLimitOneRowOneLevelMenuContent( uint8_t rowIndex )
+{
+	const uint16_t x = g_hardTest.oneLevelMenuLimit[rowIndex].x + \
+						g_hardTest.oneLevelMenuLimit[rowIndex].lineWidth + 1;
+	const uint16_t y = g_hardTest.oneLevelMenuLimit[rowIndex].y + \
+						g_hardTest.oneLevelMenuLimit[rowIndex].lineWidth + 1;
+	const uint16_t pointColor = g_hardTest.oneLevelMenuLimit[rowIndex].pointColor;
+	const uint16_t backColor = g_hardTest.oneLevelMenuLimit[rowIndex].backColor;
+	
+	GUI_DispStr24At(x,y,pointColor,backColor,g_hardTest.parameterDataLimit[rowIndex]);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : Show_HardTestLimitOneLevelMenuContent
+ * Description    : 显示限位区域一级菜单内容
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void Show_HardTestLimitOneLevelMenuContent( void )
 {
 	uint8_t i;
 	
-	for (i=0; i<g_hardTest.curParameterNum; ++i)
+	for (i=0; i<g_hardTest.limitRowNum; ++i)
 	{
-		Show_HardTestOneRowOneLevelMenuContent(i);
+		Show_HardTestLimitOneRowOneLevelMenuContent(i);
 	}	
 }
 
@@ -433,7 +686,9 @@ static void Show_HardTestOneLevelMenuContent( void )
  *------------------------------------------------------------*/
 static void Traverse_HardTest( void )
 {
-	Show_HardTestOneLevelMenuContent();
+	Show_HardTestChannelOneLevelMenuContent();
+	
+	Show_HardTestLimitOneLevelMenuContent();
 }
 
 /*------------------------------------------------------------
@@ -450,7 +705,15 @@ static void HardTestKeyProcess( void )
 		switch ( GetKeyVal() )
 		{
 			case KEY_FORCE_TARE:
-				SendTareCmdInteractionTask();
+				SendTareCmdInteractionTask(SMPL_FH_NUM);
+				break;
+			
+			case KEY_DISPLACE_TARE:
+				SendTareCmdInteractionTask(SMPL_WY_NUM);
+				break;
+			
+			case KEY_DEFORMATE_TARE:
+				SendTareCmdInteractionTask(SMPL_BX_NUM);
 				break;
 			
 			case KEY_ESC:
@@ -501,27 +764,48 @@ static void SetHardTestChnLimit( uint8_t limit, FunctionalState NewFunc )
 	
 	switch ( limit )
 	{
-		case UP_LIMIT:
-			index = GetHardTestIndex(OBJECT_UP_LIMIT);
-			if (NewFunc == ENABLE)
+		case OBJECT_UP_LIMIT:
+			index = GetHardTestLimitIndex(OBJECT_UP_LIMIT);
+			if (index != 0xff)
 			{
-				strcpy(g_hardTest.parameterData[index],"上限位  ");
-			}
-			else
-			{
-				strcpy(g_hardTest.parameterData[index],"--------");
+				if (NewFunc == ENABLE)
+				{
+					strcpy(g_hardTest.parameterDataLimit[index],"上限位  ");
+				}
+				else
+				{
+					strcpy(g_hardTest.parameterDataLimit[index],"--------");
+				}
 			}
 			break;
 		
-		case DOWN_LIMIT:
-			index = GetHardTestIndex(OBJECT_DOWN_LIMIT);
-			if (NewFunc == ENABLE)
+		case OBJECT_DOWN_LIMIT:
+			index = GetHardTestLimitIndex(OBJECT_DOWN_LIMIT);
+			if (index != 0xff)
 			{
-				strcpy(g_hardTest.parameterData[index],"下限位  ");
+				if (NewFunc == ENABLE)
+				{
+					strcpy(g_hardTest.parameterDataLimit[index],"下限位  ");
+				}
+				else
+				{
+					strcpy(g_hardTest.parameterDataLimit[index],"--------");
+				}
 			}
-			else
+			break;
+			
+		case OBJECT_OIL_LIMIT:
+			index = GetHardTestLimitIndex(OBJECT_OIL_LIMIT);
+			if (index != 0xff)
 			{
-				strcpy(g_hardTest.parameterData[index],"--------");
+				if (NewFunc == ENABLE)
+				{
+					strcpy(g_hardTest.parameterDataLimit[index],"油缸限位");
+				}
+				else
+				{
+					strcpy(g_hardTest.parameterDataLimit[index],"--------");
+				}
 			}
 			break;
 	}
@@ -530,7 +814,7 @@ static void SetHardTestChnLimit( uint8_t limit, FunctionalState NewFunc )
 
 /*------------------------------------------------------------
  * Function Name  : GetInputDataFromPrm
- * Description    : 从下位机获取输入信号
+ * Description    : 获取输入信号
  * Input          : None
  * Output         : None
  * Return         : None
@@ -538,31 +822,39 @@ static void SetHardTestChnLimit( uint8_t limit, FunctionalState NewFunc )
 static void GetInputDataFromPrm( void )
 {
 	SAMPLE_C_TypeDef *pSample = GetSampleAddr();
+	uint8_t stInput = pSample->input;
+	uint8_t maskBit = 0x01;
 	
-	switch ( pSample->input )
+	while ( maskBit )
 	{
-		case NO_LIMIT_TOUCH:
-			SetHardTestChnLimit(UP_LIMIT,DISABLE);
-			SetHardTestChnLimit(DOWN_LIMIT,DISABLE);
-			break;
+		if (maskBit & BIT_UP_LIMIT)
+		{
+			SetHardTestChnLimit(OBJECT_UP_LIMIT,ENABLE);
+		}
+		else
+		{
+			SetHardTestChnLimit(OBJECT_UP_LIMIT,DISABLE);
+		}
 		
-		case UP_LIMIT_TOUCH:
-			SetHardTestChnLimit(UP_LIMIT,ENABLE);
-			SetHardTestChnLimit(DOWN_LIMIT,DISABLE);
-			break;
+		if (maskBit & BIT_DOWN_LIMIT)
+		{
+			SetHardTestChnLimit(OBJECT_DOWN_LIMIT,ENABLE);
+		}
+		else
+		{
+			SetHardTestChnLimit(OBJECT_DOWN_LIMIT,DISABLE);
+		}
 		
-		case DOWN_LIMIT_TOUCH:
-			SetHardTestChnLimit(UP_LIMIT,DISABLE);
-			SetHardTestChnLimit(DOWN_LIMIT,ENABLE);
-			break;
+		if (maskBit & BIT_OIL_LIMIT)
+		{
+			SetHardTestChnLimit(OBJECT_OIL_LIMIT,ENABLE);
+		}
+		else
+		{
+			SetHardTestChnLimit(OBJECT_OIL_LIMIT,DISABLE);
+		}
 		
-		case UP_AND_DOWN_TOUCH:
-			SetHardTestChnLimit(UP_LIMIT,ENABLE);
-			SetHardTestChnLimit(DOWN_LIMIT,ENABLE);
-			break;
-		
-		default:			
-			break;
+		maskBit <<= 1;
 	}
 }
 
@@ -575,61 +867,46 @@ static void GetInputDataFromPrm( void )
  *------------------------------------------------------------*/
 void GetCodeFromPrm( CODE_TYPE_TypeDef type )
 {
-	SAMPLE_C_TypeDef *pSample = GetSampleAddr();
 	uint8_t index = 0;
 	char convBuff[MAX_PARAMETER_BIT+1];
 	
-	switch ( type )
+	index = GetHardTestChannelIndex(OBJECT_FH_CHANNEL);
+	if (index != 0xff)
 	{
-		case ABSOLUTE_CODE:
-			index = GetHardTestIndex(OBJECT_KY_ABSOLUTE_CODE);
-			if (index != 0xff)
-			{
-				numtochar(MAX_PARAMETER_BIT,pSample->smpl[SMPL_KY_NUM],convBuff);
-				CharToChar(MAX_PARAMETER_BIT,g_hardTest.parameterData[index],convBuff);
-			}
-			
-			index = GetHardTestIndex(OBJECT_KZ_ABSOLUTE_CODE);
-			if (index != 0xff)
-			{
-				numtochar(MAX_PARAMETER_BIT,pSample->smpl[SMPL_KZ_NUM],convBuff);
-				CharToChar(MAX_PARAMETER_BIT,g_hardTest.parameterData[index],convBuff);
-			}
-			break;
-		
-		case OPPOSITE_CODE:
-			index = GetHardTestIndex(OBJECT_KY_RELATIVE_CODE);
-			if (index != 0xff)
-			{
-				numtochar(MAX_PARAMETER_BIT,pSample->smpl[SMPL_KY_NUM],convBuff);
-				CharToChar(MAX_PARAMETER_BIT,g_hardTest.parameterData[index],convBuff);
-			}
-			
-			index = GetHardTestIndex(OBJECT_KZ_RELATIVE_CODE);
-			if (index != 0xff)
-			{
-				numtochar(MAX_PARAMETER_BIT,pSample->smpl[SMPL_KZ_NUM],convBuff);
-				CharToChar(MAX_PARAMETER_BIT,g_hardTest.parameterData[index],convBuff);
-			}
-			break;
+		numtochar(MAX_PARAMETER_BIT,GetSammpleCode(SMPL_FH_NUM),convBuff);
+		CharToChar(MAX_PARAMETER_BIT,g_hardTest.parameterDataChannel[index][type].data,convBuff);
+	}
+	
+	index = GetHardTestChannelIndex(OBJECT_WY_CHANNEL);
+	if (index != 0xff)
+	{
+		numtochar(MAX_PARAMETER_BIT,GetSammpleCode(SMPL_WY_NUM),convBuff);
+		CharToChar(MAX_PARAMETER_BIT,g_hardTest.parameterDataChannel[index][type].data,convBuff);
+	}
+	
+	index = GetHardTestChannelIndex(OBJECT_BX_CHANNEL);
+	if (index != 0xff)
+	{
+		numtochar(MAX_PARAMETER_BIT,GetSammpleCode(SMPL_BX_NUM),convBuff);
+		CharToChar(MAX_PARAMETER_BIT,g_hardTest.parameterDataChannel[index][type].data,convBuff);
 	}
 }
 
 /*------------------------------------------------------------
- * Function Name  : RefreshHardTest
- * Description    : 刷新
+ * Function Name  : RefreshHardTestChannelArea
+ * Description    : 刷新通道区域
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void RefreshHardTest( CODE_TYPE_TypeDef type )
+static void RefreshHardTestChannelArea( CODE_TYPE_TypeDef type )
 {	
 	uint8_t index = 0;
 	
 	switch ( type )
 	{
 		case ABSOLUTE_CODE:
-			index = GetHardTestIndex(OBJECT_KY_ABSOLUTE_CODE);
+			index = GetHardTestChannelIndex(OBJECT_FH_CHANNEL);
 			if (index != 0xff)
 			{
 				Show_HardTestOneRowOneLevelMenuContent(index);
@@ -724,6 +1001,7 @@ static void DataInteractionWithPRM( void )
 				#endif
 				GetInputDataFromPrm();
 				GetCodeFromPrm(ABSOLUTE_CODE);
+				
 				RefreshHardTest(ABSOLUTE_CODE);
 				g_hardTest.statusCmd = SEND_CMD_ENCHANGE;
 			}
@@ -746,6 +1024,7 @@ static void DataInteractionWithPRM( void )
 				#endif
 				GetInputDataFromPrm();
 				GetCodeFromPrm(OPPOSITE_CODE);
+				
 				RefreshHardTest(OPPOSITE_CODE);
 				g_hardTest.statusCmd = SEND_CMD_ENCHANGE;
 			}
@@ -760,10 +1039,9 @@ static void DataInteractionWithPRM( void )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void SendTareCmdInteractionTask( void )
+static void SendTareCmdInteractionTask( SMPL_NAME_TypeDef channel )
 {
-	SendChannelTareCmd(SMPL_KY_NUM);
-	SendChannelTareCmd(SMPL_KZ_NUM);
+	SendChannelTareCmd(channel);
 	
 	g_hardTest.statusCmd = SEND_CMD_ENCHANGE;
 }
