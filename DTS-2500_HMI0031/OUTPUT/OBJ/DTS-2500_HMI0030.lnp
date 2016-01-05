@@ -1,7 +1,6 @@
 --cpu Cortex-M4.fp
 "..\output\obj\main.o"
 "..\output\obj\initial.o"
-"..\output\obj\pagemanage.o"
 "..\output\obj\mainpage.o"
 "..\output\obj\testparameter.o"
 "..\output\obj\testselect.o"
@@ -10,6 +9,7 @@
 "..\output\obj\detailreport.o"
 "..\output\obj\systemset.o"
 "..\output\obj\controlparameter.o"
+"..\output\obj\pagemanage.o"
 "..\output\obj\calibrationtable.o"
 "..\output\obj\timedate.o"
 "..\output\obj\onlineparameter.o"

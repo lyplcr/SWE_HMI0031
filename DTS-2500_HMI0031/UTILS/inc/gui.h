@@ -191,6 +191,24 @@ typedef struct
 	LEAVE_PAGE_TypeDef leavePage;			//离开页
 }SELECT_WINDOWS_TypeDef;
 
+/* 带有标题的边框 */
+typedef struct
+{
+	uint16_t x;
+	uint16_t y;
+	uint16_t lenth;
+	uint16_t width;
+	uint16_t linePointColor;
+	uint16_t lineBackColor;
+	uint16_t lineWidth;
+	uint16_t titleOffsetDistance;	
+	uint16_t titleLenth;
+	const char *pTitle;
+	uint16_t titlePointColor;
+	uint16_t titleBackPoint;
+	uint8_t fontSize;
+}TITLE_FRAME_TypeDef;
+
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
@@ -229,6 +247,7 @@ POP_WINDOWS_TypeDef *GetPopWindowsAddr( void );
 void GUI_ShowSystemDate( uint16_t x, uint16_t y, uint16_t pc, uint16_t bc );
 void GUI_ShowActiveDate( uint16_t x, uint16_t y, uint16_t pc, uint16_t bc );
 void InitShortCutMenu( void );
+void GUI_DrawTitleFrame( TITLE_FRAME_TypeDef *pFrame );
 
 #endif
 

@@ -41,9 +41,9 @@ typedef enum
 /*  ‰»ÎŒª */
 typedef enum
 {
-	BIT_UP_LIMIT 	= 0X01,
-	BIT_DOWN_LIMIT 	= 0X02,
-	BIT_OIL_LIMIT	= 0X03,
+	BIT_UP_LIMIT 	= 0X00,
+	BIT_DOWN_LIMIT 	= 0X01,
+	BIT_OIL_LIMIT	= 0X02,
 }ST_INPUT_TypeDef;
 
 typedef struct

@@ -1627,7 +1627,45 @@ void GUI_ShowActiveDate( uint16_t x, uint16_t y, uint16_t pc, uint16_t bc )
 	GUI_DispStr24At(x,y,pc,bc,buff);		
 }
 
-
+/*------------------------------------------------------------
+ * Function Name  : GUI_DrawTitleFrame
+ * Description    : 画带有标题的边框
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void GUI_DrawTitleFrame( TITLE_FRAME_TypeDef *pFrame )
+{
+	RECTANGLE_FRAME_TypeDef rectangle;
+	uint16_t x = 0;
+	uint16_t y;
+	
+	/* 画矩形框 */
+	rectangle.x = pFrame->x;
+	rectangle.y = pFrame->y;
+	rectangle.lenth = pFrame->lenth;
+	rectangle.width = pFrame->width;
+	rectangle.lineWidth = pFrame->lineWidth;
+	rectangle.lineColor = pFrame->linePointColor;
+	
+	GUI_DrawRectangleFrame(&rectangle);
+	
+	/* 填充标题部分背景 */
+	lcd_fill(pFrame->x+pFrame->titleOffsetDistance,pFrame->y,pFrame->titleLenth,pFrame->lineWidth,pFrame->lineBackColor);
+	
+	x = pFrame->x + pFrame->titleOffsetDistance + ( ( pFrame->titleLenth - strlen(pFrame->pTitle) * (pFrame->fontSize >> 1) ) >> 1);
+	y = pFrame->y +  (pFrame->lineWidth >> 1) - (pFrame->fontSize >> 1);
+	
+	switch ( pFrame->fontSize )
+	{
+		case 16:
+			GUI_DispStr16At(x,y,pFrame->titlePointColor,pFrame->titleBackPoint,pFrame->pTitle);
+			break;
+		default:
+			GUI_DispStr24At(x,y,pFrame->titlePointColor,pFrame->titleBackPoint,pFrame->pTitle);
+			break;
+	}
+}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 
