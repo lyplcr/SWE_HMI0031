@@ -10,7 +10,7 @@ typedef enum
 	COMPRESSION_TEST = 0,	/* —πÀı ‘—È */
 	BENDING_TEST,			/* Õ‰«˙ ‘—È */
 	STRETCH_TEST,			/* ¿≠…Ï ‘—È */
-}TEST_TYPE_NAME_TypeDef;
+}TEST_ATTRIBUTE_TypeDef;
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
@@ -19,7 +19,8 @@ typedef enum
 void LoadTestTypeSelectPage( void );
 void SetTestTypeSelectSourcePage( PAGE_NAME_TypeDef sourcePage );
 void SetTestTypeSelectTargetPage( PAGE_NAME_TypeDef targetPage );
-TEST_TYPE_NAME_TypeDef GetSelectTestType( void );
+TEST_ATTRIBUTE_TypeDef GetSelectTestAttribute( void );
+TEST_ATTRIBUTE_TypeDef GetCurTestAttribute( void );
 
 
 #endif

@@ -316,20 +316,11 @@ static void ForceCalibationInit( void )
 	g_ForceCalibration.bxChannelUnit = GetBX_SmplUnit();
 	g_ForceCalibration.curChannel = GetChannelSelectChannel();
 	
-	switch ( g_ForceCalibration.curChannel )
-	{
-		case SMPL_FH_NUM:
-			disp_syn(DISP_CHN_FH);	
-			break;
-		case SMPL_WY_NUM:
-			disp_syn(DISP_CHN_WY);	
-			break;
-		case SMPL_BX_NUM:
-			disp_syn(DISP_CHN_BX);	
-			break;
-		default:
-			break;
-	}
+	disp_syn(DISP_CHN_FH);
+	disp_syn(DISP_CHN_WY);
+	disp_syn(DISP_CHN_BX);
+	disp_syn(DISP_CHN_STRENGTH);
+	disp_syn(DISP_CHN_PEAK);
 	disp_syn(DISP_CHN_SPEED);
 	
 	InitInterfaceElement();
@@ -2090,7 +2081,7 @@ static void ForceCalibrationKeyProcess( void )
 		switch ( GetKeyVal() )
 		{
 			case KEY_F2:
-			case KEY_PRINT:
+//			case KEY_PRINT:
 				ForceCalibrationKeyF2Process();
 				break;
 			case KEY_F3:
@@ -2177,184 +2168,6 @@ static void ForceCalibrationCheckWarn( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : SetDynamicContentForce
- * Description    : 设置动态内容力值
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void SetDynamicContentForce( void )
-{
-	float force = 0;
-	
-	force = get_smpl_value(SMPL_FH_NUM);
-	
-	if (g_ForceCalibration.fhChannelUnit == FH_UNIT_kN)
-	{
-		force /= 1000;
-	}
-
-	SetInterfaceElementForce(force);
-}
-
-/*------------------------------------------------------------
- * Function Name  : SetDynamicContentDispalcement
- * Description    : 设置动态内容位移
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void SetDynamicContentDispalcement( void )
-{
-	float disPlacement = 0;
-	
-	disPlacement = get_smpl_value(SMPL_WY_NUM);
-	
-	switch ( g_ForceCalibration.wyChannelUnit )
-	{
-		case WY_UNIT_MM:
-				
-			break;
-		case WY_UNIT_CM:
-			disPlacement /= 10;	
-			break;
-		case WY_UNIT_DM:
-			disPlacement /= 100;		
-			break;
-		case WY_UNIT_M:
-			disPlacement /= 1000;		
-			break; 
-		default:
-			break;
-	}
-
-	SetInterfaceElementDisPlacement(disPlacement);
-}
-
-/*------------------------------------------------------------
- * Function Name  : SetDynamicContentDeform
- * Description    : 设置动态内容变形
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void SetDynamicContentDeform( void )
-{
-	float deform = 0;
-	
-	deform = get_smpl_value(SMPL_BX_NUM);
-	
-	switch ( g_ForceCalibration.bxChannelUnit )
-	{
-		case BX_UNIT_MM:
-				
-			break;
-		case BX_UNIT_CM:
-			deform /= 10;	
-			break;
-		case BX_UNIT_DM:
-			deform /= 100;		
-			break;
-		case BX_UNIT_M:
-			deform /= 1000;		
-			break; 
-		default:
-			break;
-	}
-
-	SetInterfaceElementDeform(deform);
-}
-
-/*------------------------------------------------------------
- * Function Name  : SetDynamicContentFHSpeed
- * Description    : 设置动态内容负荷速度
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void SetDynamicContentFHSpeed( void )
-{
-	float speed = 0;
-	
-	speed = get_smpl_spd(SMPL_FH_NUM);
-	
-	if (g_ForceCalibration.fhChannelUnit == FH_UNIT_kN)
-	{
-		speed /= 1000;
-	}	
-	
-	SetInterfaceElementFHSpeed(speed);
-}
-
-/*------------------------------------------------------------
- * Function Name  : SetDynamicContentWYSpeed
- * Description    : 设置动态内容位移速度
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void SetDynamicContentWYSpeed( void )
-{
-	float speed = 0;
-	
-	speed = get_smpl_spd(SMPL_WY_NUM);
-	
-	switch ( g_ForceCalibration.wyChannelUnit )
-	{
-		case WY_UNIT_MM:
-				
-			break;
-		case WY_UNIT_CM:
-			speed /= 10;	
-			break;
-		case WY_UNIT_DM:
-			speed /= 100;	
-			break;
-		case WY_UNIT_M:
-			speed /= 1000;	
-			break; 
-		default:
-			break;
-	}
-
-	SetInterfaceElementWYSpeed(speed);
-}
-
-/*------------------------------------------------------------
- * Function Name  : SetDynamicContentBXSpeed
- * Description    : 设置动态内容变形速度
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void SetDynamicContentBXSpeed( void )
-{
-	float speed = 0;
-	
-	speed = get_smpl_spd(SMPL_BX_NUM);
-	
-	switch ( g_ForceCalibration.bxChannelUnit )
-	{
-		case BX_UNIT_MM:
-				
-			break;
-		case BX_UNIT_CM:
-			speed /= 10;	
-			break;
-		case BX_UNIT_DM:
-			speed /= 100;	
-			break;
-		case BX_UNIT_M:
-			speed /= 1000;	
-			break; 
-		default:
-			break;
-	}
-
-	SetInterfaceElementBXSpeed(speed);
-}
-
-/*------------------------------------------------------------
  * Function Name  : SetDynamicContentCalibrationStatus
  * Description    : 设置动态内容校准状态
  * Input          : None
@@ -2378,16 +2191,16 @@ static void SetForceCalibrationDynamicContentTask( void )
 	switch ( g_ForceCalibration.curChannel )
 	{
 		case SMPL_FH_NUM:
-			SetDynamicContentForce();
-			SetDynamicContentFHSpeed();	
+			SetDynamicContentForce(g_ForceCalibration.fhChannelUnit);
+			SetDynamicContentFHSpeed(g_ForceCalibration.fhChannelUnit);	
 			break;
 		case SMPL_WY_NUM:
-			SetDynamicContentDispalcement();
-			SetDynamicContentWYSpeed();
+			SetDynamicContentDispalcement(g_ForceCalibration.wyChannelUnit);
+			SetDynamicContentWYSpeed(g_ForceCalibration.wyChannelUnit);
 			break;
 		case SMPL_BX_NUM:
-			SetDynamicContentDeform();
-			SetDynamicContentBXSpeed();
+			SetDynamicContentDeform(g_ForceCalibration.bxChannelUnit);
+			SetDynamicContentBXSpeed(g_ForceCalibration.bxChannelUnit);
 			break;
 		default:
 			break;

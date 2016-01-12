@@ -1310,7 +1310,7 @@ void sample_cycle( void )
 	g_ioStatus.st_sw_rol = g_sampleCycle.sw_rol;
 	g_ioStatus.st_sw_rw = g_sampleCycle.sw_rw;
 	
-	#ifdef REAL_TIME_DATA_FRAM
+	#ifdef DEBUG_REAL_TIME_DATA_FRAM
 		printf("%x\r\n",g_ioStatus.st_sw_rw);
 	#endif
 	

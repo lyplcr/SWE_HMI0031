@@ -50,7 +50,6 @@ typedef enum
 	OBJECT_AREA,				/* 面积 	*/
 	OBJECT_SHAPE,				/* 形状 	*/
 	OBJECT_ROUND_DIAMETER,		/* 圆形直径 	*/
-	OBJECT_ORIGINAL_CUT_AREA,	/* 原始截面积 */
 	OBJECT_EXTERNSOMETER_GAUGE,	/* 引伸计标距 */
 }ALL_PATAMETER_NAME_TypeDef;
 
@@ -127,7 +126,6 @@ typedef enum				//普通混凝土抗压
 	SAMPLE_NUM_KYHNT,		//试件块数
 }KYHNT_PARA_NAME_TypeDef;
 
-
 typedef enum				 //砌墙砖抗压
 {
 	TEST_SERIAL_KYQQZ = 0,	//试验编号
@@ -138,15 +136,34 @@ typedef enum				 //砌墙砖抗压
 	SAMPLE_NUM_KYQQZ,		//试件块数
 }KYQQZ_PARA_NAME_TypeDef;
 
-typedef enum				 //通用抗压
+union KYTY_PARA_NAME_TypeDef		//通用抗压
 {
-	TEST_SERIAL_KYTY = 0,	//试验编号
-	SAMPLE_AGE_KYTY,		//试件龄期
-	SAMPLE_SHAPE_KYTY,		//形状
-	SAMPLE_AREA_KYTY,		//面积
-	CORRECT_COF_KYTY,		//修正系数
-	SAMPLE_NUM_KYTY,		//试件块数
-}KYTY_PARA_NAME_TypeDef;
+	enum 				 
+	{
+		TEST_SERIAL_RECTANGLE_KYTY = 0,	//试验编号
+		SAMPLE_SHAPE_RECTANGLE_KYTY,	//形状
+		SAMPLE_LENTH_RECTANGLE_KYTY,	//长度
+		SAMPLE_WIDTH_RECTANGLE_KYTY,	//宽度
+		CORRECT_COF_RECTANGLE_KYTY,		//修正系数
+		SAMPLE_NUM_RECTANGLE_KYTY,		//试件块数
+	}KYTY_SHAPE_RECTANGLE;
+	enum				 
+	{
+		TEST_SERIAL_ROUND_KYTY = 0,	//试验编号
+		SAMPLE_SHAPE_ROUND_KYTY,	//形状
+		SAMPLE_DIAMETER_ROUND_KYTY,	//直径
+		CORRECT_COF_ROUND_KYTY,		//修正系数
+		SAMPLE_NUM_ROUND_KYTY,		//试件块数
+	}KYTY_SHAPE_ROUND;
+	enum				 
+	{
+		TEST_SERIAL_IRREGULAR_KYTY = 0,	//试验编号
+		SAMPLE_SHAPE_IRREGULAR_KYTY,	//形状
+		SAMPLE_AREA_IRREGULAR_KYTY,		//面积
+		CORRECT_COF_IRREGULAR_KYTY,		//修正系数
+		SAMPLE_NUM_IRREGULAR_KYTY,		//试件块数
+	}KYTY_SHAPE_RIRREGULAR;
+};
 
 typedef enum				 //金属室温抗拉
 {
@@ -340,7 +357,10 @@ const char * const pValue_KYTY[] =
 	"加载方式：",
 	"延时时间：",
 	"修正系数：",
-};	
+	"长度：",
+	"宽度：",
+	"圆形直径：",
+};
 						
 /* 通用抗折参数名称显示 */
 const char * const pValue_KZTY[] = 
@@ -893,6 +913,7 @@ static void TestParameterKeyProcess( void );
 static void TestParameterShortcutCycleTask( void );
 static void TestParameterPopWindowsProcess( void );
 static void TestParameterLeavePageCheckCycle( void );
+static void TestParameterExchangeSampleShape( uint8_t nowIndex );
 
 
 /* Private functions ---------------------------------------------------------*/
@@ -1395,79 +1416,215 @@ static void TestParameterConfig( void )
 			
 			break;
 		case KYTY:
-			/* 试验标准 */
-			g_testParameter.pTestStandard = "未定义";
-		
-			/* 试块个数 */
-			g_testParameter.curParameterNum = 6;
+		{
+			TYKY_TEST_SHAPE_TypeDef sampleShape;
 			
-			/* 索引值 */
-			g_testParameter.indexArray[TEST_SERIAL_KYTY] 	= OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
-			g_testParameter.indexArray[SAMPLE_AGE_KYTY] 	= OBJECT_SPECIMEN_AGE;			/* 试件龄期 */
-			g_testParameter.indexArray[SAMPLE_SHAPE_KYTY] 	= OBJECT_SHAPE;					/* 形状 	*/
-			g_testParameter.indexArray[SAMPLE_AREA_KYTY] 	= OBJECT_AREA;					/* 面积 	*/
-			g_testParameter.indexArray[CORRECT_COF_KYTY] 	= OBJECT_CORRECTION_FACTOR;		/* 修正系数 */
-			g_testParameter.indexArray[SAMPLE_NUM_KYTY] 	= OBJECT_SPECIMEN_NUMS;			/* 试件块数 */
+			if (pTest->sample_type_index > 2)
+			{
+				pTest->sample_type_index = 0;
+			}
 			
-			/* 参数名称 */
-			g_testParameter.pParameterNameArray[TEST_SERIAL_KYTY] 	= pValue_KYTY[1];
-			g_testParameter.pParameterNameArray[SAMPLE_AGE_KYTY] 	= pValue_KYTY[2];
-			g_testParameter.pParameterNameArray[SAMPLE_SHAPE_KYTY] 	= pValue_KYTY[3];
-			g_testParameter.pParameterNameArray[SAMPLE_AREA_KYTY] 	= pValue_KYTY[4];
-			g_testParameter.pParameterNameArray[CORRECT_COF_KYTY] 	= pValue_KYTY[9];
-			g_testParameter.pParameterNameArray[SAMPLE_NUM_KYTY] 	= pValue_KYTY[6];	
-		
-			/* 单位 */
-			g_testParameter.pParameterUnitArray[TEST_SERIAL_KYTY] 	= "NULL";
-			g_testParameter.pParameterUnitArray[SAMPLE_AGE_KYTY] 	= pUnitType[8];
-			g_testParameter.pParameterUnitArray[SAMPLE_SHAPE_KYTY]	= "NULL";
-			g_testParameter.pParameterUnitArray[SAMPLE_AREA_KYTY] 	= pUnitType[5];
-			g_testParameter.pParameterUnitArray[CORRECT_COF_KYTY] 	= "NULL";
-			g_testParameter.pParameterUnitArray[SAMPLE_NUM_KYTY] 	= "NULL";
+			sampleShape = (TYKY_TEST_SHAPE_TypeDef)pTest->sample_shape_index;
 			
 			/* 标题 */
 			g_testParameter.pTitle = pTestParameterTitleName[6];
 			
-			/* 二级菜单参数个数 */
-			g_testParameter.twoLevelMenu[TEST_SERIAL_KYTY].parameterCnt 	= 0;
-			g_testParameter.twoLevelMenu[SAMPLE_AGE_KYTY].parameterCnt		= 6;
-			g_testParameter.twoLevelMenu[SAMPLE_SHAPE_KYTY].parameterCnt 	= 3;
-			g_testParameter.twoLevelMenu[SAMPLE_AREA_KYTY].parameterCnt 	= 0;
-			g_testParameter.twoLevelMenu[CORRECT_COF_KYTY].parameterCnt 	= 2;
-			g_testParameter.twoLevelMenu[SAMPLE_NUM_KYTY].parameterCnt 		= 7;
-			
-			/* 二级菜单类型 */
-			g_testParameter.twoLevelMenu[TEST_SERIAL_KYTY].parameterType 	= IMMEDIATELY_PUTIN_SHIFT;
-			g_testParameter.twoLevelMenu[SAMPLE_AGE_KYTY].parameterType 	= USE_USER_DEFINE;
-			g_testParameter.twoLevelMenu[SAMPLE_SHAPE_KYTY].parameterType 	= NONE_USE_USER_DEFINE;
-			g_testParameter.twoLevelMenu[SAMPLE_AREA_KYTY].parameterType 	= IMMEDIATELY_PUTIN_NONE;
-			g_testParameter.twoLevelMenu[CORRECT_COF_KYTY].parameterType 	= USE_USER_DEFINE;
-			g_testParameter.twoLevelMenu[SAMPLE_NUM_KYTY].parameterType 	= USE_USER_DEFINE;
-			
-			/* 二级菜单参数名 */
-			g_testParameter.twoLevelMenu[TEST_SERIAL_KYTY].pParameterNameArray 	= NULL;
-			g_testParameter.twoLevelMenu[SAMPLE_AGE_KYTY].pParameterNameArray 	= pSample_age;
-			g_testParameter.twoLevelMenu[SAMPLE_SHAPE_KYTY].pParameterNameArray = pSpecimen_sharp;
-			g_testParameter.twoLevelMenu[SAMPLE_AREA_KYTY].pParameterNameArray 	= NULL;
-			g_testParameter.twoLevelMenu[CORRECT_COF_KYTY].pParameterNameArray 	= pSpecimen_cof;
-			g_testParameter.twoLevelMenu[SAMPLE_NUM_KYTY].pParameterNameArray 	= pSample_num;
-			
-			/* 数据保存类型 */
-			g_testParameter.oneLevelMenu[TEST_SERIAL_KYTY].saveType 	= TYPE_CHAR;
-			g_testParameter.oneLevelMenu[SAMPLE_AGE_KYTY].saveType 		= TYPE_INT;
-			g_testParameter.oneLevelMenu[SAMPLE_SHAPE_KYTY].saveType 	= TYPE_INT;
-			g_testParameter.oneLevelMenu[SAMPLE_AREA_KYTY].saveType 	= TYPE_FLOAT;
-			g_testParameter.oneLevelMenu[CORRECT_COF_KYTY].saveType 	= TYPE_FLOAT;
-			g_testParameter.oneLevelMenu[SAMPLE_NUM_KYTY].saveType 		= TYPE_INT;	
+			/* 试验标准 */
+			g_testParameter.pTestStandard = "------";
+		
+			switch ( sampleShape )
+			{
+				case TYKY_SHAPE_RECTANGLE:
+					/* 试块个数 */
+					g_testParameter.curParameterNum = 6;
+					
+					/* 索引值 */
+					g_testParameter.indexArray[TEST_SERIAL_RECTANGLE_KYTY] 	= OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
+					g_testParameter.indexArray[SAMPLE_SHAPE_RECTANGLE_KYTY] = OBJECT_SHAPE;					/* 试件形状 */
+					g_testParameter.indexArray[SAMPLE_LENTH_RECTANGLE_KYTY] = OBJECT_SPECIMEN_LENTH;		/* 长度	    */
+					g_testParameter.indexArray[SAMPLE_WIDTH_RECTANGLE_KYTY] = OBJECT_SPECIMEN_WIDTH;		/* 宽度 	*/
+					g_testParameter.indexArray[CORRECT_COF_RECTANGLE_KYTY] 	= OBJECT_CORRECTION_FACTOR;		/* 修正系数 */
+					g_testParameter.indexArray[SAMPLE_NUM_RECTANGLE_KYTY] 	= OBJECT_SPECIMEN_NUMS;			/* 试件块数 */			/* 延时时间 */
+				
+					/* 参数名称 */
+					g_testParameter.pParameterNameArray[TEST_SERIAL_RECTANGLE_KYTY] 	= pValue_KYTY[1];
+					g_testParameter.pParameterNameArray[SAMPLE_SHAPE_RECTANGLE_KYTY] 	= pValue_KYTY[3];
+					g_testParameter.pParameterNameArray[SAMPLE_LENTH_RECTANGLE_KYTY] 	= pValue_KYTY[10];
+					g_testParameter.pParameterNameArray[SAMPLE_WIDTH_RECTANGLE_KYTY] 	= pValue_KYTY[11];
+					g_testParameter.pParameterNameArray[CORRECT_COF_RECTANGLE_KYTY] 	= pValue_KYTY[9];
+					g_testParameter.pParameterNameArray[SAMPLE_NUM_RECTANGLE_KYTY] 		= pValue_KYTY[6];		
+				
+					/* 单位 */
+					g_testParameter.pParameterUnitArray[TEST_SERIAL_RECTANGLE_KYTY] 	= "NULL";
+					g_testParameter.pParameterUnitArray[SAMPLE_SHAPE_RECTANGLE_KYTY] 	= "NULL";
+					g_testParameter.pParameterUnitArray[SAMPLE_LENTH_RECTANGLE_KYTY]	= pUnitType[4];
+					g_testParameter.pParameterUnitArray[SAMPLE_WIDTH_RECTANGLE_KYTY] 	= pUnitType[4];
+					g_testParameter.pParameterUnitArray[CORRECT_COF_RECTANGLE_KYTY] 	= "NULL";
+					g_testParameter.pParameterUnitArray[SAMPLE_NUM_RECTANGLE_KYTY] 		= "NULL";
+					
+					/* 二级菜单参数个数 */
+					g_testParameter.twoLevelMenu[TEST_SERIAL_RECTANGLE_KYTY].parameterCnt 		= 0;
+					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RECTANGLE_KYTY].parameterCnt		= 3;
+					g_testParameter.twoLevelMenu[SAMPLE_LENTH_RECTANGLE_KYTY].parameterCnt 		= 0;
+					g_testParameter.twoLevelMenu[SAMPLE_WIDTH_RECTANGLE_KYTY].parameterCnt 		= 0;
+					g_testParameter.twoLevelMenu[CORRECT_COF_RECTANGLE_KYTY].parameterCnt 		= 2;
+					g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KYTY].parameterCnt 		= 7;
+					
+					/* 二级菜单类型 */
+					g_testParameter.twoLevelMenu[TEST_SERIAL_RECTANGLE_KYTY].parameterType 		= IMMEDIATELY_PUTIN_SHIFT;
+					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RECTANGLE_KYTY].parameterType 	= NONE_USE_USER_DEFINE;
+					g_testParameter.twoLevelMenu[SAMPLE_LENTH_RECTANGLE_KYTY].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+					g_testParameter.twoLevelMenu[SAMPLE_WIDTH_RECTANGLE_KYTY].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+					g_testParameter.twoLevelMenu[CORRECT_COF_RECTANGLE_KYTY].parameterType 		= USE_USER_DEFINE;
+					g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KYTY].parameterType 		= USE_USER_DEFINE;
+					
+					/* 二级菜单参数名 */
+					g_testParameter.twoLevelMenu[TEST_SERIAL_RECTANGLE_KYTY].pParameterNameArray 	= NULL;
+					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RECTANGLE_KYTY].pParameterNameArray 	= pSpecimen_sharp;
+					g_testParameter.twoLevelMenu[SAMPLE_LENTH_RECTANGLE_KYTY].pParameterNameArray 	= NULL;
+					g_testParameter.twoLevelMenu[SAMPLE_WIDTH_RECTANGLE_KYTY].pParameterNameArray 	= NULL;
+					g_testParameter.twoLevelMenu[CORRECT_COF_RECTANGLE_KYTY].pParameterNameArray 	= pSpecimen_cof;
+					g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KYTY].pParameterNameArray 	= pSample_num;
+					
+					/* 数据保存类型 */
+					g_testParameter.oneLevelMenu[TEST_SERIAL_RECTANGLE_KYTY].saveType 		= TYPE_CHAR;
+					g_testParameter.oneLevelMenu[SAMPLE_SHAPE_RECTANGLE_KYTY].saveType 		= TYPE_INT;
+					g_testParameter.oneLevelMenu[SAMPLE_LENTH_RECTANGLE_KYTY].saveType 		= TYPE_FLOAT;
+					g_testParameter.oneLevelMenu[SAMPLE_WIDTH_RECTANGLE_KYTY].saveType 		= TYPE_FLOAT;
+					g_testParameter.oneLevelMenu[CORRECT_COF_RECTANGLE_KYTY].saveType 		= TYPE_FLOAT;
+					g_testParameter.oneLevelMenu[SAMPLE_NUM_RECTANGLE_KYTY].saveType 		= TYPE_INT;	
 
-			/* 小数点位数 */
-			g_testParameter.oneLevelMenu[TEST_SERIAL_KYTY].pointBit 	= 0;
-			g_testParameter.oneLevelMenu[SAMPLE_AGE_KYTY].pointBit 		= 0;
-			g_testParameter.oneLevelMenu[SAMPLE_SHAPE_KYTY].pointBit 	= 0;
-			g_testParameter.oneLevelMenu[SAMPLE_AREA_KYTY].pointBit 	= 2;
-			g_testParameter.oneLevelMenu[CORRECT_COF_KYTY].pointBit 	= 2;
-			g_testParameter.oneLevelMenu[SAMPLE_NUM_KYTY].pointBit 		= 0;
+					/* 小数点位数 */
+					g_testParameter.oneLevelMenu[TEST_SERIAL_RECTANGLE_KYTY].pointBit 		= 0;
+					g_testParameter.oneLevelMenu[SAMPLE_SHAPE_RECTANGLE_KYTY].pointBit 		= 0;
+					g_testParameter.oneLevelMenu[SAMPLE_LENTH_RECTANGLE_KYTY].pointBit 		= 2;
+					g_testParameter.oneLevelMenu[SAMPLE_WIDTH_RECTANGLE_KYTY].pointBit 		= 2;
+					g_testParameter.oneLevelMenu[CORRECT_COF_RECTANGLE_KYTY].pointBit 		= 2;
+					g_testParameter.oneLevelMenu[SAMPLE_NUM_RECTANGLE_KYTY].pointBit 		= 0;
+					break;
+				case TYKY_SHAPE_ROUND:
+					/* 试块个数 */
+					g_testParameter.curParameterNum = 5;
+					
+					/* 索引值 */
+					g_testParameter.indexArray[TEST_SERIAL_ROUND_KYTY] 		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
+					g_testParameter.indexArray[SAMPLE_SHAPE_ROUND_KYTY] 	= OBJECT_SHAPE;					/* 试件形状 */
+					g_testParameter.indexArray[SAMPLE_DIAMETER_ROUND_KYTY] 	= OBJECT_ROUND_DIAMETER;				/* 直径	    */
+					g_testParameter.indexArray[CORRECT_COF_ROUND_KYTY] 		= OBJECT_CORRECTION_FACTOR;		/* 修正系数 */
+					g_testParameter.indexArray[SAMPLE_NUM_ROUND_KYTY] 		= OBJECT_SPECIMEN_NUMS;			/* 试件块数 */			/* 延时时间 */
+				
+					/* 参数名称 */
+					g_testParameter.pParameterNameArray[TEST_SERIAL_ROUND_KYTY] 	= pValue_KYTY[1];
+					g_testParameter.pParameterNameArray[SAMPLE_SHAPE_ROUND_KYTY] 	= pValue_KYTY[3];
+					g_testParameter.pParameterNameArray[SAMPLE_DIAMETER_ROUND_KYTY] = pValue_KYTY[12];
+					g_testParameter.pParameterNameArray[CORRECT_COF_ROUND_KYTY] 	= pValue_KYTY[9];
+					g_testParameter.pParameterNameArray[SAMPLE_NUM_ROUND_KYTY] 		= pValue_KYTY[6];		
+				
+					/* 单位 */
+					g_testParameter.pParameterUnitArray[TEST_SERIAL_ROUND_KYTY] 	= "NULL";
+					g_testParameter.pParameterUnitArray[SAMPLE_SHAPE_ROUND_KYTY] 	= "NULL";
+					g_testParameter.pParameterUnitArray[SAMPLE_DIAMETER_ROUND_KYTY]	= pUnitType[4];
+					g_testParameter.pParameterUnitArray[CORRECT_COF_ROUND_KYTY] 	= "NULL";
+					g_testParameter.pParameterUnitArray[SAMPLE_NUM_ROUND_KYTY] 		= "NULL";
+					
+					/* 二级菜单参数个数 */
+					g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KYTY].parameterCnt 		= 0;
+					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_ROUND_KYTY].parameterCnt		= 3;
+					g_testParameter.twoLevelMenu[SAMPLE_DIAMETER_ROUND_KYTY].parameterCnt 	= 0;
+					g_testParameter.twoLevelMenu[CORRECT_COF_ROUND_KYTY].parameterCnt 		= 2;
+					g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KYTY].parameterCnt 		= 7;
+					
+					/* 二级菜单类型 */
+					g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KYTY].parameterType 		= IMMEDIATELY_PUTIN_SHIFT;
+					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_ROUND_KYTY].parameterType 	= NONE_USE_USER_DEFINE;
+					g_testParameter.twoLevelMenu[SAMPLE_DIAMETER_ROUND_KYTY].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+					g_testParameter.twoLevelMenu[CORRECT_COF_ROUND_KYTY].parameterType 		= USE_USER_DEFINE;
+					g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KYTY].parameterType 		= USE_USER_DEFINE;
+					
+					/* 二级菜单参数名 */
+					g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KYTY].pParameterNameArray 		= NULL;
+					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_ROUND_KYTY].pParameterNameArray 		= pSpecimen_sharp;
+					g_testParameter.twoLevelMenu[SAMPLE_DIAMETER_ROUND_KYTY].pParameterNameArray 	= NULL;
+					g_testParameter.twoLevelMenu[CORRECT_COF_ROUND_KYTY].pParameterNameArray 		= pSpecimen_cof;
+					g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KYTY].pParameterNameArray 		= pSample_num;
+					
+					/* 数据保存类型 */
+					g_testParameter.oneLevelMenu[TEST_SERIAL_ROUND_KYTY].saveType 		= TYPE_CHAR;
+					g_testParameter.oneLevelMenu[SAMPLE_SHAPE_ROUND_KYTY].saveType 		= TYPE_INT;
+					g_testParameter.oneLevelMenu[SAMPLE_DIAMETER_ROUND_KYTY].saveType 	= TYPE_FLOAT;
+					g_testParameter.oneLevelMenu[CORRECT_COF_ROUND_KYTY].saveType 		= TYPE_FLOAT;
+					g_testParameter.oneLevelMenu[SAMPLE_NUM_ROUND_KYTY].saveType 		= TYPE_INT;	
+
+					/* 小数点位数 */
+					g_testParameter.oneLevelMenu[TEST_SERIAL_ROUND_KYTY].pointBit 		= 0;
+					g_testParameter.oneLevelMenu[SAMPLE_SHAPE_ROUND_KYTY].pointBit 		= 0;
+					g_testParameter.oneLevelMenu[SAMPLE_DIAMETER_ROUND_KYTY].pointBit 	= 2;
+					g_testParameter.oneLevelMenu[CORRECT_COF_ROUND_KYTY].pointBit 		= 2;
+					g_testParameter.oneLevelMenu[SAMPLE_NUM_ROUND_KYTY].pointBit 		= 0;
+					break;
+				case TYKY_SHAPE_IRREGULAR:
+					/* 试块个数 */
+					g_testParameter.curParameterNum = 5;
+					
+					/* 索引值 */
+					g_testParameter.indexArray[TEST_SERIAL_IRREGULAR_KYTY] 		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
+					g_testParameter.indexArray[SAMPLE_SHAPE_IRREGULAR_KYTY] 	= OBJECT_SHAPE;					/* 试件形状 */
+					g_testParameter.indexArray[SAMPLE_AREA_IRREGULAR_KYTY] 		= OBJECT_AREA;					/* 面积	    */
+					g_testParameter.indexArray[CORRECT_COF_IRREGULAR_KYTY] 		= OBJECT_CORRECTION_FACTOR;		/* 修正系数 */
+					g_testParameter.indexArray[SAMPLE_NUM_IRREGULAR_KYTY] 		= OBJECT_SPECIMEN_NUMS;			/* 试件块数 */			/* 延时时间 */
+				
+					/* 参数名称 */
+					g_testParameter.pParameterNameArray[TEST_SERIAL_IRREGULAR_KYTY] 	= pValue_KYTY[1];
+					g_testParameter.pParameterNameArray[SAMPLE_SHAPE_IRREGULAR_KYTY] 	= pValue_KYTY[3];
+					g_testParameter.pParameterNameArray[SAMPLE_AREA_IRREGULAR_KYTY] 	= pValue_KYTY[4];
+					g_testParameter.pParameterNameArray[CORRECT_COF_IRREGULAR_KYTY] 	= pValue_KYTY[9];
+					g_testParameter.pParameterNameArray[SAMPLE_NUM_IRREGULAR_KYTY] 		= pValue_KYTY[6];	
+				
+					/* 单位 */
+					g_testParameter.pParameterUnitArray[TEST_SERIAL_IRREGULAR_KYTY] 	= "NULL";
+					g_testParameter.pParameterUnitArray[SAMPLE_SHAPE_IRREGULAR_KYTY] 	= "NULL";
+					g_testParameter.pParameterUnitArray[SAMPLE_AREA_IRREGULAR_KYTY]		= pUnitType[5];
+					g_testParameter.pParameterUnitArray[CORRECT_COF_IRREGULAR_KYTY] 	= "NULL";
+					g_testParameter.pParameterUnitArray[SAMPLE_NUM_IRREGULAR_KYTY] 		= "NULL";
+					
+					/* 二级菜单参数个数 */
+					g_testParameter.twoLevelMenu[TEST_SERIAL_IRREGULAR_KYTY].parameterCnt 		= 0;
+					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_IRREGULAR_KYTY].parameterCnt		= 3;
+					g_testParameter.twoLevelMenu[SAMPLE_AREA_IRREGULAR_KYTY].parameterCnt 		= 0;
+					g_testParameter.twoLevelMenu[CORRECT_COF_IRREGULAR_KYTY].parameterCnt 		= 2;
+					g_testParameter.twoLevelMenu[SAMPLE_NUM_IRREGULAR_KYTY].parameterCnt 		= 7;
+					
+					/* 二级菜单类型 */
+					g_testParameter.twoLevelMenu[TEST_SERIAL_IRREGULAR_KYTY].parameterType 		= IMMEDIATELY_PUTIN_SHIFT;
+					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_IRREGULAR_KYTY].parameterType 	= NONE_USE_USER_DEFINE;
+					g_testParameter.twoLevelMenu[SAMPLE_AREA_IRREGULAR_KYTY].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+					g_testParameter.twoLevelMenu[CORRECT_COF_IRREGULAR_KYTY].parameterType 		= USE_USER_DEFINE;
+					g_testParameter.twoLevelMenu[SAMPLE_NUM_IRREGULAR_KYTY].parameterType 		= USE_USER_DEFINE;
+					
+					/* 二级菜单参数名 */
+					g_testParameter.twoLevelMenu[TEST_SERIAL_IRREGULAR_KYTY].pParameterNameArray 		= NULL;
+					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_IRREGULAR_KYTY].pParameterNameArray 		= pSpecimen_sharp;
+					g_testParameter.twoLevelMenu[SAMPLE_AREA_IRREGULAR_KYTY].pParameterNameArray 		= NULL;
+					g_testParameter.twoLevelMenu[CORRECT_COF_IRREGULAR_KYTY].pParameterNameArray 		= pSpecimen_cof;
+					g_testParameter.twoLevelMenu[SAMPLE_NUM_IRREGULAR_KYTY].pParameterNameArray 		= pSample_num;
+					
+					/* 数据保存类型 */
+					g_testParameter.oneLevelMenu[TEST_SERIAL_IRREGULAR_KYTY].saveType 		= TYPE_CHAR;
+					g_testParameter.oneLevelMenu[SAMPLE_SHAPE_IRREGULAR_KYTY].saveType 		= TYPE_INT;
+					g_testParameter.oneLevelMenu[SAMPLE_AREA_IRREGULAR_KYTY].saveType 		= TYPE_FLOAT;
+					g_testParameter.oneLevelMenu[CORRECT_COF_IRREGULAR_KYTY].saveType 		= TYPE_FLOAT;
+					g_testParameter.oneLevelMenu[SAMPLE_NUM_IRREGULAR_KYTY].saveType 		= TYPE_INT;	
+
+					/* 小数点位数 */
+					g_testParameter.oneLevelMenu[TEST_SERIAL_IRREGULAR_KYTY].pointBit 		= 0;
+					g_testParameter.oneLevelMenu[SAMPLE_SHAPE_IRREGULAR_KYTY].pointBit 		= 0;
+					g_testParameter.oneLevelMenu[SAMPLE_AREA_IRREGULAR_KYTY].pointBit 		= 2;
+					g_testParameter.oneLevelMenu[CORRECT_COF_IRREGULAR_KYTY].pointBit 		= 2;
+					g_testParameter.oneLevelMenu[SAMPLE_NUM_IRREGULAR_KYTY].pointBit 		= 0;				
+					break;				
+			}		
 			break;
+		}
 		case KZSNJS:
 			/* 试验标准 */
 			g_testParameter.pTestStandard = pTestStandard[0];
@@ -1645,7 +1802,7 @@ static void TestParameterConfig( void )
 			/* 索引值 */
 			g_testParameter.indexArray[TEST_SERIAL_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
 			g_testParameter.indexArray[SAMPLE_ROUND_DIAMETER_KLJSSW] 	= OBJECT_ROUND_DIAMETER;		/* 圆形直径 */
-			g_testParameter.indexArray[ORIGINAL_CROSS_AREA] 			= OBJECT_ORIGINAL_CUT_AREA;		/* 原始截面积 */
+			g_testParameter.indexArray[ORIGINAL_CROSS_AREA] 			= OBJECT_AREA;					/* 原始截面积 */
 			g_testParameter.indexArray[EXTERNSOMETER_GAUGE] 			= OBJECT_EXTERNSOMETER_GAUGE;	/* 引伸计标距 */
 			g_testParameter.indexArray[SAMPLE_NUM_KLJSSW] 	        	= OBJECT_SPECIMEN_NUMS;			/* 试件边长 */
 			
@@ -1739,7 +1896,7 @@ static uint8_t GetTestParameterIndex( uint8_t handle )
 static void TestParameterReadParameter( void )
 {
 	uint8_t index = 0;
-	const TEST_TypeDef * const pCurTest = pTest;
+	TEST_TypeDef * const pCurTest = pTest;
 	
 	index = GetTestParameterIndex(OBJECT_SPECIMEN_SERIAL);
 	if (index != 0xff)
@@ -1821,13 +1978,49 @@ static void TestParameterReadParameter( void )
 	if (index != 0xff)
 	{
 		g_testParameter.twoLevelMenu[index].index = pCurTest->sample_shape_index;
-		strcpy(g_testParameter.parameterData[index],pCurTest->sample_shape);
+	}
+	
+	/* 金属室温抗拉试验没有“试件形状”参数，
+		需要默认一个的索引值 
+	*/
+	if (g_testParameter.testType == KLJSSW)
+	{
+		pCurTest->sample_shape_index = KLJSSW_SHAPE_ROUND;
 	}
 	
 	index = GetTestParameterIndex(OBJECT_AREA);
 	if (index != 0xff)
 	{
-		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+		switch ( g_testParameter.testType )
+		{
+			case KYTY:
+				switch (pCurTest->sample_shape_index)
+				{
+					case TYKY_SHAPE_RECTANGLE:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+					case TYKY_SHAPE_ROUND:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+					case TYKY_SHAPE_IRREGULAR:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
+						break;
+					default:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
+						break;
+				}
+				break;
+			case KLJSSW:
+				switch (pCurTest->sample_shape_index)
+				{
+					case KLJSSW_SHAPE_ROUND:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+				}
+				break;
+			default:
+				break;		
+		}	
 	}
 	
 	index = GetTestParameterIndex(OBJECT_ROUND_DIAMETER);
@@ -1835,12 +2028,6 @@ static void TestParameterReadParameter( void )
 	{
 		g_testParameter.twoLevelMenu[index].index = pCurTest->yx_diameter_index;
 		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->yx_diameter,g_testParameter.parameterData[index]);
-	}
-	
-	index = GetTestParameterIndex(OBJECT_ORIGINAL_CUT_AREA);
-	if (index != 0xff)
-	{
-		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->original_cut_area,g_testParameter.parameterData[index]);
 	}
 	
 	index = GetTestParameterIndex(OBJECT_EXTERNSOMETER_GAUGE);
@@ -1898,6 +2085,13 @@ static void TestParameterWriteParameter( void )
 		strcpy(pCurTest->custom_sample_spec,g_testParameter.parameterData[index]);
 	}
 	
+	index = GetTestParameterIndex(OBJECT_ROUND_DIAMETER);
+	if (index != 0xff)
+	{
+		pCurTest->yx_diameter_index = g_testParameter.twoLevelMenu[index].index;
+		pCurTest->yx_diameter = str2float(g_testParameter.parameterData[index]);
+	}
+	
 	index = GetTestParameterIndex(OBJECT_SPECIMEN_NUMS);
 	if (index != 0xff)
 	{
@@ -1944,26 +2138,58 @@ static void TestParameterWriteParameter( void )
 	if (index != 0xff)
 	{
 		pCurTest->sample_shape_index = g_testParameter.twoLevelMenu[index].index;
-		strcpy(pCurTest->sample_shape,g_testParameter.parameterData[index]);
 	}
 	
 	index = GetTestParameterIndex(OBJECT_AREA);
 	if (index != 0xff)
 	{
-		pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
+		switch ( g_testParameter.testType )
+		{
+			case KYTY:	
+				switch ( pCurTest->sample_shape_index )
+				{
+					case TYKY_SHAPE_RECTANGLE:
+					case TYKY_SHAPE_ROUND:
+						break;
+					case TYKY_SHAPE_IRREGULAR:
+						pCurTest->bgz_area = str2float(g_testParameter.parameterData[index]);
+						break;
+				}
+				break;
+			case KLJSSW:
+				switch ( pCurTest->sample_shape_index )
+				{
+					case KLJSSW_SHAPE_ROUND:
+						pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
+						break;
+				}			
+				break;
+			default:
+				break;
+		}
 	}
-	
-	index = GetTestParameterIndex(OBJECT_ROUND_DIAMETER);
-	if (index != 0xff)
+	else
 	{
-		pCurTest->yx_diameter_index = g_testParameter.twoLevelMenu[index].index;
-		pCurTest->yx_diameter = str2float(g_testParameter.parameterData[index]);
-	}
-	
-	index = GetTestParameterIndex(OBJECT_ORIGINAL_CUT_AREA);
-	if (index != 0xff)
-	{
-		pCurTest->original_cut_area = str2float(g_testParameter.parameterData[index]);
+		switch ( g_testParameter.testType )
+		{
+			case KYTY:	
+				switch ( pCurTest->sample_shape_index )
+				{
+					case TYKY_SHAPE_RECTANGLE:
+						pCurTest->gz_area = pCurTest->zfx_length * pCurTest->zfx_width;
+						break;					
+					case TYKY_SHAPE_ROUND:
+						pCurTest->gz_area = GetCircularArea(pCurTest->yx_diameter);
+						break;					
+					case TYKY_SHAPE_IRREGULAR:
+						break;
+				}
+				break;
+			case KLJSSW:			
+				break;
+			default:
+				break;
+		}
 	}
 	
 	index = GetTestParameterIndex(OBJECT_EXTERNSOMETER_GAUGE);
@@ -2787,7 +3013,7 @@ static void TestParameterAccordRoundDiameterGetCutAreaProcess( void )
 			
 			area = PI * (dismeter / 2) * (dismeter / 2);
 			
-			index = GetTestParameterIndex(OBJECT_ORIGINAL_CUT_AREA);
+			index = GetTestParameterIndex(OBJECT_AREA);
 			floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,area,g_testParameter.parameterData[index]);
 			
 			TestParameterRestoreShowOneMenu(index);
@@ -2852,7 +3078,7 @@ static void TestParameterKeyProcess( void )
 					LoadTwoLevelMenuPage(pMenu);
 					
 					if (pMenu->isSelect == YES)
-					{
+					{												
 						g_testParameter.twoLevelMenu[index].index = pMenu->nowIndex;
 						
 						if ((g_testParameter.twoLevelMenu[index].parameterType==USE_USER_DEFINE) && (pMenu->nowIndex==0))	//第一项必须默认为自定义选项
@@ -2864,7 +3090,9 @@ static void TestParameterKeyProcess( void )
 							strcpy(g_testParameter.parameterData[index],pMenu->pParameterNameArray[pMenu->nowIndex]);
 						}
 						
-						TestParameterAccordRoundDiameterGetCutAreaProcess();
+						TestParameterAccordRoundDiameterGetCutAreaProcess();	
+
+						TestParameterExchangeSampleShape(index);
 					}
 					
 					TestParameterUpdateStatus();				
@@ -3048,6 +3276,45 @@ void LoadMainPageGetTestInfomationPage( void )
 //			}
 //		}
 //	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : TestParameterExchangeSampleShape
+ * Description    : 切换试件形状
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void TestParameterExchangeSampleShape( uint8_t nowIndex )
+{
+	uint8_t index = 0;
+	
+	if (g_testParameter.testType != KYTY)
+	{
+		return;
+	}
+	
+	index = GetTestParameterIndex(OBJECT_SHAPE);
+	if (index != 0xff)
+	{
+		if (index != nowIndex)
+		{
+			return;
+		}
+	}
+	else
+	{
+		return;
+	}
+	
+	index = GetTestParameterIndex(OBJECT_SHAPE);
+	if (index != 0xff)
+	{
+		pTest->sample_shape_index = g_testParameter.twoLevelMenu[index].index;
+	}
+	
+	g_testParameter.leavePage.flagLeavePage = SET;
+	g_testParameter.leavePage.flagSaveData = RESET;
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

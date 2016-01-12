@@ -17,12 +17,12 @@ typedef enum
 /* Exported variables --------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void LoadControlParameterPage( void );
-JUDGE_BREAK_TYPE_TypeDef GetJudgeBreakType( SMPL_NAME_TypeDef2 channel );
-uint8_t GetTargetAttenuationRate( SMPL_NAME_TypeDef2 channel );
-float GetTargetWithMaxForceDifference( SMPL_NAME_TypeDef2 channel );
-float GetTargetBreakDownPoint( SMPL_NAME_TypeDef2 channel );
-float GetTargetAdjoinTwoPointDiff( SMPL_NAME_TypeDef2 channel );
-float GetTargetBreakStartValue( SMPL_NAME_TypeDef2 channel );
+JUDGE_BREAK_TYPE_TypeDef GetJudgeBreakType( SMPL_NAME_TypeDef channel );
+uint8_t GetTargetAttenuationRate( SMPL_NAME_TypeDef channel );
+float GetTargetWithMaxForceDifference( SMPL_NAME_TypeDef channel );
+float GetTargetBreakDownPoint( SMPL_NAME_TypeDef channel );
+float GetTargetAdjoinTwoPointDiff( SMPL_NAME_TypeDef channel );
+float GetTargetBreakStartValue( SMPL_NAME_TypeDef channel );
 
 #endif
 

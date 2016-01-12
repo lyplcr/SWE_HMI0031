@@ -85,6 +85,10 @@ void KeyProcessCycle( void )
 	if ((g_key.status==STATUS_KEY_NO_PRESS) && (KEY_NONE!=g_key.value))
 	{
 		g_key.recordValue = g_key.value;
+		
+		#ifdef DEBUG_KEY
+			printf("keyVal: %X\r\n",g_key.value);
+		#endif
 	}
 	
 	switch ( g_key.status )

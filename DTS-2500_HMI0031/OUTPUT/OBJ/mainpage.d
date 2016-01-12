@@ -88,3 +88,4 @@
 ..\output\obj\mainpage.o: ..\APP\inc\SoftActive.h
 ..\output\obj\mainpage.o: ..\APP\inc\TestAfterDispose.h
 ..\output\obj\mainpage.o: ..\APP\inc\ChannelSelect.h
+..\output\obj\mainpage.o: ..\APP\inc\TestTypeSelect.h

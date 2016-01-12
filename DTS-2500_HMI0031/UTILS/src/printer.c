@@ -56,6 +56,8 @@ const char * const pPrintErrorCue[] =
 	"试块个数不在1~20范围！",	//2
 };
 
+extern const char * const pSpecimen_sharp[];
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -149,7 +151,7 @@ static void PrintRowSpace( uint8_t num )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-ErrorStatus PrintCalibrationTable( SMPL_NAME_TypeDef2 tureChannel, SMPL_NAME_TypeDef2 showChannel )
+ErrorStatus PrintCalibrationTable( SMPL_NAME_TypeDef tureChannel, SMPL_NAME_TypeDef showChannel )
 {
 	const uint8_t MIN_CALIRATION_SEGS = 2;	//最小标定表项数
 	const uint8_t MAX_CALIRATION_SEGS = 10;
@@ -367,7 +369,7 @@ ErrorStatus PrintForceCalibrationResultTable( CALIBRATION_RSULT_PRINT_TypeDef *p
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-ErrorStatus PrintTestReport( SMPL_NAME_TypeDef2 showChannel, TEST_TYPE_TypeDef test_type, \
+ErrorStatus PrintTestReport( SMPL_NAME_TypeDef showChannel, TEST_TYPE_TypeDef test_type, \
 							 const REPORT_TypeDef *report, const TEST_INFO_TypeDef *test_info )
 {
 	tTime *t = NULL;
@@ -580,12 +582,54 @@ ErrorStatus PrintTestReport( SMPL_NAME_TypeDef2 showChannel, TEST_TYPE_TypeDef t
 			PrintWordsAndLineFeed(test_info->fname);
 		
 			print("形状：");
-			PrintWordsAndLineFeed(report->sample_shape);
+			switch (report->sample_shape_index)
+			{
+				case TYKY_SHAPE_RECTANGLE:
+					PrintWordsAndLineFeed(pSpecimen_sharp[0]);
+					break;
+				case TYKY_SHAPE_ROUND:
+					PrintWordsAndLineFeed(pSpecimen_sharp[1]);
+					break;
+				case TYKY_SHAPE_IRREGULAR:
+					PrintWordsAndLineFeed(pSpecimen_sharp[2]);
+					break;
+			}			
 		
-			print("面积：");
-			floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->area,print_buff);			
-			print(print_buff);
-			PrintWordsAndLineFeed("mm2");
+			{
+				float area = 0;
+				
+				switch (report->sample_shape_index)
+				{
+					case TYKY_SHAPE_RECTANGLE:
+						print("长度：");			
+						floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->length,print_buff);			
+						print(print_buff);
+						PrintWordsAndLineFeed("mm");
+					
+						print("宽度：");			
+						floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->width,print_buff);			
+						print(print_buff);
+						PrintWordsAndLineFeed("mm");
+					
+						area = report->gz_area;
+						break;
+					case TYKY_SHAPE_ROUND:
+						print("圆形直径：");			
+						floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->yx_diameter,print_buff);			
+						print(print_buff);
+						PrintWordsAndLineFeed("mm");
+					
+						area = report->gz_area;
+						break;
+					case TYKY_SHAPE_IRREGULAR:
+						area = report->bgz_area;
+						break;
+				}
+				print("面积：");			
+				floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,area,print_buff);			
+				print(print_buff);
+				PrintWordsAndLineFeed("mm2");
+			}
 		
 			print("修正系数：");
 			floattochar(MAX_SHOW_BIT,BIT_COF_DOT,report->correct_cof,print_buff);

@@ -61,7 +61,8 @@ typedef struct
 	uint8_t 	curveStayTime;								//曲线停留时间
 	uint8_t 	wyUnit;										//位移单位
 	uint8_t 	bxUnit;										//变形单位
-}HMI_TypeDef; 	/* 111Byte */
+	uint8_t		wyConvBx;									//位移切换为变形
+}HMI_TypeDef; 
 
 //记忆功能    
 typedef struct
@@ -122,13 +123,11 @@ typedef struct
 	uint8_t		train_speed_index;				//应力速度索引
 	float		train_speed;					//应力速度
 	float		gz_area;						//规则试件的面积	
-	char		sample_shape[11];				//试块形状
 	uint8_t 	yx_diameter_index;				//圆形直径索引值
-	uint8_t 	yx_diameter;					//圆形直径
-	float		original_cut_area;				//原始截面积
+	float 		yx_diameter;					//圆形直径
 	uint16_t 	extensometer_gauge;				//引伸计标距
-	uint8_t 	rsv[17];
-}TEST_TypeDef; 	/* 194Byte */	
+	uint8_t 	rsv[29];
+}TEST_TypeDef; 	/* 194Byte(0XC2) */	
     
         
 //上位机参数结构体 		    

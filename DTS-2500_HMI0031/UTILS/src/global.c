@@ -253,7 +253,7 @@ WY_UINT_TypeDef GetWY_SmplUnit( void )
 	}
 	else
 	{
-		return pHmi->wyUnit;
+		return (WY_UINT_TypeDef)pHmi->wyUnit;
 	}
 }
 
@@ -272,7 +272,7 @@ BX_UINT_TypeDef GetBX_SmplUnit( void )
 	}
 	else
 	{
-		return pHmi->bxUnit;
+		return (BX_UINT_TypeDef)pHmi->bxUnit;
 	}
 }
 
@@ -444,12 +444,12 @@ void RefreshDynamicDisplacement( uint16_t x, uint16_t y, uint16_t pointColor, ui
 	if (absDisplacement < 1000)
 	{
 		intNum = 3;
-		dotNum = 2;
+		dotNum = 3;
 	}
 	else if (absDisplacement < 100000)
 	{
 		intNum = 4;
-		dotNum = 1;
+		dotNum = 2;
 	}
 	else
 	{
@@ -480,12 +480,12 @@ void RefreshDynamicDeform( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t
 	if (absDeform < 1000)
 	{
 		intNum = 3;
-		dotNum = 2;
+		dotNum = 3;
 	}
 	else if (absDeform < 100000)
 	{
 		intNum = 4;
-		dotNum = 1;
+		dotNum = 2;
 	}
 	else
 	{
@@ -1569,12 +1569,25 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			break;
 
 		case KYTY:
-			if (fabs(report->area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+		{
+			switch (report->sample_shape_index)
 			{
-				report->area = 1;
+				case TYKY_SHAPE_RECTANGLE:
+				case TYKY_SHAPE_ROUND:	
+					area = report->gz_area;
+					break;
+				case TYKY_SHAPE_IRREGULAR:
+					area = report->bgz_area;
+					break;
 			}
-			MPa = report->correct_cof * CurForce / report->area;
+			
+			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				area = 1;
+			}
+			MPa = report->correct_cof * CurForce / area;
 			break;
+		}
 
 		case KZSNJS:
 			width = report->length;
@@ -1600,11 +1613,22 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			break;
 		
 		case KLJSSW:
-			if (fabs(report->area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{
-				report->area = 1;
+				float area = 0;
+				
+				switch (report->sample_shape_index)
+				{
+					case KLJSSW_SHAPE_ROUND:
+						area = report->gz_area;
+						break;
+				}
+				
+				if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+				{
+					area = 1;
+				}
+				MPa = CurForce / area;
 			}
-			MPa = CurForce / report->area;
 			break;
 		
 		default:
@@ -2329,9 +2353,16 @@ void SetLssuedParameter( void )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetCurveShowStartValue( SMPL_NAME_TypeDef2 channel )
+float GetCurveShowStartValue( SMPL_NAME_TypeDef channel )
 {
-	return pHmi->start_force[channel];
+	if (channel >= CTRL_CHN)
+	{
+		return 0;
+	}
+	else
+	{
+		return pHmi->start_force[channel];
+	}
 }
 
 /*------------------------------------------------------------
@@ -2489,9 +2520,16 @@ void JudgeBreakCalculateCycle( uint8_t chn )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetWithMaxForceDifference( SMPL_NAME_TypeDef2 channel )
+float GetWithMaxForceDifference( SMPL_NAME_TypeDef channel )
 {
-	return g_judgeBreak.maxForceDiff[channel];
+	if (channel >= SMPL_NUM)
+	{
+		return 0;
+	}
+	else
+	{
+		return g_judgeBreak.maxForceDiff[channel];
+	}
 }
 
 /*------------------------------------------------------------
@@ -2501,9 +2539,16 @@ float GetWithMaxForceDifference( SMPL_NAME_TypeDef2 channel )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetAdjoinTwoPointDifference( SMPL_NAME_TypeDef2 channel )
+float GetAdjoinTwoPointDifference( SMPL_NAME_TypeDef channel )
 {
-	return g_judgeBreak.adjoinPointDiff[channel];
+	if (channel >= SMPL_NUM)
+	{
+		return 0;
+	}
+	else
+	{
+		return g_judgeBreak.adjoinPointDiff[channel];
+	}
 }
 
 /*------------------------------------------------------------
@@ -2513,9 +2558,16 @@ float GetAdjoinTwoPointDifference( SMPL_NAME_TypeDef2 channel )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-uint16_t GetBreakDownPoint( SMPL_NAME_TypeDef2 channel )
+uint16_t GetBreakDownPoint( SMPL_NAME_TypeDef channel )
 {
-	return g_judgeBreak.downPoint[channel];
+	if (channel >= SMPL_NUM)
+	{
+		return 0;
+	}
+	else
+	{
+		return g_judgeBreak.downPoint[channel];
+	}
 }
 
 /*------------------------------------------------------------
@@ -2525,9 +2577,16 @@ uint16_t GetBreakDownPoint( SMPL_NAME_TypeDef2 channel )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-uint8_t GetAttenuationRate( SMPL_NAME_TypeDef2 channel )
+uint8_t GetAttenuationRate( SMPL_NAME_TypeDef channel )
 {
-	return g_judgeBreak.attenuationRate[channel];
+	if (channel >= SMPL_NUM)
+	{
+		return 0;
+	}
+	else
+	{
+		return g_judgeBreak.attenuationRate[channel];
+	}
 }
 
 /*------------------------------------------------------------
@@ -2537,9 +2596,232 @@ uint8_t GetAttenuationRate( SMPL_NAME_TypeDef2 channel )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetPeakValue( SMPL_NAME_TypeDef2 channel )
+float GetPeakValue( SMPL_NAME_TypeDef channel )
 {
-	return g_judgeBreak.peakForce[channel];
+	if (channel >= SMPL_NUM)
+	{
+		return 0;
+	}
+	else
+	{
+		return g_judgeBreak.peakForce[channel];
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetDisplacementOrDeformShow
+ * Description    : 获取位移/变形显示
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+DISPLACEMENT_CONV_DEFORM_TypeDef GetDisplacementOrDeformShow( void )
+{
+	if (pHmi->wyConvBx == 0)
+	{
+		return SHOW_DISPLACEMENT;
+	}
+	else
+	{
+		return SHOW_DEFORM;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDisplacementOrDeformShow
+ * Description    : 设置位移/变形显示
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetDisplacementOrDeformShow( DISPLACEMENT_CONV_DEFORM_TypeDef newFunc )
+{
+	if (newFunc == SHOW_DISPLACEMENT)
+	{
+		pHmi->wyConvBx = 0;
+	}
+	else
+	{
+		pHmi->wyConvBx = 1;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDynamicContentForce
+ * Description    : 设置动态内容力值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetDynamicContentForce( FH_UINT_TypeDef fhUnit )
+{
+	float force = 0;
+	
+	force = get_smpl_value(SMPL_FH_NUM);
+	
+	if (fhUnit == FH_UNIT_kN)
+	{
+		force /= 1000;
+	}
+
+	SetInterfaceElementForce(force);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDynamicContentDispalcement
+ * Description    : 设置动态内容位移
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetDynamicContentDispalcement( WY_UINT_TypeDef wyUnit )
+{
+	float disPlacement = 0;
+	
+	disPlacement = get_smpl_value(SMPL_WY_NUM);
+	
+	switch ( wyUnit )
+	{
+		case WY_UNIT_MM:
+				
+			break;
+		case WY_UNIT_CM:
+			disPlacement /= 10;	
+			break;
+		case WY_UNIT_DM:
+			disPlacement /= 100;		
+			break;
+		case WY_UNIT_M:
+			disPlacement /= 1000;		
+			break; 
+		default:
+			break;
+	}
+
+	SetInterfaceElementDisPlacement(disPlacement);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDynamicContentDeform
+ * Description    : 设置动态内容变形
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetDynamicContentDeform( BX_UINT_TypeDef bxUnit )
+{
+	float deform = 0;
+	
+	deform = get_smpl_value(SMPL_BX_NUM);
+	
+	switch ( bxUnit )
+	{
+		case BX_UNIT_MM:
+				
+			break;
+		case BX_UNIT_CM:
+			deform /= 10;	
+			break;
+		case BX_UNIT_DM:
+			deform /= 100;		
+			break;
+		case BX_UNIT_M:
+			deform /= 1000;		
+			break; 
+		default:
+			break;
+	}
+
+	SetInterfaceElementDeform(deform);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDynamicContentFHSpeed
+ * Description    : 设置动态内容负荷速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetDynamicContentFHSpeed( FH_UINT_TypeDef fhUnit )
+{
+	float speed = 0;
+	
+	speed = get_smpl_spd(SMPL_FH_NUM);
+	
+	if (fhUnit == FH_UNIT_kN)
+	{
+		speed /= 1000;
+	}	
+	
+	SetInterfaceElementFHSpeed(speed);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDynamicContentWYSpeed
+ * Description    : 设置动态内容位移速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetDynamicContentWYSpeed( WY_UINT_TypeDef wyUnit )
+{
+	float speed = 0;
+	
+	speed = get_smpl_spd(SMPL_WY_NUM);
+	
+	switch ( wyUnit )
+	{
+		case WY_UNIT_MM:
+				
+			break;
+		case WY_UNIT_CM:
+			speed /= 10;	
+			break;
+		case WY_UNIT_DM:
+			speed /= 100;	
+			break;
+		case WY_UNIT_M:
+			speed /= 1000;	
+			break; 
+		default:
+			break;
+	}
+
+	SetInterfaceElementWYSpeed(speed);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetDynamicContentBXSpeed
+ * Description    : 设置动态内容变形速度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetDynamicContentBXSpeed( BX_UINT_TypeDef bxUnit )
+{
+	float speed = 0;
+	
+	speed = get_smpl_spd(SMPL_BX_NUM);
+	
+	switch ( bxUnit )
+	{
+		case BX_UNIT_MM:
+				
+			break;
+		case BX_UNIT_CM:
+			speed /= 10;	
+			break;
+		case BX_UNIT_DM:
+			speed /= 100;	
+			break;
+		case BX_UNIT_M:
+			speed /= 1000;	
+			break; 
+		default:
+			break;
+	}
+
+	SetInterfaceElementBXSpeed(speed);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

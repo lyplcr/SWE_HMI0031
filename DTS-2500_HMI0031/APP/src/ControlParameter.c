@@ -1666,16 +1666,23 @@ static TestStatus ControlParameterCheckDataCycle( void )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-JUDGE_BREAK_TYPE_TypeDef GetJudgeBreakType( SMPL_NAME_TypeDef2 channel )
+JUDGE_BREAK_TYPE_TypeDef GetJudgeBreakType( SMPL_NAME_TypeDef channel )
 {
-	switch ( pHmi->break_condition[channel] ) 
+	if (channel >= CTRL_CHN)
 	{
-		case 0:		
-			return ATTENUATION_RATE;
-		case 1:
-			return WITH_MAX_FORCE_DIFFERENCE;
-		default:
-			return ADJOIN_TWO_POINT_DIFFERENCE;
+		return ATTENUATION_RATE;
+	}
+	else
+	{
+		switch ( pHmi->break_condition[channel] ) 
+		{
+			case 0:		
+				return ATTENUATION_RATE;
+			case 1:
+				return WITH_MAX_FORCE_DIFFERENCE;
+			default:
+				return ADJOIN_TWO_POINT_DIFFERENCE;
+		}
 	}
 }
 
@@ -1686,9 +1693,16 @@ JUDGE_BREAK_TYPE_TypeDef GetJudgeBreakType( SMPL_NAME_TypeDef2 channel )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-uint8_t GetTargetAttenuationRate( SMPL_NAME_TypeDef2 channel )
+uint8_t GetTargetAttenuationRate( SMPL_NAME_TypeDef channel )
 {
-	return pHmi->attenuationRate[channel];
+	if (channel >= CTRL_CHN)
+	{
+		return 0;
+	}
+	else
+	{
+		return pHmi->attenuationRate[channel];
+	}
 }
 
 /*------------------------------------------------------------
@@ -1698,9 +1712,16 @@ uint8_t GetTargetAttenuationRate( SMPL_NAME_TypeDef2 channel )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetTargetWithMaxForceDifference( SMPL_NAME_TypeDef2 channel )
+float GetTargetWithMaxForceDifference( SMPL_NAME_TypeDef channel )
 {
-	return pHmi->break_max_value[channel];
+	if (channel >= CTRL_CHN)
+	{
+		return 0;
+	}
+	else
+	{
+		return pHmi->break_max_value[channel];
+	}
 }
 
 /*------------------------------------------------------------
@@ -1710,9 +1731,16 @@ float GetTargetWithMaxForceDifference( SMPL_NAME_TypeDef2 channel )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetTargetBreakDownPoint( SMPL_NAME_TypeDef2 channel )
+float GetTargetBreakDownPoint( SMPL_NAME_TypeDef channel )
 {
-	return pHmi->break_point[channel];
+	if (channel >= CTRL_CHN)
+	{
+		return 0;
+	}
+	else
+	{
+		return pHmi->break_point[channel];
+	}
 }
 
 /*------------------------------------------------------------
@@ -1722,9 +1750,16 @@ float GetTargetBreakDownPoint( SMPL_NAME_TypeDef2 channel )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetTargetAdjoinTwoPointDiff( SMPL_NAME_TypeDef2 channel )
+float GetTargetAdjoinTwoPointDiff( SMPL_NAME_TypeDef channel )
 {
-	return pHmi->break_border_value[channel];
+	if (channel >= CTRL_CHN)
+	{
+		return 0;
+	}
+	else
+	{
+		return pHmi->break_border_value[channel];
+	}
 }
 
 /*------------------------------------------------------------
@@ -1734,9 +1769,16 @@ float GetTargetAdjoinTwoPointDiff( SMPL_NAME_TypeDef2 channel )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetTargetBreakStartValue( SMPL_NAME_TypeDef2 channel )
+float GetTargetBreakStartValue( SMPL_NAME_TypeDef channel )
 {
-	return pHmi->break_judge_value[channel];
+	if (channel >= CTRL_CHN)
+	{
+		return 0;
+	}
+	else
+	{
+		return pHmi->break_judge_value[channel];
+	}
 }
 
 

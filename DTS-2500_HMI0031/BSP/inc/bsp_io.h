@@ -24,16 +24,14 @@
 #define		KEY_BACK				0x00001000
 #define		KEY_LEFT				0x00002000
 #define		KEY_SHIFT				0x00004000
-#define		KEY_EXPORT				0x00008000		//导出
-#define		KEY_DISPLACE_TARE		0x00008000		//位移清零
-#define		KEY_PRINT				0x00010000		//打印
-#define		KEY_DEFORMATE_TARE		0x00010000		//变形清零
+#define		KEY_DISPLACE_TARE		0x00008000	
+#define		KEY_DEFORMATE_TARE		0x00010000		
 #define		KEY_DOWN				0x00020000
 #define		KEY_ENTER				0x00040000
 #define		KEY_UP					0x00080000
 #define		KEY_ESC					0x00100000
 #define		KEY_RIGHT				0x00200000		
-#define		KEY_FIND				0x00400000
+#define		KEY_DISPLACE_DEFORMATE	0x00400000
 #define		KEY_FORCE_TARE			0x00800000	
 #define		KEY_BACKUP1				0x01000000
 #define		KEY_OIL_RUN				0x02000000
@@ -43,6 +41,10 @@
 #define		KEY_F3					0x20000000
 #define		KEY_F2					0x40000000	
 #define		KEY_F1					0x80000000
+
+//#define		KEY_FIND				0x00400000
+//#define		KEY_EXPORT				0x00008000		//导出
+//#define		KEY_PRINT				0x00010000		//打印
 
 
 //输入位定义

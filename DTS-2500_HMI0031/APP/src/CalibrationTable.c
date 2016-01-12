@@ -1427,7 +1427,7 @@ static void CalibrationTableKeyProcess( void )
 				break;
 			
 			case KEY_F2:
-			case KEY_PRINT:
+//			case KEY_PRINT:
 				CalibrationTablePagePrint();
 				break;
 					

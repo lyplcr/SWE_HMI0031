@@ -262,6 +262,24 @@ typedef enum
 	BX_UNIT_M,
 }BX_UINT_TypeDef;
 
+typedef enum
+{
+	TYKY_SHAPE_RECTANGLE = 0,
+	TYKY_SHAPE_ROUND,
+	TYKY_SHAPE_IRREGULAR,
+}TYKY_TEST_SHAPE_TypeDef;
+
+typedef enum
+{
+	KLJSSW_SHAPE_ROUND = 0,
+}KLJSSW_TEST_SHAPE_TypeDef;
+
+typedef enum
+{
+	SHOW_DISPLACEMENT = 0,
+	SHOW_DEFORM,
+}DISPLACEMENT_CONV_DEFORM_TypeDef;
+
 /* Includes ------------------------------------------------------------------*/
 #include "printer.h"
 
@@ -363,16 +381,26 @@ void SetShortCutMenuCue( uint16_t pointColor, uint16_t backColor, const char *pC
 void InitLssuedParameter( void );
 void LssuedParameterProcess( void );
 void SetLssuedParameter( void );
-float GetCurveShowStartValue( SMPL_NAME_TypeDef2 channel );
+float GetCurveShowStartValue( SMPL_NAME_TypeDef channel );
 void DrawCircleMark( DRAW_CIRCLE_MARK_TypeDef *pDrawCircle );
 
 void InitJudgeBreakPoint( void );
 void JudgeBreakCalculateCycle( uint8_t chn );
-float GetWithMaxForceDifference( SMPL_NAME_TypeDef2 channel );
-float GetAdjoinTwoPointDifference( SMPL_NAME_TypeDef2 channel );
-uint16_t GetBreakDownPoint( SMPL_NAME_TypeDef2 channel );
-uint8_t GetAttenuationRate( SMPL_NAME_TypeDef2 channel );
-float GetPeakValue( SMPL_NAME_TypeDef2 channel );
+float GetWithMaxForceDifference( SMPL_NAME_TypeDef channel );
+float GetAdjoinTwoPointDifference( SMPL_NAME_TypeDef channel );
+uint16_t GetBreakDownPoint( SMPL_NAME_TypeDef channel );
+uint8_t GetAttenuationRate( SMPL_NAME_TypeDef channel );
+float GetPeakValue( SMPL_NAME_TypeDef channel );
+
+DISPLACEMENT_CONV_DEFORM_TypeDef GetDisplacementOrDeformShow( void );
+void SetDisplacementOrDeformShow( DISPLACEMENT_CONV_DEFORM_TypeDef newFunc );
+
+void SetDynamicContentForce( FH_UINT_TypeDef fhUnit );
+void SetDynamicContentDispalcement( WY_UINT_TypeDef wyUnit );
+void SetDynamicContentDeform( BX_UINT_TypeDef bxUnit );
+void SetDynamicContentFHSpeed( FH_UINT_TypeDef fhUnit );
+void SetDynamicContentWYSpeed( WY_UINT_TypeDef wyUnit );
+void SetDynamicContentBXSpeed( BX_UINT_TypeDef bxUnit );
 
 
 #endif

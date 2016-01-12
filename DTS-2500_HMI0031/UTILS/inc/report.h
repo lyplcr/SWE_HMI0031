@@ -75,8 +75,10 @@ typedef struct
 	float width;						//宽度
 	float high;							//高度
 	float correct_cof;					//修正系数
-	float area;							//面积
-	char sample_shape[11];				//试块形状
+	float gz_area;						//规则面积
+	float bgz_area;						//不规则面积
+	uint8_t sample_shape_index;			//试块形状索引
+	float	yx_diameter;				//圆形直径
 	
 	/* 万能机参数 */
 	float maxForce;						//最大力

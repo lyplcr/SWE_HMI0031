@@ -23,7 +23,8 @@
 //	#define DEBUG_COORDINATE_DRAW_LINE
 //	#define DEBUG_HARD_TEST
 //	#define DEBUG_TEST_LOAD
-//	#define	REAL_TIME_DATA_FRAM
+//	#define	DEBUG_REAL_TIME_DATA_FRAM
+//	#define	DEBUG_KEY
 #endif
 
 #endif

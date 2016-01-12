@@ -53,7 +53,8 @@ typedef enum
 	OBJECT_FORCE,				/* 力值 	*/
 	OBJECT_PRESSURE,			/* 压强 	*/
 	OBJECT_SAMPLE_SHAPE,		/* 形状 	*/
-	ONJECT_SAMPLE_AREA,			/* 面积 	*/
+	OBJECT_SAMPLE_AREA,			/* 面积 	*/
+	OBJECT_DIAMETER,			/* 直径 	*/
 }DETAIL_REPORT_PATAMETER_NAME_TypeDef;
 
 typedef enum
@@ -111,16 +112,37 @@ typedef enum
 	INDEX_QQZKY_TEST_PRESSURE,
 }INDEX_QQZKY_TypeDef;
 
-typedef enum
+union INDEX_TYKY_TypeDef
 {
-	INDEX_TYKY_TEST_SERIAL = 0,
-	INDEX_TYKY_TEST_AREA,
-	INDEX_TYKY_TEST_SAMPLE_SHAPE,
-	INDEX_TYKY_TEST_AGE,
-	INDEX_TYKY_TEST_CORRECTION,
-	INDEX_TYKY_TEST_FORCE,
-	INDEX_TYKY_TEST_PRESSURE,
-}INDEX_TYKY_TypeDef;
+	enum SAMPLE_RECTANGLE
+	{
+		INDEX_TYKY_RECTANGLE_TEST_SERIAL = 0,
+		INDEX_TYKY_RECTANGLE_TEST_SAMPLE_SHAPE,
+		INDEX_TYKY_RECTANGLE_LENTH,
+		INDEX_TYKY_RECTANGLE_WIDTH,
+		INDEX_TYKY_RECTANGLE_TEST_CORRECTION,
+		INDEX_TYKY_RECTANGLE_TEST_FORCE,
+		INDEX_TYKY_RECTANGLE_TEST_PRESSURE,
+	}KYTY_SHAPE_RECTANGLE;
+	enum SAMPLE_ROUND
+	{
+		INDEX_TYKY_ROUND_TEST_SERIAL = 0,
+		INDEX_TYKY_ROUND_TEST_SAMPLE_SHAPE,
+		INDEX_TYKY_ROUND_DIAMETER,
+		INDEX_TYKY_ROUND_TEST_CORRECTION,
+		INDEX_TYKY_ROUND_TEST_FORCE,
+		INDEX_TYKY_ROUND_TEST_PRESSURE,
+	}KYTY_SHAPE_ROUND;
+	enum SAMPLE_IRREGULAR
+	{
+		INDEX_TYKY_IRREGULAR_TEST_SERIAL = 0,
+		INDEX_TYKY_IRREGULAR_TEST_SAMPLE_SHAPE,
+		INDEX_TYKY_IRREGULAR_AREA,
+		INDEX_TYKY_IRREGULAR_TEST_CORRECTION,
+		INDEX_TYKY_IRREGULAR_TEST_FORCE,
+		INDEX_TYKY_IRREGULAR_TEST_PRESSURE,
+	}KYTY_SHAPE_RIRREGULAR;
+};
 
 typedef enum
 {
@@ -233,7 +255,10 @@ const char * const pDetailReportFieldName[] =
 	"试件规格",				//15
 	"面积(mm2)",			//16
 	"形状",					//17
+	"圆形直径",				//18
 };	
+
+extern const char * const pSpecimen_sharp[];
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -692,66 +717,187 @@ static void DetailReportConfig( void )
 		case KYZJDH:			
 			break;
 		case KYTY:
-			/* 索引值 */
-			g_detailReport.indexArray[INDEX_TYKY_TEST_SERIAL] 		= OBJECT_SERIAL;
-			g_detailReport.indexArray[INDEX_TYKY_TEST_AGE] 			= OBJECT_SPECIMEN_AGE;
-			g_detailReport.indexArray[INDEX_TYKY_TEST_SAMPLE_SHAPE] = OBJECT_SAMPLE_SHAPE;
-			g_detailReport.indexArray[INDEX_TYKY_TEST_AREA] 		= ONJECT_SAMPLE_AREA;
-			g_detailReport.indexArray[INDEX_TYKY_TEST_CORRECTION] 	= OBJECT_CORRECTION_FACTOR;
-			g_detailReport.indexArray[INDEX_TYKY_TEST_FORCE] 		= OBJECT_FORCE;
-			g_detailReport.indexArray[INDEX_TYKY_TEST_PRESSURE] 	= OBJECT_PRESSURE;
+			report_read(g_detailReport.testType,GetSelectReportFileNameAddr(),&g_readReport);
 			
-			/* 字段名 */
-			g_detailReport.pParameterNameArray[INDEX_TYKY_TEST_SERIAL] 			= pDetailReportFieldName[0];
-			g_detailReport.pParameterNameArray[INDEX_TYKY_TEST_AGE] 			= pDetailReportFieldName[10];
-			g_detailReport.pParameterNameArray[INDEX_TYKY_TEST_SAMPLE_SHAPE] 	= pDetailReportFieldName[17];
-			g_detailReport.pParameterNameArray[INDEX_TYKY_TEST_AREA] 			= pDetailReportFieldName[16];
-			g_detailReport.pParameterNameArray[INDEX_TYKY_TEST_CORRECTION] 		= pDetailReportFieldName[14];
-			if (g_detailReport.showChannel == SMPL_KY_NUM)
+			switch (g_readReport.sample_shape_index)
 			{
-				g_detailReport.pParameterNameArray[INDEX_TYKY_TEST_FORCE] 	= pDetailReportFieldName[12];
+				case TYKY_SHAPE_RECTANGLE:
+					/* 索引值 */
+					g_detailReport.indexArray[INDEX_TYKY_RECTANGLE_TEST_SERIAL] 		= OBJECT_SERIAL;
+					g_detailReport.indexArray[INDEX_TYKY_RECTANGLE_TEST_SAMPLE_SHAPE] 	= OBJECT_SAMPLE_SHAPE;
+					g_detailReport.indexArray[INDEX_TYKY_RECTANGLE_LENTH] 				= OBJECT_SPECIMEN_LENTH;
+					g_detailReport.indexArray[INDEX_TYKY_RECTANGLE_WIDTH] 				= OBJECT_SPECIMEN_WIDTH;
+					g_detailReport.indexArray[INDEX_TYKY_RECTANGLE_TEST_CORRECTION] 	= OBJECT_CORRECTION_FACTOR;
+					g_detailReport.indexArray[INDEX_TYKY_RECTANGLE_TEST_FORCE] 			= OBJECT_FORCE;
+					g_detailReport.indexArray[INDEX_TYKY_RECTANGLE_TEST_PRESSURE] 		= OBJECT_PRESSURE;
+					
+					/* 字段名 */
+					g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_TEST_SERIAL] 			= pDetailReportFieldName[0];
+					g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_TEST_SAMPLE_SHAPE] 		= pDetailReportFieldName[17];
+					g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_LENTH] 					= pDetailReportFieldName[7];
+					g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_WIDTH] 					= pDetailReportFieldName[8];
+					g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_TEST_CORRECTION] 		= pDetailReportFieldName[14];
+					if (g_detailReport.showChannel == SMPL_KY_NUM)
+					{
+						g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_TEST_FORCE] 		= pDetailReportFieldName[12];
+					}
+					else
+					{
+						g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_TEST_FORCE] 		= pDetailReportFieldName[11];
+					}
+					g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_TEST_PRESSURE] 			= pDetailReportFieldName[13];
+					
+					/* 标题 */
+					g_detailReport.pTitle = pDetailTestReportTitleName[6];
+					
+					/* 字段个数 */
+					g_detailReport.fieldNum = 7;
+					
+					/* 一个字段显示个数 */
+					g_detailReport.oneFieldShowType[INDEX_TYKY_RECTANGLE_TEST_SERIAL] 		= SHOW_ALL;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_RECTANGLE_TEST_SAMPLE_SHAPE] = SHOW_SINGLE;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_RECTANGLE_LENTH]				= SHOW_SINGLE;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_RECTANGLE_WIDTH] 			= SHOW_SINGLE;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_RECTANGLE_TEST_CORRECTION] 	= SHOW_SINGLE;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_RECTANGLE_TEST_FORCE] 		= SHOW_ALL;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_RECTANGLE_TEST_PRESSURE]	 	= SHOW_ALL;
+					
+					/* 小数点位数 */
+					for (i=0; i<MAX_ONE_PAGE_SHOW_NUM; ++i)
+					{
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_RECTANGLE_TEST_SERIAL].pointBit 		= 0;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_RECTANGLE_TEST_SAMPLE_SHAPE].pointBit = 0;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_RECTANGLE_LENTH].pointBit 			= 2;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_RECTANGLE_WIDTH].pointBit 			= 2;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_RECTANGLE_TEST_CORRECTION].pointBit	= 2;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_RECTANGLE_TEST_FORCE].pointBit 		= 2;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_RECTANGLE_TEST_PRESSURE].pointBit		= 1;
+					}
+					
+					/* 数据对齐 */
+					g_detailReport.align[INDEX_TYKY_RECTANGLE_TEST_SERIAL] 			= ALIGN_MIDDLE;
+					g_detailReport.align[INDEX_TYKY_RECTANGLE_TEST_SAMPLE_SHAPE] 	= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_RECTANGLE_LENTH] 				= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_RECTANGLE_WIDTH] 				= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_RECTANGLE_TEST_CORRECTION] 		= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_RECTANGLE_TEST_FORCE] 			= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_RECTANGLE_TEST_PRESSURE] 		= ALIGN_LEFT;
+					break;
+				case TYKY_SHAPE_ROUND:
+					/* 索引值 */
+					g_detailReport.indexArray[INDEX_TYKY_ROUND_TEST_SERIAL] 		= OBJECT_SERIAL;
+					g_detailReport.indexArray[INDEX_TYKY_ROUND_TEST_SAMPLE_SHAPE] 	= OBJECT_SAMPLE_SHAPE;
+					g_detailReport.indexArray[INDEX_TYKY_ROUND_DIAMETER] 			= OBJECT_DIAMETER;
+					g_detailReport.indexArray[INDEX_TYKY_ROUND_TEST_CORRECTION] 	= OBJECT_CORRECTION_FACTOR;
+					g_detailReport.indexArray[INDEX_TYKY_ROUND_TEST_FORCE] 			= OBJECT_FORCE;
+					g_detailReport.indexArray[INDEX_TYKY_ROUND_TEST_PRESSURE] 		= OBJECT_PRESSURE;
+					
+					/* 字段名 */
+					g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_TEST_SERIAL] 			= pDetailReportFieldName[0];
+					g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_TEST_SAMPLE_SHAPE] 		= pDetailReportFieldName[17];
+					g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_DIAMETER] 				= pDetailReportFieldName[18];
+					g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_TEST_CORRECTION] 		= pDetailReportFieldName[14];
+					if (g_detailReport.showChannel == SMPL_KY_NUM)
+					{
+						g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_TEST_FORCE] 		= pDetailReportFieldName[12];
+					}
+					else
+					{
+						g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_TEST_FORCE] 		= pDetailReportFieldName[11];
+					}
+					g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_TEST_PRESSURE] 			= pDetailReportFieldName[13];
+					
+					/* 标题 */
+					g_detailReport.pTitle = pDetailTestReportTitleName[6];
+					
+					/* 字段个数 */
+					g_detailReport.fieldNum = 6;
+					
+					/* 一个字段显示个数 */
+					g_detailReport.oneFieldShowType[INDEX_TYKY_ROUND_TEST_SERIAL] 		= SHOW_ALL;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_ROUND_TEST_SAMPLE_SHAPE] = SHOW_SINGLE;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_ROUND_DIAMETER]			= SHOW_SINGLE;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_ROUND_TEST_CORRECTION] 	= SHOW_SINGLE;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_ROUND_TEST_FORCE] 		= SHOW_ALL;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_ROUND_TEST_PRESSURE]	 	= SHOW_ALL;
+					
+					/* 小数点位数 */
+					for (i=0; i<MAX_ONE_PAGE_SHOW_NUM; ++i)
+					{
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_ROUND_TEST_SERIAL].pointBit 		= 0;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_ROUND_TEST_SAMPLE_SHAPE].pointBit = 0;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_ROUND_DIAMETER].pointBit 			= 2;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_ROUND_TEST_CORRECTION].pointBit	= 2;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_ROUND_TEST_FORCE].pointBit 		= 2;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_ROUND_TEST_PRESSURE].pointBit		= 1;
+					}
+					
+					/* 数据对齐 */
+					g_detailReport.align[INDEX_TYKY_ROUND_TEST_SERIAL] 			= ALIGN_MIDDLE;
+					g_detailReport.align[INDEX_TYKY_ROUND_TEST_SAMPLE_SHAPE] 	= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_ROUND_DIAMETER] 			= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_ROUND_TEST_CORRECTION] 		= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_ROUND_TEST_FORCE] 			= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_ROUND_TEST_PRESSURE] 		= ALIGN_LEFT;
+					break;
+				case TYKY_SHAPE_IRREGULAR:
+					/* 索引值 */
+					g_detailReport.indexArray[INDEX_TYKY_IRREGULAR_TEST_SERIAL] 		= OBJECT_SERIAL;
+					g_detailReport.indexArray[INDEX_TYKY_IRREGULAR_TEST_SAMPLE_SHAPE] 	= OBJECT_SAMPLE_SHAPE;
+					g_detailReport.indexArray[INDEX_TYKY_IRREGULAR_AREA] 				= OBJECT_SAMPLE_AREA;
+					g_detailReport.indexArray[INDEX_TYKY_IRREGULAR_TEST_CORRECTION] 	= OBJECT_CORRECTION_FACTOR;
+					g_detailReport.indexArray[INDEX_TYKY_IRREGULAR_TEST_FORCE] 			= OBJECT_FORCE;
+					g_detailReport.indexArray[INDEX_TYKY_IRREGULAR_TEST_PRESSURE] 		= OBJECT_PRESSURE;
+					
+					/* 字段名 */
+					g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_TEST_SERIAL] 			= pDetailReportFieldName[0];
+					g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_TEST_SAMPLE_SHAPE] 		= pDetailReportFieldName[17];
+					g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_AREA] 					= pDetailReportFieldName[16];
+					g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_TEST_CORRECTION] 		= pDetailReportFieldName[14];
+					if (g_detailReport.showChannel == SMPL_KY_NUM)
+					{
+						g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_TEST_FORCE] 		= pDetailReportFieldName[12];
+					}
+					else
+					{
+						g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_TEST_FORCE] 		= pDetailReportFieldName[11];
+					}
+					g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_TEST_PRESSURE] 			= pDetailReportFieldName[13];
+					
+					/* 标题 */
+					g_detailReport.pTitle = pDetailTestReportTitleName[6];
+					
+					/* 字段个数 */
+					g_detailReport.fieldNum = 6;
+					
+					/* 一个字段显示个数 */
+					g_detailReport.oneFieldShowType[INDEX_TYKY_IRREGULAR_TEST_SERIAL] 		= SHOW_ALL;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_IRREGULAR_TEST_SAMPLE_SHAPE] = SHOW_SINGLE;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_IRREGULAR_AREA]				= SHOW_SINGLE;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_IRREGULAR_TEST_CORRECTION] 	= SHOW_SINGLE;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_IRREGULAR_TEST_FORCE] 		= SHOW_ALL;
+					g_detailReport.oneFieldShowType[INDEX_TYKY_IRREGULAR_TEST_PRESSURE]	 	= SHOW_ALL;
+					
+					/* 小数点位数 */
+					for (i=0; i<MAX_ONE_PAGE_SHOW_NUM; ++i)
+					{
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_IRREGULAR_TEST_SERIAL].pointBit 		= 0;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_IRREGULAR_TEST_SAMPLE_SHAPE].pointBit = 0;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_IRREGULAR_AREA].pointBit 				= 2;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_IRREGULAR_TEST_CORRECTION].pointBit	= 2;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_IRREGULAR_TEST_FORCE].pointBit 		= 2;
+						g_detailReport.oneLevelMenu[i][INDEX_TYKY_IRREGULAR_TEST_PRESSURE].pointBit		= 1;
+					}
+					
+					/* 数据对齐 */
+					g_detailReport.align[INDEX_TYKY_IRREGULAR_TEST_SERIAL] 			= ALIGN_MIDDLE;
+					g_detailReport.align[INDEX_TYKY_IRREGULAR_TEST_SAMPLE_SHAPE] 	= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_IRREGULAR_AREA] 				= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_IRREGULAR_TEST_CORRECTION] 		= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_IRREGULAR_TEST_FORCE] 			= ALIGN_LEFT;
+					g_detailReport.align[INDEX_TYKY_IRREGULAR_TEST_PRESSURE] 		= ALIGN_LEFT;
+					break;
 			}
-			else
-			{
-				g_detailReport.pParameterNameArray[INDEX_TYKY_TEST_FORCE] 	= pDetailReportFieldName[11];
-			}
-			g_detailReport.pParameterNameArray[INDEX_TYKY_TEST_PRESSURE] 	= pDetailReportFieldName[13];
-			
-			/* 标题 */
-			g_detailReport.pTitle = pDetailTestReportTitleName[6];
-			
-			/* 字段个数 */
-			g_detailReport.fieldNum = 7;
-			
-			/* 一个字段显示个数 */
-			g_detailReport.oneFieldShowType[INDEX_TYKY_TEST_SERIAL] 		= SHOW_ALL;
-			g_detailReport.oneFieldShowType[INDEX_TYKY_TEST_AGE] 			= SHOW_SINGLE;
-			g_detailReport.oneFieldShowType[INDEX_TYKY_TEST_SAMPLE_SHAPE]	= SHOW_SINGLE;
-			g_detailReport.oneFieldShowType[INDEX_TYKY_TEST_AREA] 			= SHOW_SINGLE;
-			g_detailReport.oneFieldShowType[INDEX_TYKY_TEST_CORRECTION] 	= SHOW_SINGLE;
-			g_detailReport.oneFieldShowType[INDEX_TYKY_TEST_FORCE] 			= SHOW_ALL;
-			g_detailReport.oneFieldShowType[INDEX_TYKY_TEST_PRESSURE]	 	= SHOW_ALL;
-			
-			/* 小数点位数 */
-			for (i=0; i<MAX_ONE_PAGE_SHOW_NUM; ++i)
-			{
-				g_detailReport.oneLevelMenu[i][INDEX_TYKY_TEST_SERIAL].pointBit 		= 0;
-				g_detailReport.oneLevelMenu[i][INDEX_TYKY_TEST_AGE].pointBit 			= 0;
-				g_detailReport.oneLevelMenu[i][INDEX_TYKY_TEST_SAMPLE_SHAPE].pointBit 	= 0;
-				g_detailReport.oneLevelMenu[i][INDEX_TYKY_TEST_AREA].pointBit 			= 2;
-				g_detailReport.oneLevelMenu[i][INDEX_TYKY_TEST_CORRECTION].pointBit	 	= 2;
-				g_detailReport.oneLevelMenu[i][INDEX_TYKY_TEST_FORCE].pointBit 			= 2;
-				g_detailReport.oneLevelMenu[i][INDEX_TYKY_TEST_PRESSURE].pointBit		= 1;
-			}
-			
-			/* 数据对齐 */
-			g_detailReport.align[INDEX_TYKY_TEST_SERIAL] 			= ALIGN_MIDDLE;
-			g_detailReport.align[INDEX_TYKY_TEST_AGE] 				= ALIGN_LEFT;
-			g_detailReport.align[INDEX_TYKY_TEST_SAMPLE_SHAPE] 		= ALIGN_LEFT;
-			g_detailReport.align[INDEX_TYKY_TEST_AREA] 				= ALIGN_LEFT;
-			g_detailReport.align[INDEX_TYKY_TEST_CORRECTION] 		= ALIGN_LEFT;
-			g_detailReport.align[INDEX_TYKY_TEST_FORCE] 			= ALIGN_LEFT;
-			g_detailReport.align[INDEX_TYKY_TEST_PRESSURE] 			= ALIGN_LEFT;
 			break;
 		case KZSNJS:
 			/* 索引值 */
@@ -1085,16 +1231,64 @@ static void DetailReportReadParameter( void )
 	{
 		for (i=0; i<g_detailReport.curPageSampleNum; ++i)
 		{
-			strcpy(g_detailReport.fieldData[i].parameterData[index],g_readReport.sample_shape);
+			switch (g_readReport.sample_shape_index)
+			{
+				case TYKY_SHAPE_RECTANGLE:
+					strcpy(g_detailReport.fieldData[i].parameterData[index],pSpecimen_sharp[0]);
+					break;
+				case TYKY_SHAPE_ROUND:
+					strcpy(g_detailReport.fieldData[i].parameterData[index],pSpecimen_sharp[1]);
+					break;
+				case TYKY_SHAPE_IRREGULAR:
+					strcpy(g_detailReport.fieldData[i].parameterData[index],pSpecimen_sharp[2]);
+					break;
+			}
 		}
 	}
 	
-	index = GetDetailReportFieldIndex(ONJECT_SAMPLE_AREA);
+	index = GetDetailReportFieldIndex(OBJECT_SAMPLE_AREA);
+	if (index != 0xff)
+	{
+		float area = 0;
+		
+		switch ( g_detailReport.testType )
+		{
+			case KYTY:
+				switch (g_readReport.sample_shape_index)
+				{
+					case TYKY_SHAPE_RECTANGLE:
+					case TYKY_SHAPE_ROUND:	
+						area = g_readReport.gz_area;
+						break;
+					case TYKY_SHAPE_IRREGULAR:
+						area = g_readReport.bgz_area;
+						break;
+				}
+				break;
+			case KLJSSW:
+				switch (g_readReport.sample_shape_index)
+				{
+					case KLJSSW_SHAPE_ROUND:
+						area = g_readReport.gz_area;
+						break;
+				}
+				break;
+			default:
+				break;
+		}
+		
+		for (i=0; i<g_detailReport.curPageSampleNum; ++i)
+		{			
+			floattochar(MAX_REPORT_NAME_BIT,g_detailReport.oneLevelMenu[i][index].pointBit,area,g_detailReport.fieldData[i].parameterData[index]);
+		}
+	}
+	
+	index = GetDetailReportFieldIndex(OBJECT_DIAMETER);
 	if (index != 0xff)
 	{
 		for (i=0; i<g_detailReport.curPageSampleNum; ++i)
-		{
-			floattochar(MAX_REPORT_NAME_BIT,g_detailReport.oneLevelMenu[i][index].pointBit,g_readReport.area,g_detailReport.fieldData[i].parameterData[index]);
+		{			
+			floattochar(MAX_REPORT_NAME_BIT,g_detailReport.oneLevelMenu[i][index].pointBit,g_readReport.yx_diameter,g_detailReport.fieldData[i].parameterData[index]);
 		}
 	}
 }
@@ -1132,10 +1326,13 @@ static void ConfigDetailReportOneFieldRectangleFrameCoordinate( uint8_t rowIndex
 			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 196;
 			break;
 		case OBJECT_SAMPLE_SHAPE:
-			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 124;
+			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 192;
 			break;
-		case ONJECT_SAMPLE_AREA:
-			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 148;
+		case OBJECT_DIAMETER:
+			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 150;
+			break;
+		case OBJECT_SAMPLE_AREA:
+			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 150;
 			break;
 		case OBJECT_SPECIMEN_VARIETY:
 			if (g_detailReport.testType == KYQQZ)
@@ -1734,7 +1931,7 @@ static void DetailReportDeleteReport( void )
 	g_detailReport.leavePage.flagLeavePage = SET;
 	g_detailReport.leavePage.flagSaveData = RESET;
 }
-
+#if 0
 /*------------------------------------------------------------
  * Function Name  : DetailReportPrintReport
  * Description    : 打印报告
@@ -1761,6 +1958,8 @@ static void DetailReportPrintReport( void )
 	
 	g_detailReport.refreshShortcut = ENABLE;
 }
+#endif
+
 /*------------------------------------------------------------
  * Function Name  : DetailReportKeyProcess
  * Description    : 按键处理
@@ -1778,14 +1977,14 @@ static void DetailReportKeyProcess( void )
 				DetailReportDeleteReport();
 				break;
 			case KEY_F2:
-			case KEY_EXPORT:
+//			case KEY_EXPORT:
 				TestReportExportReport();
 				g_detailReport.leavePage.flagLeavePage = SET;
 				g_detailReport.leavePage.flagSaveData = RESET;
 				break;	
-			case KEY_PRINT:
-				DetailReportPrintReport();
-				break;
+//			case KEY_PRINT:
+//				DetailReportPrintReport();
+//				break;
 			case KEY_UP:
 				if (g_detailReport.sumPage > 1)
 				{

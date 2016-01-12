@@ -1806,7 +1806,7 @@ static void TestReportKeyProcess( void )
 				break;
 			
 			case KEY_F2:
-			case KEY_EXPORT:
+//			case KEY_EXPORT:
 				TestReportExportReport();
 				break;
 
@@ -1820,9 +1820,9 @@ static void TestReportKeyProcess( void )
 				g_testReport.leavePage.flagSaveData = SET;
 				break;
 			
-			case KEY_PRINT:
-				TestReportPrintCursorRowReport();
-				break;
+//			case KEY_PRINT:
+//				TestReportPrintCursorRowReport();
+//				break;
 			
 			case KEY_LEFT:
 				if (g_testReport.pSearchResult->sumPage > 1)

@@ -252,7 +252,7 @@ static void TestSelectConfig( void )
 	/* 标题 */
 	g_testSelect.pTitle = "试验选择";
 	
-	switch ( GetSelectTestType() )
+	switch ( GetSelectTestAttribute() )
 	{
 		case COMPRESSION_TEST:
 			/* 试块个数 */

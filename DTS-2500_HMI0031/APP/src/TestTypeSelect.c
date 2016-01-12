@@ -46,7 +46,7 @@ typedef struct
 	PAGE_NAME_TypeDef sourcePage;					//源页
 	PAGE_NAME_TypeDef targetPage;					//目标页
 	PAGE_NAME_TypeDef nextPage;						//下一页
-	TEST_TYPE_NAME_TypeDef selChannel;
+	TEST_ATTRIBUTE_TypeDef selChannel;
 }TEST_TYPE_SELECT_TypeDef;
 
 /* Private constants ---------------------------------------------------------*/
@@ -151,13 +151,13 @@ void SetTestTypeSelectTargetPage( PAGE_NAME_TypeDef targetPage )
 }
 
 /*------------------------------------------------------------
- * Function Name  : GetSelectTestType
- * Description    : 获取试验类型选择
+ * Function Name  : GetSelectTestAttribute
+ * Description    : 获取选择的试验属性
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-TEST_TYPE_NAME_TypeDef GetSelectTestType( void )
+TEST_ATTRIBUTE_TypeDef GetSelectTestAttribute( void )
 {
 	return g_testTypeSelect.selChannel;
 }
@@ -456,6 +456,41 @@ static void TestTypeSelectLeavePageCheckCycle( void )
 			SetPage(g_testTypeSelect.sourcePage);
 		}
 	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetCurTestAttribute
+ * Description    : 获取当前试验的属性
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+TEST_ATTRIBUTE_TypeDef GetCurTestAttribute( void )
+{
+	TEST_ATTRIBUTE_TypeDef testAttribute;
+	
+	switch (pHmi->test_standard_index)
+	{
+		case KYSNJS:
+		case KYJZSJ:
+		case KYHNT:
+		case KZHNT:
+		case KYQQZ:
+		case KYZJDH:
+		case KYTY:
+			testAttribute = COMPRESSION_TEST;
+			break;
+		case KZSNJS:
+		case KZYJSNJ:
+		case KZTY:
+			testAttribute = BENDING_TEST;
+			break;
+		case KLJSSW:
+			testAttribute = STRETCH_TEST;
+			break;
+	}
+	
+	return testAttribute;
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

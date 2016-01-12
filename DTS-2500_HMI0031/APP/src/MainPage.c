@@ -25,7 +25,7 @@
 #include "SoftActive.h"
 #include "TestAfterDispose.h"
 #include "ChannelSelect.h"
-
+#include "TestTypeSelect.h"
 
 /* Private define ------------------------------------------------------------*/
 #define COLOR_POINT							WHITE
@@ -64,7 +64,8 @@ typedef enum
 	REFRESH_FORCE = 0,
 	REFRESH_SPEED,
 	REFRESH_STRENGTH,
-	REFRESH_PEAK,
+//	REFRESH_PEAK,
+	REFRESH_DISPLACEMENT,
 	REFRESH_COMMUNICATION_STATUS,
 	REFRESH_TEST_STATUS,
 	REFRESH_CODE,
@@ -110,6 +111,7 @@ typedef enum
 	OBJECT_WINDOWS_SPEED,		
 	OBJECT_WINDOWS_STRENGTH,	
 	OBJECT_WINDOWS_PEAK,
+	OBJECT_WINDOWS_DISPLACEMENT,
 }OBJECT_INDICATE_WINDOWS_NAME_TypeDef;
 
 typedef enum
@@ -117,7 +119,7 @@ typedef enum
 	INDEX_WINDOWS_FORCE = 0,	
 	INDEX_WINDOWS_SPEED,		
 	INDEX_WINDOWS_STRENGTH,	
-	INDEX_WINDOWS_PEAK,
+	INDEX_WINDOWS_DISPLACEMENT,
 }INDEX_INDICATE_WINDOWS_NAME_TypeDef;
 
 typedef enum
@@ -189,8 +191,10 @@ typedef struct
 	uint8_t sumPage;								//总页数
 	BoolStatus isIndexMove;							//索引值移动
 	TEST_TYPE_TypeDef testType;						//试验类型
-	SMPL_NAME_TypeDef showChannel;					//显示通道
-	SMPL_NAME_TypeDef tureChannel;					//真实通道
+	TEST_ATTRIBUTE_TypeDef testAttribute;			//试验属性
+	FH_UINT_TypeDef fhChannelUnit;					//负荷通道单位
+	WY_UINT_TypeDef	wyChannelUnit;					//位移通道单位
+	BX_UINT_TypeDef	bxChannelUnit;					//变形通道单位
 	FunctionalState refreshShortcut;				//刷新快捷菜单
 	LEAVE_PAGE_TypeDef leavePage;					//离开页
 }MAIN_PAGE_TypeDef;
@@ -270,6 +274,14 @@ const char * const pMainPageIndecateWindowsTitleName[] =
 	"强度(MPa)",	//4
 	"峰值(kN)",		//5
 	"峰值(N)",		//6
+	"位移(mm)",		//7
+	"位移(cm)",		//8
+	"位移(dm)",		//9
+	"位移(m)",		//10
+	"变形(mm)",		//11
+	"变形(cm)",		//12
+	"变形(dm)",		//13
+	"变形(m)",		//14
 };
 
 const char * const pStatusBarTitleName[] = 
@@ -286,7 +298,7 @@ const char * const pMainPageWarning[] =
 	"当前处于脱机状态！",			//0
 	"试块个数不能为0！",				//1
 	"试验保存失败！",				//2
-	"发送力值清零命令失败！",		//3
+	"发送负荷通道清零命令失败！",		//3
 	"一组试验未完成，不能进入",		//4
 	"试验参数界面。",				//5
 	"一组试验完成，不能执行撤销",		//6
@@ -297,6 +309,8 @@ const char * const pMainPageWarning[] =
 	"报告导出失败！",				//11
 	"报告读取失败！",				//12
 	"请插入U盘！",					//13
+	"发送位移通道清零命令失败！",		//14
+	"发送变形通道清零命令失败！",		//15
 };	
 
 /* Private macro -------------------------------------------------------------*/
@@ -335,7 +349,7 @@ static void SetTestStatus( TEST_STATUS_TypeDef testStatus );
  * Return         : None
  *------------------------------------------------------------*/
 void LoadMainPage( void )
-{
+{	
 	/* 关闭屏幕 */
 	SetBackLightEffectClose(COLOR_BACK);
 
@@ -389,9 +403,11 @@ void LoadMainPage( void )
 static void MainPageInit( void )
 {
 	disp_syn(DISP_CHN_FH);
-	disp_syn(DISP_CHN_SPEED);
+	disp_syn(DISP_CHN_WY);
+	disp_syn(DISP_CHN_BX);
 	disp_syn(DISP_CHN_STRENGTH);
 	disp_syn(DISP_CHN_PEAK);
+	disp_syn(DISP_CHN_SPEED);
 	
 	InitInterfaceElement();
 	
@@ -406,6 +422,7 @@ static void MainPageInit( void )
 	g_mainPage.sumPage = 0;
 	
 	g_mainPage.testType = (TEST_TYPE_TypeDef)pHmi->test_standard_index;
+	g_mainPage.testAttribute = GetCurTestAttribute();
 	
 	SetTestStatus(TEST_IDLE);
 	g_testBody.peakStatus = STATUS_PEAK_IDLE;
@@ -420,6 +437,10 @@ static void MainPageInit( void )
 	g_testBody.isWriteToSD = NO;
 	g_testBody.isExecuteEndGroup = NO;
 	g_testBody.isAutoPrintReport = NO;
+	
+	g_mainPage.fhChannelUnit = GetFH_SmplUnit();
+	g_mainPage.wyChannelUnit = GetWY_SmplUnit();
+	g_mainPage.bxChannelUnit = GetBX_SmplUnit();
 }
 
 /*------------------------------------------------------------
@@ -527,17 +548,25 @@ static uint8_t GetMainPageStatusBarFieldIndex( uint8_t handle )
  * Return         : None
  *------------------------------------------------------------*/
 static void MainPageConfig( void )
-{
+{	
 	/* 示值窗索引 */
-	g_mainPage.indexIndicateWindowsArray[INDEX_WINDOWS_FORCE] 		= OBJECT_WINDOWS_FORCE;
-	g_mainPage.indexIndicateWindowsArray[INDEX_WINDOWS_SPEED] 		= OBJECT_WINDOWS_SPEED;
-	g_mainPage.indexIndicateWindowsArray[INDEX_WINDOWS_STRENGTH] 	= OBJECT_WINDOWS_STRENGTH;
-	g_mainPage.indexIndicateWindowsArray[INDEX_WINDOWS_PEAK] 		= OBJECT_WINDOWS_PEAK;
+	g_mainPage.indexIndicateWindowsArray[INDEX_WINDOWS_FORCE] 			= OBJECT_WINDOWS_FORCE;
+	g_mainPage.indexIndicateWindowsArray[INDEX_WINDOWS_SPEED] 			= OBJECT_WINDOWS_SPEED;
+	g_mainPage.indexIndicateWindowsArray[INDEX_WINDOWS_STRENGTH] 		= OBJECT_WINDOWS_STRENGTH;
+	g_mainPage.indexIndicateWindowsArray[INDEX_WINDOWS_DISPLACEMENT] 	= OBJECT_WINDOWS_DISPLACEMENT;
 	
-	/* 试验结果字段索引值 */
-	g_mainPage.indexTestResultTableArray[INDEX_SERIAL] = OBJECT_SERIAL;
-	g_mainPage.indexTestResultTableArray[INDEX_FORCE] = OBJECT_FORCE;
-	g_mainPage.indexTestResultTableArray[INDEX_STRENGTH] = OBJECT_STRENGTH;
+	switch ( g_mainPage.testAttribute )
+	{
+		case COMPRESSION_TEST:
+		case BENDING_TEST:
+			/* 试验结果字段索引值 */
+			g_mainPage.indexTestResultTableArray[INDEX_SERIAL] 		= OBJECT_SERIAL;
+			g_mainPage.indexTestResultTableArray[INDEX_FORCE] 		= OBJECT_FORCE;
+			g_mainPage.indexTestResultTableArray[INDEX_STRENGTH] 	= OBJECT_STRENGTH;
+			break;
+		case STRETCH_TEST:		
+			break;
+	}
 	
 	/* 状态栏索引 */
 	g_mainPage.indexStatusBarArray[INDEX_COMM_STATUS] 	= OBJECT_COMM_STATUS;
@@ -547,31 +576,74 @@ static void MainPageConfig( void )
 	g_mainPage.indexStatusBarArray[INDEX_STATUS] 		= OBJECT_PERIPHERAL_STATUS;
 	
 	/* 示值窗标题名 */
-	g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_STRENGTH] 	= pMainPageIndecateWindowsTitleName[4];
-	if (g_mainPage.showChannel == SMPL_KY_NUM)
+	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 	{
 		g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pMainPageIndecateWindowsTitleName[0];
 		g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pMainPageIndecateWindowsTitleName[2];
-		g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_PEAK] 	= pMainPageIndecateWindowsTitleName[5];
 	}
 	else
 	{
 		g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_FORCE] 	= pMainPageIndecateWindowsTitleName[1];
 		g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_SPEED] 	= pMainPageIndecateWindowsTitleName[3];
-		g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_PEAK] 	= pMainPageIndecateWindowsTitleName[6];
-	}
+	}	
+	g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_STRENGTH] 	= pMainPageIndecateWindowsTitleName[4];
 	
-	/* 试验结果标题名 */
-	g_mainPage.pTestResultTitleNameArray[INDEX_SERIAL] 		= pMainPageTestResultTitleName[0];
-	if (g_mainPage.showChannel == SMPL_KY_NUM)
+	if (GetDisplacementOrDeformShow() == SHOW_DISPLACEMENT)
 	{
-		g_mainPage.pTestResultTitleNameArray[INDEX_FORCE] 	= pMainPageTestResultTitleName[1];
+		switch ( g_mainPage.wyChannelUnit )
+		{
+			case WY_UNIT_MM:
+				g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_DISPLACEMENT] = pMainPageIndecateWindowsTitleName[7];
+				break;
+			case WY_UNIT_CM:
+				g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_DISPLACEMENT] = pMainPageIndecateWindowsTitleName[8];
+				break;
+			case WY_UNIT_DM:
+				g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_DISPLACEMENT] = pMainPageIndecateWindowsTitleName[9];
+				break;
+			case WY_UNIT_M:
+				g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_DISPLACEMENT] = pMainPageIndecateWindowsTitleName[10];
+				break;
+		}
 	}
 	else
 	{
-		g_mainPage.pTestResultTitleNameArray[INDEX_FORCE] 	= pMainPageTestResultTitleName[2];
+		switch ( g_mainPage.bxChannelUnit )
+		{
+			case BX_UNIT_MM:
+				g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_DISPLACEMENT] = pMainPageIndecateWindowsTitleName[11];
+				break;
+			case BX_UNIT_CM:
+				g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_DISPLACEMENT] = pMainPageIndecateWindowsTitleName[12];
+				break;
+			case BX_UNIT_DM:
+				g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_DISPLACEMENT] = pMainPageIndecateWindowsTitleName[13];
+				break;
+			case BX_UNIT_M:
+				g_mainPage.pIndicateWindowsTitleNameArray[INDEX_WINDOWS_DISPLACEMENT] = pMainPageIndecateWindowsTitleName[14];
+				break;
+		}
 	}
-	g_mainPage.pTestResultTitleNameArray[INDEX_STRENGTH] 	= pMainPageTestResultTitleName[3];
+	
+	switch ( g_mainPage.testAttribute )
+	{
+		case COMPRESSION_TEST:
+		case BENDING_TEST:
+			/* 试验结果标题名 */
+			g_mainPage.pTestResultTitleNameArray[INDEX_SERIAL] 		= pMainPageTestResultTitleName[0];
+			if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+			{
+				g_mainPage.pTestResultTitleNameArray[INDEX_FORCE] 	= pMainPageTestResultTitleName[1];
+			}
+			else
+			{
+				g_mainPage.pTestResultTitleNameArray[INDEX_FORCE] 	= pMainPageTestResultTitleName[2];
+			}
+			g_mainPage.pTestResultTitleNameArray[INDEX_STRENGTH] 	= pMainPageTestResultTitleName[3];
+			break;
+		case STRETCH_TEST:		
+			break;
+	}
 	
 	/* 状态栏标题 */
 	g_mainPage.pStatusBarTitleNameArray[INDEX_COMM_STATUS] 	= pStatusBarTitleName[0];
@@ -661,8 +733,10 @@ static void FromTestParameterCopyToReport( REPORT_TypeDef *pReport )
 	pReport->width = pCurTest->zfx_width;
 	pReport->high = pCurTest->zfx_higth;
 	pReport->correct_cof = pCurTest->correct_cof;
-	pReport->area = pCurTest->gz_area;
-	strcpy(pReport->sample_shape,pCurTest->sample_shape);
+	pReport->gz_area = pCurTest->gz_area;
+	pReport->bgz_area = pCurTest->bgz_area;	
+	pReport->sample_shape_index = pCurTest->sample_shape_index;
+	pReport->yx_diameter = pCurTest->yx_diameter;
 }	
 
 /*------------------------------------------------------------
@@ -691,7 +765,7 @@ static void MainPageWriteForce( uint8_t index, float force )
 {
 	if ((index>=1) && (index<=MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM))
 	{
-		if (g_mainPage.showChannel == SMPL_KY_NUM)
+		if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 		{
 			force /= 1000;
 		}
@@ -778,7 +852,7 @@ static void MainPageWriteAvailValue( const char *pValue )
  *------------------------------------------------------------*/
 static void MainPageWriteAvailForce( float force )
 {
-	if (g_mainPage.showChannel == SMPL_KY_NUM)
+	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 	{
 		force /= 1000;
 	}
@@ -1141,6 +1215,9 @@ static void ConfigMainPageIndicateWindowsOneRectangleFrameCoordinate( uint8_t ro
 			break;
 		case OBJECT_WINDOWS_PEAK:
 			g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lenth = 230;		
+			break;
+		case OBJECT_WINDOWS_DISPLACEMENT:
+			g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lenth = 230;	
 			break;
 	}
 }
@@ -1677,9 +1754,9 @@ static void LoadDefaultCoordinate( void )
 {
 	uint32_t maxForce = 0,maxTime = 0;
 	
-	maxForce = smpl_ctrl_full_p_get(g_mainPage.tureChannel);
+	maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
 	
-	if (g_mainPage.showChannel == SMPL_KY_NUM)
+	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 	{
 		maxForce /= 1000;
 	}
@@ -1814,6 +1891,16 @@ static void Show_MainPageOneIndicateWindowsContent( uint8_t indexRow, uint8_t in
 		case OBJECT_WINDOWS_PEAK:
 			RefreshDynamicPeak(x+43,y,pointColor,backColor,GetInterfaceElementPeak());
 			break;
+		case OBJECT_WINDOWS_DISPLACEMENT:
+			if (GetDisplacementOrDeformShow() == SHOW_DISPLACEMENT)
+			{
+				RefreshDynamicDisplacement(x+20,y,pointColor,backColor,GetInterfaceElementDisPlacement());
+			}
+			else
+			{
+				RefreshDynamicDeform(x+20,y,pointColor,backColor,GetInterfaceElementDeform());
+			}
+			break;
 	}
 }	
 
@@ -1895,8 +1982,9 @@ static void RefreshDynamicContent( void )
 			indexField = GetMainPageIndicateWindowsFieldIndex(OBJECT_WINDOWS_STRENGTH);
 			Show_MainPageOneIndicateWindowsContent(1,indexField);
 			break;
-		case REFRESH_PEAK:
-			indexField = GetMainPageIndicateWindowsFieldIndex(OBJECT_WINDOWS_PEAK);
+//		case REFRESH_PEAK:
+		case REFRESH_DISPLACEMENT:
+			indexField = GetMainPageIndicateWindowsFieldIndex(OBJECT_WINDOWS_DISPLACEMENT);
 			Show_MainPageOneIndicateWindowsContent(1,indexField);
 			break;
 		case REFRESH_COMMUNICATION_STATUS:
@@ -1968,7 +2056,7 @@ static void GUI_MainPageDrawCoordinate( uint32_t maxForce, uint32_t maxTime )
 	pCoordinate->maxForce = maxForce;
 	pCoordinate->maxTime = maxTime;
 	pCoordinate->pXUnit = "(S)";
-	if (g_mainPage.showChannel == SMPL_KY_NUM)
+	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 	{
 		pCoordinate->pYUnit = "(kN)";
 	}
@@ -2550,7 +2638,7 @@ static void MainPagePrintReport( void )
 		
 		if (result == FR_OK)
 		{
-			errStatus = PrintTestReport(g_mainPage.showChannel,g_mainPage.testType,&readReport,&testInfo);
+			errStatus = PrintTestReport(SMPL_FH_NUM,g_mainPage.testType,&readReport,&testInfo);
 		}
 		else
 		{
@@ -2574,7 +2662,7 @@ static void MainPagePrintReport( void )
 			
 	g_mainPage.refreshShortcut = ENABLE;
 }
-
+#if 0
 /*------------------------------------------------------------
  * Function Name  : MainPageExportReport
  * Description    : 导出报告
@@ -2663,6 +2751,8 @@ static void MainPagePressPrintKey( void )
 	
 	MainPagePrintReport();
 }
+
+#endif
 
 /*------------------------------------------------------------
  * Function Name  : MainPagePressKEY_F1
@@ -2871,7 +2961,7 @@ static void MainPageKeyProcess( void )
 				ReloadTestResultArea();
 				break;
 			case KEY_FORCE_TARE:		
-				if (SendChannelTareCmd(g_mainPage.tureChannel) == ERROR)
+				if (SendChannelTareCmd(SMPL_FH_NUM) == ERROR)
 				{
 					SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[3]);
 			
@@ -2879,56 +2969,46 @@ static void MainPageKeyProcess( void )
 					g_mainPage.leavePage.flagSaveData = RESET;
 				}
 				break;
-			case KEY_PRINT:
-				MainPagePressPrintKey();
+			case KEY_DISPLACE_TARE:
+				if (SendChannelTareCmd(SMPL_WY_NUM) == ERROR)
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[14]);
+			
+					g_mainPage.leavePage.flagLeavePage = SET;
+					g_mainPage.leavePage.flagSaveData = RESET;
+				}
 				break;
-			case KEY_EXPORT:
-				MainPageExportReport();
+			case KEY_DEFORMATE_TARE:
+				if (SendChannelTareCmd(SMPL_BX_NUM) == ERROR)
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[15]);
+			
+					g_mainPage.leavePage.flagLeavePage = SET;
+					g_mainPage.leavePage.flagSaveData = RESET;
+				}
 				break;
+			case KEY_DISPLACE_DEFORMATE:
+				if (GetDisplacementOrDeformShow() == SHOW_DISPLACEMENT)
+				{
+					SetDisplacementOrDeformShow(SHOW_DEFORM);
+				}
+				else
+				{
+					SetDisplacementOrDeformShow(SHOW_DISPLACEMENT);
+				}
+				MainPageConfig();
+				GUI_MainPageIndicateWindowOneField(0);
+				pcm_save();
+				break;
+				
+//			case KEY_PRINT:
+//				MainPagePressPrintKey();
+//				break;
+//			case KEY_EXPORT:
+//				MainPageExportReport();
+//				break;
 		}
 	}
-}
-
-/*------------------------------------------------------------
- * Function Name  : SetDynamicContentForce
- * Description    : 设置动态内容力值
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void SetDynamicContentForce( void )
-{
-	float force = 0;
-	
-	force = get_smpl_value(g_mainPage.tureChannel);
-	
-	if (g_mainPage.showChannel == SMPL_KY_NUM)
-	{
-		force /= 1000;
-	}
-
-	SetInterfaceElementForce(force);
-}
-
-/*------------------------------------------------------------
- * Function Name  : SetDynamicContentSpeed
- * Description    : 设置动态内容速度
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void SetDynamicContentSpeed( void )
-{
-	float speed = 0;
-	
-	speed = get_smpl_spd(g_mainPage.tureChannel);
-	
-	if (g_mainPage.showChannel == SMPL_KY_NUM)
-	{
-		speed /= 1000;
-	}
-
-	SetInterfaceElementFHSpeed(speed);
 }
 
 /*------------------------------------------------------------
@@ -2945,7 +3025,7 @@ static void SetDynamicContentStrength( void )
 	
 	if (GetTestStatus() != TEST_IDLE)
 	{
-		force = get_smpl_value(g_mainPage.tureChannel);
+		force = get_smpl_value(FH_UNIT_kN);
 	
 		strength = FromForceGetStrength(g_mainPage.testType,&g_readReport,force);
 	}
@@ -2982,7 +3062,7 @@ static void SetDynamicContentPeak( void )
 		case STATUS_PEAK_SHOW:
 			if (GetTestStatus() == TEST_LOAD)
 			{
-				g_testBody.breakPeak = GetPeakValue(g_mainPage.tureChannel);
+				g_testBody.breakPeak = GetPeakValue(SMPL_FH_NUM);
 			}
 		
 			if (GetTestStatus() == TEST_IDLE)
@@ -3011,7 +3091,7 @@ static void SetDynamicContentPeak( void )
 	}
 	
 	peak = g_testBody.breakPeak;
-	if (g_mainPage.showChannel == SMPL_KY_NUM)
+	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 	{
 		peak /= 1000;
 	}
@@ -3040,13 +3120,22 @@ static void SetDynamicContentTestStatus( void )
  *------------------------------------------------------------*/
 static void SetDynamicContentTask( void )
 {
-	SetDynamicContentForce();
-	SetDynamicContentSpeed();
+	SetDynamicContentForce(g_mainPage.fhChannelUnit);
+	SetDynamicContentFHSpeed(g_mainPage.fhChannelUnit);
 	SetDynamicContentPeak();
 	SetDynamicContentStrength();
+	if (GetDisplacementOrDeformShow() == SHOW_DISPLACEMENT)
+	{
+		SetDynamicContentDispalcement(g_mainPage.wyChannelUnit);
+	}
+	else
+	{
+		SetDynamicContentDeform(g_mainPage.bxChannelUnit);
+	}
+	
 	SetDynamicContentLinkStatus();
 	SetDynamicContentTestStatus();
-	SetDynamicContentCode(g_mainPage.tureChannel);
+	SetDynamicContentCode(SMPL_FH_NUM);
 	SetDynamicContentUSBStatus();
 	SetDynamicContentNETStatus();
 }
@@ -3255,8 +3344,8 @@ static void MainPageJudgeBreakCoreCycle( void )
 	float breakStartValue = 0;
 	float curForce = 0;
 	
-	breakStartValue = GetTargetBreakStartValue(g_mainPage.tureChannel);
-	curForce = get_smpl_value(g_mainPage.tureChannel);
+	breakStartValue = GetTargetBreakStartValue(SMPL_FH_NUM);
+	curForce = get_smpl_value(SMPL_FH_NUM);
 	
 	if (curForce > breakStartValue)
 	{
@@ -3275,13 +3364,13 @@ static void MainPageJudgeBreakCoreCycle( void )
 		return;
 	}
 	
-	breakType = GetJudgeBreakType(g_mainPage.tureChannel);
+	breakType = GetJudgeBreakType(SMPL_FH_NUM);
 	
 	switch ( breakType )
 	{
 		case ATTENUATION_RATE:	
-			nowAttenuationRate = GetAttenuationRate(g_mainPage.tureChannel);
-			targetAttenuationRate = GetTargetAttenuationRate(g_mainPage.tureChannel);
+			nowAttenuationRate = GetAttenuationRate(SMPL_FH_NUM);
+			targetAttenuationRate = GetTargetAttenuationRate(SMPL_FH_NUM);
 			
 			if (nowAttenuationRate > targetAttenuationRate)
 			{
@@ -3293,10 +3382,10 @@ static void MainPageJudgeBreakCoreCycle( void )
 			}
 			break;
 		case WITH_MAX_FORCE_DIFFERENCE:
-			nowWithMaxForceDiff = GetWithMaxForceDifference(g_mainPage.tureChannel);
-			targetWithMaxForceDiff = GetTargetWithMaxForceDifference(g_mainPage.tureChannel);
-			nowDownPoint = GetBreakDownPoint(g_mainPage.tureChannel);
-			targetDownPoint = GetTargetBreakDownPoint(g_mainPage.tureChannel);
+			nowWithMaxForceDiff = GetWithMaxForceDifference(SMPL_FH_NUM);
+			targetWithMaxForceDiff = GetTargetWithMaxForceDifference(SMPL_FH_NUM);
+			nowDownPoint = GetBreakDownPoint(SMPL_FH_NUM);
+			targetDownPoint = GetTargetBreakDownPoint(SMPL_FH_NUM);
 		
 			if ((nowWithMaxForceDiff>targetWithMaxForceDiff) && (nowDownPoint>targetDownPoint))
 			{
@@ -3308,10 +3397,10 @@ static void MainPageJudgeBreakCoreCycle( void )
 			}
 			break;
 		case ADJOIN_TWO_POINT_DIFFERENCE:
-			nowAdjoinTwoPointDiff = GetAdjoinTwoPointDifference(g_mainPage.tureChannel);
-			targetAdjoinTwoPointDiff = GetTargetAdjoinTwoPointDiff(g_mainPage.tureChannel);
-			nowDownPoint = GetBreakDownPoint(g_mainPage.tureChannel);
-			targetDownPoint = GetTargetBreakDownPoint(g_mainPage.tureChannel);
+			nowAdjoinTwoPointDiff = GetAdjoinTwoPointDifference(SMPL_FH_NUM);
+			targetAdjoinTwoPointDiff = GetTargetAdjoinTwoPointDiff(SMPL_FH_NUM);
+			nowDownPoint = GetBreakDownPoint(SMPL_FH_NUM);
+			targetDownPoint = GetTargetBreakDownPoint(SMPL_FH_NUM);
 		
 			if ((nowAdjoinTwoPointDiff>targetAdjoinTwoPointDiff) && (nowDownPoint>targetDownPoint))
 			{
@@ -4115,8 +4204,8 @@ static void MainPageTestAfterDisposeExecuteCycle( void )
  *------------------------------------------------------------*/
 static void MainPageTestExecuteCoreCycle( void )
 {
-	float force = get_smpl_value(g_mainPage.tureChannel);
-	float startLoadForce = smpl_ctrl_entry_get(g_mainPage.tureChannel);
+	float force = get_smpl_value(SMPL_FH_NUM);
+	float startLoadForce = smpl_ctrl_entry_get(SMPL_FH_NUM);
 	
 	switch ( GetTestStatus() )
 	{
@@ -4226,7 +4315,7 @@ static void InitMainPageCoordinateDrawLine( void )
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	uint32_t maxForce = 0;
 	
-	maxForce = smpl_ctrl_full_p_get(g_mainPage.tureChannel);
+	maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
 	
 	pDrawLine->status = STATUS_DRAW_LINE_IDLE;
 	pDrawLine->start = RESET;
@@ -4239,7 +4328,7 @@ static void InitMainPageCoordinateDrawLine( void )
 	pDrawLine->maxTime = pCoordinate->maxTime * 1000;
 	pDrawLine->nowTimePoint = 0;
 	pDrawLine->lineColor = RED;
-	if (g_mainPage.showChannel == SMPL_KY_NUM)
+	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 	{
 		pDrawLine->forceScalingCoefficient = 0.001;
 	}
@@ -4264,9 +4353,9 @@ static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeD
 	float force = 0;
 	float curveShowStartForce = 0; 
 	
-	force = get_smpl_value(g_mainPage.tureChannel);
+	force = get_smpl_value(SMPL_FH_NUM);
 	
-	curveShowStartForce = GetCurveShowStartValue(g_mainPage.tureChannel);
+	curveShowStartForce = GetCurveShowStartValue(SMPL_FH_NUM);
 	
 	switch ( pDrawLine->status )
 	{
@@ -4311,8 +4400,8 @@ static void MainPageCoordinateDrawLineRedrawJudgeCondition( COORDINATE_DRAW_LINE
 	const uint8_t ONCE_LOAD_SECOND = 20;
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
-	force = get_smpl_value(g_mainPage.tureChannel);
-	maxForce = smpl_ctrl_full_p_get(g_mainPage.tureChannel);
+	force = get_smpl_value(SMPL_FH_NUM);
+	maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
 	
 	checkForce = pDrawLine->maxForce * ((float)(pCoordinate->rowFieldNum - 1) / pCoordinate->rowFieldNum);
 	checkTime = pDrawLine->maxTime * ((float)(pCoordinate->columnFieldNum - 1) / pCoordinate->columnFieldNum);
@@ -4371,7 +4460,7 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 		return;
 	}
 	
-	force = get_smpl_value(g_mainPage.tureChannel);
+	force = get_smpl_value(SMPL_FH_NUM);
 	
 	pDrawLine->force[pDrawLine->nowTimePoint] = force;
 	
@@ -4396,7 +4485,7 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
  *------------------------------------------------------------*/
 static void MainPageJudgeBreakCycle( void )
 {
-	JudgeBreakCalculateCycle(g_mainPage.tureChannel);
+	JudgeBreakCalculateCycle(SMPL_FH_NUM);
 }
 
 /*------------------------------------------------------------
