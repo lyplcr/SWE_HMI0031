@@ -174,6 +174,7 @@ const char * const pUnitType[] =
 	"   cm",		//12
 	"   dm",		//13
 	"    m",		//14
+	"  MPa",		//15
 };
 
 const char * const pSelectMenuCue[] = 

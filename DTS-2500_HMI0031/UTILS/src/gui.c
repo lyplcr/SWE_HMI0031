@@ -683,7 +683,7 @@ static void LoadPopWindowsContent( POP_WINDOWS_TypeDef *pWindows )
 	uint16_t x = pWindows->x + pWindows->lineWidth + 3;
 	uint16_t y = pWindows->y + pWindows->titleWidth + 3;
 	const char * const *p = pWindows->pCueContent;
-	char codeBuff[10];
+	char codeBuff[15];
 	const uint8_t MAX_ROW_CNT = 3;
 	
 	for(i=0; i<pWindows->cueRowNum; ++i)
@@ -697,7 +697,7 @@ static void LoadPopWindowsContent( POP_WINDOWS_TypeDef *pWindows )
 		y = pWindows->y + pWindows->titleWidth + 3;
 		y += MAX_ROW_CNT * (pWindows->fontSize + pWindows->rowSpacing);
 		
-		usprintf(codeBuff,"%2X",pWindows->warningCode);
+		usprintf(codeBuff,"[ %02X H ]",pWindows->warningCode);
 		GUI_DispStr24At(x,y,pWindows->pointColor,pWindows->backColor,"¾¯¸æ´úÂë£º");
 		
 		GUI_DispStr24At(x+5*24,y,pWindows->pointColor,pWindows->backColor,codeBuff);	

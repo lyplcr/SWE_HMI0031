@@ -2366,7 +2366,7 @@ static void GUI_TestParameter( void )
 {
 	GUI_DrawGeneralTitleRectangleFrame(g_testParameter.pTitle);
 	
-	ConfigTestParameterRectangleFrameCoordinate(180,74,10);
+	ConfigTestParameterRectangleFrameCoordinate(204,74,10);
 	
 	GUI_TestParameterRectangleFrame();
 	

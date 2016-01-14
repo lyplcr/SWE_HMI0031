@@ -43,6 +43,7 @@
 #define TEST_RESULT_FORCE_MAX_CHAR_NUM		8	
 #define TEST_RESULT_STRENGTH_MAX_CHAR_NUM	6	//0->经过floattochar转换后，变成-0.0，所以内存需要大一些
 #define TEST_RESULT_AVAIL_SERIAL_MAX_CHAR_NUM	8
+#define KL_TEST_MAX_CHAR_BIT				8	//抗拉试验支持最大字符个数
 
 #define SHOW_FORCE_DOT_BIT					2		//力值小数位
 #define SHOW_STRENGTH_DOT_BIT				1		//强度有效位
@@ -56,7 +57,10 @@
 #define INDICATE_WINDOWS_PEAK_CHAR_NUM		8
 
 /* 状态栏 */
-#define STATUS_BAR_NUMS						5			
+#define STATUS_BAR_NUMS						5		
+
+/* 抗拉试验结果 */
+#define	KL_TEST_MAX_RESULT_ROW_NUM			9
 
 /* Private typedef -----------------------------------------------------------*/
 typedef enum
@@ -124,6 +128,32 @@ typedef enum
 
 typedef enum
 {
+	OBJECT_KL_SAMPLE_SERIAL = 0,
+	OBJECT_KL_MAX_FORCE,
+	OBJECT_KL_STRENGTH,
+	OBJECT_KL_UP_YIELD,
+	OBJECT_KL_DOWN_YIELD,
+	OBJECT_KL_UP_YIELD_STRENGTH,
+	OBJECT_KL_DOWN_YIELD_STRENGTH,
+	OBJECT_KL_MAX_FORCE_ALL_EXTEND,
+	OBJECT_KL_TOTAL_ELONGATION,
+}OBJECT_KL_TEST_RESULT_TypeDef;
+
+typedef enum
+{
+	INDEX_KL_SAMPLE_SERIAL = 0,
+	INDEX_KL_MAX_FORCE,
+	INDEX_KL_STRENGTH,
+	INDEX_KL_UP_YIELD,
+	INDEX_KL_DOWN_YIELD,
+	INDEX_KL_UP_YIELD_STRENGTH,
+	INDEX_KL_DOWN_YIELD_STRENGTH,
+	INDEX_KL_MAX_FORCE_ALL_EXTEND,
+	INDEX_KL_TOTAL_ELONGATION,
+}INDEX_KL_TEST_RESULT_TypeDef;
+
+typedef enum
+{
 	STATUS_PEAK_IDLE = 0,
 	STATUS_PEAK_SHOW,
 	STATUS_PEAK_KEEP,
@@ -152,13 +182,7 @@ typedef struct
 }INDICATE_WINDOWS_FIELD_DATA_TypeDef;
 
 typedef struct
-{
-//	ONE_LEVEL_MENU_TYPE_TypeDef oneLevelMenuTestInfomation[MAX_TEST_INFOMATION_NUM];
-//	uint8_t indexTestInfomationArray[MAX_TEST_INFOMATION_NUM];				//试验信息句柄索引
-//	char testInfomationData[MAX_TEST_INFOMATION_NUM][TEST_INFOMATION_FAILED_MAX_CHAR_NUM+1];
-//	const char *pTestInfomationNameArray[MAX_TEST_INFOMATION_NUM];
-//	const char *pTestInfomationUnitArray[MAX_TEST_INFOMATION_NUM];
-	
+{	
 	/* 示值窗 */
 	uint8_t indexIndicateWindowsArray[INDICATE_WINDOWS_NUMS];
 	ONE_LEVEL_MENU_TYPE_TypeDef oneLevelMenuIndicateWindows[INDICATE_WINDOWS_ROW_NUMS][INDICATE_WINDOWS_NUMS];
@@ -175,6 +199,14 @@ typedef struct
 	TEST_RESULT_FIELD_AVAIL_DATA_TypeDef testResultAvailData;
 	const char *pTestResultTitleNameArray[MAX_TEST_RESULT_TABLE_FIELD_NUM];
 	uint8_t tableFieldNum;							//表格字段个数
+	
+	/* 抗拉试验结果 */
+	uint8_t klFieldNum;
+	uint8_t indexKLTestResultArray[KL_TEST_MAX_RESULT_ROW_NUM]; 
+	char kLTestResultData[KL_TEST_MAX_RESULT_ROW_NUM][KL_TEST_MAX_CHAR_BIT+1];
+	ONE_LEVEL_MENU_TYPE_TypeDef oneLevelMenuKLTestResult[KL_TEST_MAX_RESULT_ROW_NUM];
+	const char *pKLTestResultParameterNameArray[KL_TEST_MAX_RESULT_ROW_NUM];
+	const char *pKLTestResultParameterUnitArray[KL_TEST_MAX_RESULT_ROW_NUM];
 	
 	/* 状态栏 */
 	uint8_t indexStatusBarArray[STATUS_BAR_NUMS];
@@ -312,6 +344,19 @@ const char * const pMainPageWarning[] =
 	"发送位移通道清零命令失败！",		//14
 	"发送变形通道清零命令失败！",		//15
 };	
+
+const char * const pKLTestResultName[] = 
+{
+	"试件序号：",					//0
+	"最大力[Fm]：",					//1
+	"抗拉强度[Rm]：",				//2
+	"上屈服[FeH]：",					//3
+	"下屈服[FeL]：",					//4
+	"上屈服强度[ReH]：",				//5
+	"下屈服强度[ReL]：",				//6
+	"最大力总延伸[ΔLm]：",			//7
+	"最大力总伸长率[Agt]：",			//8
+};
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -541,6 +586,30 @@ static uint8_t GetMainPageStatusBarFieldIndex( uint8_t handle )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : GetMainPageKLTestResultFieldIndex
+ * Description    : 获取抗拉试验结果字段的索引
+ * Input          : handle：句柄
+ * Output         : None
+ * Return         : 0xff：表示未找到配置项
+ *------------------------------------------------------------*/
+static uint8_t GetMainPageKLTestResultFieldIndex( uint8_t handle )
+{
+	uint8_t i;
+	uint8_t index = 0xff;	//错误的值
+	
+	for (i=0; i<g_mainPage.klFieldNum; ++i)
+	{
+		if (g_mainPage.indexKLTestResultArray[i] == handle)
+		{
+			index = i;
+			break;
+		}
+	}
+	
+	return index;
+}
+
+/*------------------------------------------------------------
  * Function Name  : MainPageConfig
  * Description    : 参数配置
  * Input          : None
@@ -564,7 +633,17 @@ static void MainPageConfig( void )
 			g_mainPage.indexTestResultTableArray[INDEX_FORCE] 		= OBJECT_FORCE;
 			g_mainPage.indexTestResultTableArray[INDEX_STRENGTH] 	= OBJECT_STRENGTH;
 			break;
-		case STRETCH_TEST:		
+		case STRETCH_TEST:	
+			/* 索引值 */
+			g_mainPage.indexKLTestResultArray[INDEX_KL_SAMPLE_SERIAL] 			= OBJECT_KL_SAMPLE_SERIAL;		
+			g_mainPage.indexKLTestResultArray[INDEX_KL_MAX_FORCE] 				= OBJECT_KL_MAX_FORCE;		
+			g_mainPage.indexKLTestResultArray[INDEX_KL_STRENGTH] 				= OBJECT_KL_STRENGTH;		
+			g_mainPage.indexKLTestResultArray[INDEX_KL_UP_YIELD] 				= OBJECT_KL_UP_YIELD;			
+			g_mainPage.indexKLTestResultArray[INDEX_KL_DOWN_YIELD] 				= OBJECT_KL_DOWN_YIELD;	
+			g_mainPage.indexKLTestResultArray[INDEX_KL_UP_YIELD_STRENGTH] 		= OBJECT_KL_UP_YIELD_STRENGTH;	
+			g_mainPage.indexKLTestResultArray[INDEX_KL_DOWN_YIELD_STRENGTH] 	= OBJECT_KL_DOWN_YIELD_STRENGTH;	
+			g_mainPage.indexKLTestResultArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= OBJECT_KL_MAX_FORCE_ALL_EXTEND;	
+			g_mainPage.indexKLTestResultArray[INDEX_KL_TOTAL_ELONGATION] 		= OBJECT_KL_TOTAL_ELONGATION;	
 			break;
 	}
 	
@@ -641,7 +720,17 @@ static void MainPageConfig( void )
 			}
 			g_mainPage.pTestResultTitleNameArray[INDEX_STRENGTH] 	= pMainPageTestResultTitleName[3];
 			break;
-		case STRETCH_TEST:		
+		case STRETCH_TEST:	
+			/* 参数名称 */
+			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_SAMPLE_SERIAL] 			= pKLTestResultName[0];
+			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_MAX_FORCE] 				= pKLTestResultName[1];
+			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_STRENGTH] 				= pKLTestResultName[2];
+			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_UP_YIELD] 				= pKLTestResultName[3];
+			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_DOWN_YIELD] 			= pKLTestResultName[4];
+			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_UP_YIELD_STRENGTH] 		= pKLTestResultName[5];
+			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_DOWN_YIELD_STRENGTH] 	= pKLTestResultName[6];
+			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pKLTestResultName[7];
+			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_TOTAL_ELONGATION] 		= pKLTestResultName[8];
 			break;
 	}
 	
@@ -656,12 +745,59 @@ static void MainPageConfig( void )
 	g_mainPage.tableFieldNum = MAX_TEST_RESULT_TABLE_FIELD_NUM;
 	g_mainPage.indicateWindowNum = INDICATE_WINDOWS_NUMS;
 	g_mainPage.statusBarNum = STATUS_BAR_NUMS;
+	g_mainPage.klFieldNum = KL_TEST_MAX_RESULT_ROW_NUM;
 	
 	/* 数据对齐 */
 	g_mainPage.align[INDEX_SERIAL] 		= ALIGN_MIDDLE;
 	g_mainPage.align[INDEX_FORCE] 		= ALIGN_LEFT;
 	g_mainPage.align[INDEX_STRENGTH] 	= ALIGN_LEFT;
 	
+	/* 单位 */
+	g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_SAMPLE_SERIAL] 			= "NULL";
+	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+	{
+		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE] 				= pUnitType[1];
+		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_UP_YIELD] 				= pUnitType[1];
+		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_DOWN_YIELD] 			= pUnitType[1];
+	}
+	else
+	{
+		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE] 				= pUnitType[0];
+		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_UP_YIELD] 				= pUnitType[0];
+		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_DOWN_YIELD] 			= pUnitType[0];
+	}
+	g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_STRENGTH]				= pUnitType[15];
+	g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_UP_YIELD_STRENGTH] 		= pUnitType[15];
+	g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_DOWN_YIELD_STRENGTH] 	= pUnitType[15];
+	switch ( g_mainPage.bxChannelUnit )
+	{
+		case BX_UNIT_MM:
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pUnitType[4];
+			break;
+		case BX_UNIT_CM:
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pUnitType[12];
+			break;
+		case BX_UNIT_DM:
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pUnitType[13];
+			break;
+		case BX_UNIT_M:
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pUnitType[14];
+			break;
+	}
+	g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_TOTAL_ELONGATION] 		= pUnitType[10];
+	
+	/* 小数点位数 */
+	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_SAMPLE_SERIAL].pointBit 		= 0;
+	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_MAX_FORCE].pointBit 			= 2;
+	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_STRENGTH].pointBit 			= 1;
+	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_UP_YIELD].pointBit 			= 2;
+	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_DOWN_YIELD].pointBit 			= 2;
+	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_UP_YIELD_STRENGTH].pointBit 	= 1;
+	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_DOWN_YIELD_STRENGTH].pointBit 	= 1;
+	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_MAX_FORCE_ALL_EXTEND].pointBit = 2;
+	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_TOTAL_ELONGATION].pointBit 	= 1;
+	
+	/* 试验名称 */
 	switch ( g_mainPage.testType )
 	{
 		case NONE_TEST:
@@ -737,6 +873,14 @@ static void FromTestParameterCopyToReport( REPORT_TypeDef *pReport )
 	pReport->bgz_area = pCurTest->bgz_area;	
 	pReport->sample_shape_index = pCurTest->sample_shape_index;
 	pReport->yx_diameter = pCurTest->yx_diameter;
+	pReport->maxForce = 0;
+	pReport->maxStrength = 0;
+	pReport->upYieldForce = 0;
+	pReport->downYieldForce = 0;
+	pReport->upYieldStrength = 0;
+	pReport->downYieldStrength = 0;
+	pReport->maxForceSumExtend = 0;
+	pReport->maxForceSumElongation = 0;
 }	
 
 /*------------------------------------------------------------
@@ -817,8 +961,8 @@ static void MainPageWriteStrength( uint8_t index, float strength )
 }
 
 /*------------------------------------------------------------
- * Function Name  : MainPageWriteStrength
- * Description    : 写入强度(编号从1开始)
+ * Function Name  : MainPageClearStrength
+ * Description    : 清除强度(编号从1开始)
  * Input          : None
  * Output         : None
  * Return         : None
@@ -897,6 +1041,291 @@ static void MainPageWriteAvailStrength( float strength )
 	else
 	{
 		strcpy(g_mainPage.testResultAvailData.availStrength,"无效");
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestSerial
+ * Description    : 写入抗拉试验编号(编号从1开始)
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestSerial( uint8_t serial )
+{
+	uint8_t index = 0;
+	
+	if ((serial>=1) && (serial<=MAX_RECORD_TEST_RESULT_NUM))
+	{		
+		index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_SAMPLE_SERIAL);
+		
+		if (index != 0xff)
+		{
+			numtochar(KL_TEST_MAX_CHAR_BIT,serial,g_mainPage.kLTestResultData[index]);
+		}
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestMaxForce
+ * Description    : 写入抗拉试验最大力
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestMaxForce( float maxForce )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+		
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_MAX_FORCE);
+	
+	if (index != 0xff)
+	{
+		if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+		{
+			maxForce /= 1000;
+		}
+	
+		if (maxForce > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,maxForce,g_mainPage.kLTestResultData[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestStrength
+ * Description    : 写入抗拉试验强度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestMaxStrength( float maxStrength )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+			
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_STRENGTH);
+	
+	if (index != 0xff)
+	{
+		if (maxStrength > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,maxStrength,g_mainPage.kLTestResultData[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestUpYieldForce
+ * Description    : 写入上屈服力值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestUpYieldForce( float upYieldForce )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+			
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_UP_YIELD);
+	
+	if (index != 0xff)
+	{
+		if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+		{
+			upYieldForce /= 1000;
+		}
+	
+		if (upYieldForce > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,upYieldForce,g_mainPage.kLTestResultData[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestDownYieldForce
+ * Description    : 写入下屈服力值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestDownYieldForce( float downYieldForce )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+			
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_DOWN_YIELD);
+	
+	if (index != 0xff)
+	{
+		if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+		{
+			downYieldForce /= 1000;
+		}
+	
+		if (downYieldForce > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,downYieldForce,g_mainPage.kLTestResultData[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestUpYieldStrength
+ * Description    : 写入上屈服强度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestUpYieldStrength( float upYieldStrength )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+			
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_UP_YIELD_STRENGTH);
+	
+	if (index != 0xff)
+	{	
+		if (upYieldStrength > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,upYieldStrength,g_mainPage.kLTestResultData[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestDownYieldStrength
+ * Description    : 写入下屈服强度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestDownYieldStrength( float downYieldStrength )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+			
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_DOWN_YIELD_STRENGTH);
+	
+	if (index != 0xff)
+	{	
+		if (downYieldStrength > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,downYieldStrength,g_mainPage.kLTestResultData[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestMaxForceAllExtend
+ * Description    : 写入最大力总延伸
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestMaxForceAllExtend( float maxForceAllExtend )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+			
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_MAX_FORCE_ALL_EXTEND);
+	
+	if (index != 0xff)
+	{
+		switch ( g_mainPage.bxChannelUnit )
+		{
+			case BX_UNIT_MM:
+				
+				break;
+			case BX_UNIT_CM:
+				maxForceAllExtend /= 10;
+				break;
+			case BX_UNIT_DM:
+				maxForceAllExtend /= 100;
+				break;
+			case BX_UNIT_M:
+				maxForceAllExtend /= 1000;
+				break;
+		}
+		
+		if (maxForceAllExtend > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,maxForceAllExtend,g_mainPage.kLTestResultData[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestMaxForceTotalElongation
+ * Description    : 写入最大力总伸长率
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestMaxForceTotalElongation( float maxForceTotalElongation )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+			
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_TOTAL_ELONGATION);
+	
+	if (index != 0xff)
+	{
+		if (maxForceTotalElongation > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,maxForceTotalElongation,g_mainPage.kLTestResultData[index]);
 	}
 }
 
@@ -996,10 +1425,7 @@ static void MainPageAutoUpdateSerial( void )
 		g_testBody.flagAutoUpdateSerial = RESET;
 		
 		if (MainPageCheckSerialRepeat() == FAILED)
-		{
-			/* 打开屏幕 */
-			SetBackLightEffectOpen();
-			
+		{			
 			PopWindowsProcessCycle();
 			
 			g_mainPage.leavePage.flagLeavePage = SET;
@@ -1009,113 +1435,18 @@ static void MainPageAutoUpdateSerial( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : MainPageReadParameter
- * Description    : 读参数
+ * Function Name  : MainPageWriteKZKYParameter
+ * Description    : 写入抗折抗压参数
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MainPageReadParameter( void )
+static void MainPageWriteKZKYParameter( void )
 {
-	uint8_t i;
-	FRESULT result;
-	uint8_t remain = 0;
 	uint8_t baseIndex = 0;
 	uint8_t index = 0;
+	uint8_t i;
 	
-//	testInfo.testInfomationNum = g_mainPage.testInfomationNum;
-//	if (testInfo.testInfomationNum > MAX_TEST_INFOMATION_PARAMETER_NUM)
-//	{
-//		testInfo.testInfomationNum = MAX_TEST_INFOMATION_PARAMETER_NUM;
-//	}
-//	
-//	for (i=0; i<testInfo.testInfomationNum; ++i)
-//	{
-//		testInfo.testHandle[i] = g_mainPage.indexTestInfomationArray[i];
-//		testInfo.pParameterContent[i] = g_mainPage.testInfomationData[i];
-//	}
-	
-	result = report_read(g_mainPage.testType,pTest->test_serial,&g_readReport);
-	if (result != FR_OK)	//未发现报告
-	{
-		memset(&g_readReport,0x00,sizeof(REPORT_TypeDef));
-		
-		FromTestParameterCopyToReport(&g_readReport);
-	}
-	
-	if ((g_readReport.sample_num==0) || (g_readReport.sample_num>MAX_RECORD_TEST_RESULT_NUM))
-	{
-		g_mainPage.curPage = 0;
-		
-		return;
-	}
-	
-	/* 试块总个数 */
-	g_mainPage.sumSampleNum = g_readReport.sample_num;
-	
-	/* 总页数 */
-	remain = g_mainPage.sumSampleNum % MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM;	
-	if (remain)
-	{
-		g_mainPage.sumPage = g_mainPage.sumSampleNum / MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM + 1;
-	}
-	else
-	{
-		g_mainPage.sumPage = g_mainPage.sumSampleNum / MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM;
-	}
-	
-	/* 当前页*/
-	if (g_mainPage.curPage > g_mainPage.sumPage)
-	{
-		g_mainPage.curPage = 0;
-	}
-	
-	/* 当前页试块个数 */
-	if (g_mainPage.curPage)
-	{
-		if (g_mainPage.curPage == g_mainPage.sumPage)
-		{
-			if (remain)
-			{
-				g_mainPage.curPageSampleNum = remain;
-			}
-			else
-			{
-				g_mainPage.curPageSampleNum = MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM;
-			}
-		}
-		else
-		{
-			g_mainPage.curPageSampleNum = MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM;
-		}
-	}
-	else
-	{
-		g_mainPage.curPageSampleNum = 0;
-	}
-	
-	/* 标志位 */
-	if (g_readReport.test_is_complete)
-	{
-		g_testBody.flagOneGroupSampleComplete = SET;
-	}
-	else
-	{
-		g_testBody.flagOneGroupSampleComplete = RESET;
-	}
-	
-	if (g_readReport.result_valid)
-	{
-		g_testBody.flagOneGroupTestResultAvail = SET;
-	}
-	else
-	{
-		g_testBody.flagOneGroupTestResultAvail = RESET;
-	}
-	
-	g_testBody.curCompletePieceSerial = g_readReport.sample_serial;
-	
-	/* 试验结果表格信息 */
 	baseIndex = (g_mainPage.curPage - 1) * MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM;
 	
 	index = GetMainPageTestResultFieldIndex(OBJECT_SERIAL);
@@ -1161,6 +1492,164 @@ static void MainPageReadParameter( void )
 	if (index != 0xff)
 	{
 		MainPageWriteAvailStrength(g_readReport.strength_valid[0]);
+	}
+}	
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLParameter
+ * Description    : 写入抗拉参数
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLParameter( void )
+{
+	if (g_mainPage.curPage == 0)
+	{
+		return;
+	}
+	
+	MainPageWriteKLTestSerial(g_mainPage.curPage);
+	MainPageWriteKLTestMaxForce(g_readReport.maxForce);
+	MainPageWriteKLTestMaxStrength(g_readReport.maxStrength);
+	MainPageWriteKLTestUpYieldForce(g_readReport.upYieldForce);
+	MainPageWriteKLTestDownYieldForce(g_readReport.downYieldForce);
+	MainPageWriteKLTestUpYieldStrength(g_readReport.upYieldStrength);
+	MainPageWriteKLTestDownYieldStrength(g_readReport.downYieldStrength);
+	MainPageWriteKLTestMaxForceAllExtend(g_readReport.maxForceSumExtend);
+	MainPageWriteKLTestMaxForceTotalElongation(g_readReport.maxForceSumElongation);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageReadParameter
+ * Description    : 读参数
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageReadParameter( void )
+{
+	FRESULT result;
+	uint8_t remain = 0;
+	
+	result = report_read(g_mainPage.testType,pTest->test_serial,&g_readReport);
+	if (result != FR_OK)	//未发现报告
+	{
+		memset(&g_readReport,0x00,sizeof(REPORT_TypeDef));
+		
+		FromTestParameterCopyToReport(&g_readReport);
+	}
+	
+	if ((g_readReport.sample_num==0) || (g_readReport.sample_num>MAX_RECORD_TEST_RESULT_NUM))
+	{
+		g_mainPage.curPage = 0;
+		
+		return;
+	}
+	
+	switch ( g_mainPage.testAttribute )
+	{
+		case COMPRESSION_TEST:
+		case BENDING_TEST:
+			/* 试块总个数 */
+			g_mainPage.sumSampleNum = g_readReport.sample_num;
+			
+			/* 总页数 */
+			remain = g_mainPage.sumSampleNum % MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM;	
+			if (remain)
+			{
+				g_mainPage.sumPage = g_mainPage.sumSampleNum / MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM + 1;
+			}
+			else
+			{
+				g_mainPage.sumPage = g_mainPage.sumSampleNum / MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM;
+			}
+			
+			/* 当前页*/
+			if (g_mainPage.curPage > g_mainPage.sumPage)
+			{
+				g_mainPage.curPage = 0;
+			}
+			
+			/* 当前页试块个数 */
+			if (g_mainPage.curPage)
+			{
+				if (g_mainPage.curPage == g_mainPage.sumPage)
+				{
+					if (remain)
+					{
+						g_mainPage.curPageSampleNum = remain;
+					}
+					else
+					{
+						g_mainPage.curPageSampleNum = MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM;
+					}
+				}
+				else
+				{
+					g_mainPage.curPageSampleNum = MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM;
+				}
+			}
+			else
+			{
+				g_mainPage.curPageSampleNum = 0;
+			}
+			break;
+		case STRETCH_TEST:	
+			/* 试块总个数 */
+			g_mainPage.sumSampleNum = g_readReport.sample_num;
+			
+			/* 总页数 */
+			g_mainPage.sumPage = g_readReport.sample_num;
+			
+			/* 当前页*/
+			if (g_mainPage.curPage > g_mainPage.sumPage)
+			{
+				g_mainPage.curPage = 0;
+			}
+			
+			/* 当前页试块个数 */
+			if (g_mainPage.curPage)
+			{
+				g_mainPage.curPageSampleNum = 1;
+			}
+			else
+			{
+				g_mainPage.curPageSampleNum = 0;
+			}
+			break;
+	}	
+	g_testBody.curCompletePieceSerial = g_readReport.sample_serial;
+	
+	/* 标志位 */
+	if (g_readReport.test_is_complete)
+	{
+		g_testBody.flagOneGroupSampleComplete = SET;
+	}
+	else
+	{
+		g_testBody.flagOneGroupSampleComplete = RESET;
+	}
+	
+	if (g_readReport.result_valid)
+	{
+		g_testBody.flagOneGroupTestResultAvail = SET;
+	}
+	else
+	{
+		g_testBody.flagOneGroupTestResultAvail = RESET;
+	}
+	
+	/* 试验结果表格信息 */
+	switch ( g_mainPage.testAttribute )
+	{
+		case COMPRESSION_TEST:
+		case BENDING_TEST:
+			MainPageWriteKZKYParameter();
+			break;
+		case STRETCH_TEST:	
+			MainPageWriteKLParameter();
+			break;
 	}
 	
 	/* 自动更新编号 */
@@ -1438,51 +1927,65 @@ static void GUI_MainPageRectangleFrame( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : GUI_MainPageIndicateWindowOneField
+ * Function Name  : GUI_MainPageIndicateWindowOneRowField
  * Description    : 表格菜单字段
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_MainPageIndicateWindowOneField( uint8_t rowIndex )
+static void GUI_MainPageIndicateWindowOneField( uint8_t rowIndex, uint8_t fieldIndex )
 {
 	uint16_t x = 0;
 	uint16_t y = 0;
 	uint16_t pointColor = 0;
 	uint16_t backColor = 0;
-	uint8_t fieldIndex = 0;
 	uint16_t lenth = 0;
 	uint16_t width = 0;
 	uint8_t fieldLen = 0;
 	
+	x = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].x + \
+		g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth;
+	y = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].y + \
+		g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth;
+	
+	fieldLen = strlen(g_mainPage.pIndicateWindowsTitleNameArray[fieldIndex]) * \
+			   (g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].fontSize>>1);
+	lenth = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lenth - \
+			2 * g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth;
+	width = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].width - \
+			2 * g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth;
+	
+	pointColor = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].pointColor;
+	backColor = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].backColor;
+	
+	lcd_fill(x,y,lenth,width,backColor);
+	
+	x = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].x + ((lenth - fieldLen) >> 1) + \
+		g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth;
+	y = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].y + \
+		g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth + 1;
+	
+	if (!rowIndex)
+	{
+		GUI_DispStr24At(x,y,pointColor,backColor,g_mainPage.pIndicateWindowsTitleNameArray[fieldIndex]);
+	}
+}
+
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_MainPageIndicateWindowOneRowField
+ * Description    : 表格菜单字段
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_MainPageIndicateWindowOneRowField( uint8_t rowIndex )
+{
+	uint8_t fieldIndex = 0;
+	
 	for (fieldIndex=0; fieldIndex<g_mainPage.indicateWindowNum; ++fieldIndex)
 	{		
-		x = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].x + \
-			g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth;
-		y = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].y + \
-			g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth;
-		
-		fieldLen = strlen(g_mainPage.pIndicateWindowsTitleNameArray[fieldIndex]) * \
-				   (g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].fontSize>>1);
-		lenth = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lenth - \
-				2 * g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth;
-		width = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].width - \
-				2 * g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth;
-		
-		pointColor = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].pointColor;
-		backColor = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].backColor;
-		
-		lcd_fill(x,y,lenth,width,backColor);
-		
-		x = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].x + ((lenth - fieldLen) >> 1) + \
-			g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth;
-		y = g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].y + \
-			g_mainPage.oneLevelMenuIndicateWindows[rowIndex][fieldIndex].lineWidth + 1;
-		
-		if (!rowIndex)
-		{
-			GUI_DispStr24At(x,y,pointColor,backColor,g_mainPage.pIndicateWindowsTitleNameArray[fieldIndex]);
-		}
+		GUI_MainPageIndicateWindowOneField(rowIndex,fieldIndex);
 	}
 }
 
@@ -1499,7 +2002,7 @@ static void GUI_MainPageIndicateWindowField( void )
 	
 	for (rowIndex=0; rowIndex<INDICATE_WINDOWS_ROW_NUMS; ++rowIndex)
 	{		
-		GUI_MainPageIndicateWindowOneField(rowIndex);
+		GUI_MainPageIndicateWindowOneRowField(rowIndex);
 	}
 }
 
@@ -1719,31 +2222,6 @@ static void GUI_MainPageLoadPageInfomation( void )
 }	
 
 /*------------------------------------------------------------
- * Function Name  : GUI_MainPageDrawTetResultArea
- * Description    : 画实验结果区域
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void GUI_MainPageDrawTetResultArea( void )
-{
-	if (g_mainPage.curPage)
-	{
-		/* 试验结果表格 */
-		ConfigMainPageTableTestResultRectangleFrameCoordinate();	
-		GUI_MainPageRectangleFrame();		
-		GUI_MainPageTableTitleField();	
-	}
-	else
-	{
-		/* 试验信息区 */
-		LoadMainPageGetTestInfomationPage();
-	}
-	
-	GUI_MainPageLoadPageInfomation();
-}
-
-/*------------------------------------------------------------
  * Function Name  : LoadDefaultCoordinate
  * Description    : 加载默认坐标系
  * Input          : None
@@ -1768,6 +2246,195 @@ static void LoadDefaultCoordinate( void )
 	GUI_MainPageDrawCoordinate(maxForce,maxTime);
 	
 	InitMainPageCoordinateDrawLine();
+}
+
+/*------------------------------------------------------------
+ * Function Name  : ConfigMainPageKLTestRectangleFrameCoordinate
+ * Description    : 配置抗拉试验结果界面GUI坐标
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void ConfigMainPageKLTestRectangleFrameCoordinate( uint16_t startX, uint16_t startY, uint8_t rowDistance )
+{
+	uint8_t i;
+	
+	for (i=0; i<g_mainPage.klFieldNum; ++i)
+	{
+		g_mainPage.oneLevelMenuKLTestResult[i].x = startX;
+		g_mainPage.oneLevelMenuKLTestResult[i].y = startY;
+		g_mainPage.oneLevelMenuKLTestResult[i].pointColor = COLOR_POINT;
+		g_mainPage.oneLevelMenuKLTestResult[i].backColor = COLOR_BACK;
+		g_mainPage.oneLevelMenuKLTestResult[i].recordPointColor = COLOR_POINT;
+		g_mainPage.oneLevelMenuKLTestResult[i].recordBackColor = COLOR_BACK;
+		g_mainPage.oneLevelMenuKLTestResult[i].lenth = 156;
+		g_mainPage.oneLevelMenuKLTestResult[i].width = 30;
+		g_mainPage.oneLevelMenuKLTestResult[i].fontSize = 24;
+		g_mainPage.oneLevelMenuKLTestResult[i].rowDistance = rowDistance;
+		g_mainPage.oneLevelMenuKLTestResult[i].columnDistance = 0;
+		g_mainPage.oneLevelMenuKLTestResult[i].lineWidth = 2;
+		
+		startY += g_mainPage.oneLevelMenuKLTestResult[i].width + g_mainPage.oneLevelMenuKLTestResult[i].rowDistance - \
+				  g_mainPage.oneLevelMenuKLTestResult[i].lineWidth;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_MainPageKLTestDrawOneRectangleFrame
+ * Description    : 参数界面GUI
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_MainPageKLTestDrawOneRectangleFrame( uint8_t index )
+{
+	RECTANGLE_FRAME_TypeDef rectangle;
+	
+	rectangle.x = g_mainPage.oneLevelMenuKLTestResult[index].x;
+	rectangle.y = g_mainPage.oneLevelMenuKLTestResult[index].y;
+	rectangle.lenth = g_mainPage.oneLevelMenuKLTestResult[index].lenth;
+	rectangle.width = g_mainPage.oneLevelMenuKLTestResult[index].width;
+	rectangle.lineWidth = g_mainPage.oneLevelMenuKLTestResult[index].lineWidth;
+	rectangle.lineColor = g_mainPage.oneLevelMenuKLTestResult[index].pointColor;
+	
+	GUI_DrawRectangleFrame(&rectangle);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_MainPageKLTestRectangleFrame
+ * Description    : 抗拉试验界面GUI
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_MainPageKLTestRectangleFrame( void )
+{
+	uint8_t i;
+	
+	for (i=0; i<g_mainPage.klFieldNum; ++i)
+	{
+		GUI_MainPageKLTestDrawOneRectangleFrame(i);
+	}	
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_MainPageKLTestDrawOneRowOneLevelMenu
+ * Description    : 参数界面GUI
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_MainPageKLTestDrawOneRowOneLevelMenu( uint8_t index )
+{
+	const uint16_t x = g_mainPage.oneLevelMenuKLTestResult[index].x - 21 * (g_mainPage.oneLevelMenuKLTestResult[index].fontSize >> 1);
+	const uint16_t y = g_mainPage.oneLevelMenuKLTestResult[index].y + \
+					   g_mainPage.oneLevelMenuKLTestResult[index].lineWidth + 1;
+	const uint16_t pointColor = g_mainPage.oneLevelMenuKLTestResult[index].pointColor;
+	const uint16_t backColor = g_mainPage.oneLevelMenuKLTestResult[index].backColor;
+	
+	GUI_DispStr24At(x,y,pointColor,backColor,g_mainPage.pKLTestResultParameterNameArray[index]);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_TestParameterOneLevelMenu
+ * Description    : 试验参数界面一级菜单
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_MainPageKLTestOneLevelMenu( void )
+{
+	uint8_t i;
+	
+	for (i=0; i<g_mainPage.klFieldNum; ++i)
+	{
+		GUI_MainPageKLTestDrawOneRowOneLevelMenu(i);
+	}	
+}
+
+/*------------------------------------------------------------
+ * Function Name  : Show_MainPageKLTestOneRowOneLevelMenuUnit
+ * Description    : 显示一行试验参数单位
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void Show_MainPageKLTestOneRowOneLevelMenuUnit( uint8_t index )
+{
+	const uint16_t x = g_mainPage.oneLevelMenuKLTestResult[index].x + g_mainPage.oneLevelMenuKLTestResult[index].lenth - \
+					   g_mainPage.oneLevelMenuKLTestResult[index].lineWidth - 5 * 12;
+	const uint16_t y = g_mainPage.oneLevelMenuKLTestResult[index].y + g_mainPage.oneLevelMenuKLTestResult[index].lineWidth + 1;
+	const uint16_t pointColor = g_mainPage.oneLevelMenuKLTestResult[index].pointColor;
+	const uint16_t backColor = g_mainPage.oneLevelMenuKLTestResult[index].backColor;
+	
+	if ( strcmp(g_mainPage.pKLTestResultParameterUnitArray[index],"NULL") )
+	{
+		GUI_DispStr24At(x,y,pointColor,backColor,g_mainPage.pKLTestResultParameterUnitArray[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : Show_MainPageKLTestOneLevelMenuUnit
+ * Description    : 显示一级菜单单位
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void Show_MainPageKLTestOneLevelMenuUnit( void )
+{
+	uint8_t i;
+	
+	for (i=0; i<g_mainPage.klFieldNum; ++i)
+	{
+		Show_MainPageKLTestOneRowOneLevelMenuUnit(i);
+	}
+}	
+
+/*------------------------------------------------------------
+ * Function Name  : GUI_MainPageDrawTetResultArea
+ * Description    : 画实验结果区域
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GUI_MainPageDrawTetResultArea( void )
+{
+	if (g_mainPage.curPage)
+	{
+		switch ( g_mainPage.testAttribute )
+		{
+			case COMPRESSION_TEST:
+			case BENDING_TEST:
+				/* 试验结果表格 */
+				ConfigMainPageTableTestResultRectangleFrameCoordinate();	
+				GUI_MainPageRectangleFrame();		
+				GUI_MainPageTableTitleField();
+				break;
+			case STRETCH_TEST:	
+				ConfigMainPageKLTestRectangleFrameCoordinate(630,150,0);
+				GUI_MainPageKLTestRectangleFrame();
+				GUI_MainPageKLTestOneLevelMenu();
+				break;
+		}		
+	}
+	else
+	{
+		/* 试验信息区 */
+		LoadMainPageGetTestInfomationPage();
+	}
+	
+	if (g_mainPage.curPage)
+	{
+		switch ( g_mainPage.testAttribute )
+		{
+			case COMPRESSION_TEST:
+			case BENDING_TEST:
+				GUI_MainPageLoadPageInfomation();
+				break;
+			case STRETCH_TEST:	
+				break;
+		}		
+	}
 }
 
 /*------------------------------------------------------------
@@ -2289,6 +2956,60 @@ static void Traverse_MainPageTestResultTableAvailValue( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : Show_MainPageKLTestResultOneRowOneLevelMenuContent
+ * Description    : 显示一行试验参数
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void Show_MainPageKLTestResultOneRowOneLevelMenuContent( uint8_t index )
+{
+	const uint16_t x = g_mainPage.oneLevelMenuKLTestResult[index].x + \
+					   g_mainPage.oneLevelMenuKLTestResult[index].lineWidth + 1;
+	const uint16_t y = g_mainPage.oneLevelMenuKLTestResult[index].y + \
+					   g_mainPage.oneLevelMenuKLTestResult[index].lineWidth + 1;
+	const uint16_t pointColor = g_mainPage.oneLevelMenuKLTestResult[index].pointColor;
+	const uint16_t backColor = g_mainPage.oneLevelMenuKLTestResult[index].backColor;
+	const uint16_t lenth = g_mainPage.oneLevelMenuKLTestResult[index].lenth - \
+						   2 * g_mainPage.oneLevelMenuKLTestResult[index].lineWidth - 2;
+	const uint16_t width = g_mainPage.oneLevelMenuKLTestResult[index].width - \
+						   2 * g_mainPage.oneLevelMenuKLTestResult[index].lineWidth - 2;
+	
+	lcd_fill(x,y,lenth,width,backColor);
+	
+	GUI_DispStr24At(x,y,pointColor,backColor,g_mainPage.kLTestResultData[index]);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : Show_TestParameterOneLevelMenuContent
+ * Description    : 显示一级菜单内容
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void Show_MainPageKLTestResultOneLevelMenuContent( void )
+{
+	uint8_t i;
+	uint8_t index = 0;
+	
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_SAMPLE_SERIAL);
+	if (index != 0xff)
+	{
+		Show_MainPageKLTestResultOneRowOneLevelMenuContent(index);
+	}
+	
+	if (g_mainPage.curPage > g_testBody.curCompletePieceSerial)
+	{
+		return;
+	}
+	
+	for (i=0; i<g_mainPage.klFieldNum; ++i)
+	{
+		Show_MainPageKLTestResultOneRowOneLevelMenuContent(i);
+	}	
+}
+
+/*------------------------------------------------------------
  * Function Name  : Traverse_TestResultTable
  * Description    : 遍历试验结果表格
  * Input          : None
@@ -2298,10 +3019,21 @@ static void Traverse_MainPageTestResultTableAvailValue( void )
 static void Traverse_TestResultTable( void )
 {	
 	if (g_mainPage.curPage)
-	{				
-		Traverse_MainPageTestResultTableContent();
+	{		
+		switch ( g_mainPage.testAttribute )
+		{
+			case COMPRESSION_TEST:
+			case BENDING_TEST:
+				Traverse_MainPageTestResultTableContent();
 		
-		Traverse_MainPageTestResultTableAvailValue();
+				Traverse_MainPageTestResultTableAvailValue();
+				break;
+			case STRETCH_TEST:
+				Show_MainPageKLTestResultOneLevelMenuContent();
+				
+				Show_MainPageKLTestOneLevelMenuUnit();
+				break;
+			}
 	}
 }
 
@@ -2419,7 +3151,7 @@ static void MainPageLoadCursor( uint8_t nowSampleSerial )
  *------------------------------------------------------------*/
 static void ClearTestResultArea( uint16_t color )
 {
-	lcd_fill(364,140,430,240,color);
+	lcd_fill(364,140,430,285,color);
 }
 
 /*------------------------------------------------------------
@@ -2988,19 +3720,31 @@ static void MainPageKeyProcess( void )
 				}
 				break;
 			case KEY_DISPLACE_DEFORMATE:
-				if (GetDisplacementOrDeformShow() == SHOW_DISPLACEMENT)
 				{
-					SetDisplacementOrDeformShow(SHOW_DEFORM);
+					uint8_t index = 0;
+					
+					if (GetDisplacementOrDeformShow() == SHOW_DISPLACEMENT)
+					{
+						SetDisplacementOrDeformShow(SHOW_DEFORM);
+					}
+					else
+					{
+						SetDisplacementOrDeformShow(SHOW_DISPLACEMENT);
+					}
+					MainPageConfig();
+					index = GetMainPageIndicateWindowsFieldIndex(OBJECT_WINDOWS_DISPLACEMENT);
+					if (index != 0xff)
+					{
+						/* 擦除显示 */
+						GUI_MainPageIndicateWindowOneField(0,index);
+						GUI_MainPageIndicateWindowOneField(1,index);
+						
+						/* 清除显示缓存 */
+						disp_syn(DISP_CHN_WY);
+						disp_syn(DISP_CHN_BX);
+					}		
 				}
-				else
-				{
-					SetDisplacementOrDeformShow(SHOW_DISPLACEMENT);
-				}
-				MainPageConfig();
-				GUI_MainPageIndicateWindowOneField(0);
-				pcm_save();
 				break;
-				
 //			case KEY_PRINT:
 //				MainPagePressPrintKey();
 //				break;
