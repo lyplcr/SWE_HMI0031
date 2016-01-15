@@ -79,5 +79,6 @@
 ..\output\obj\testafterdispose.o: ..\UTILS\inc\usb.h
 ..\output\obj\testafterdispose.o: ..\BSP\inc\netconf.h
 ..\output\obj\testafterdispose.o: ..\UTILS\inc\active.h
+..\output\obj\testafterdispose.o: ..\UTILS\inc\list.h
 ..\output\obj\testafterdispose.o: ..\UTILS\inc\printer.h
 ..\output\obj\testafterdispose.o: ..\APP\inc\TestAfterDispose.h

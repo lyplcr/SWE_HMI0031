@@ -79,6 +79,7 @@
 ..\output\obj\advanceparameter.o: ..\UTILS\inc\usb.h
 ..\output\obj\advanceparameter.o: ..\BSP\inc\netconf.h
 ..\output\obj\advanceparameter.o: ..\UTILS\inc\active.h
+..\output\obj\advanceparameter.o: ..\UTILS\inc\list.h
 ..\output\obj\advanceparameter.o: ..\UTILS\inc\printer.h
 ..\output\obj\advanceparameter.o: ..\APP\inc\AdvanceParameter.h
 ..\output\obj\advanceparameter.o: ..\APP\inc\UserLogin.h

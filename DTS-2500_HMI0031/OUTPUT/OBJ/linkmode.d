@@ -79,6 +79,7 @@
 ..\output\obj\linkmode.o: ..\UTILS\inc\usb.h
 ..\output\obj\linkmode.o: ..\BSP\inc\netconf.h
 ..\output\obj\linkmode.o: ..\UTILS\inc\active.h
+..\output\obj\linkmode.o: ..\UTILS\inc\list.h
 ..\output\obj\linkmode.o: ..\UTILS\inc\printer.h
 ..\output\obj\linkmode.o: ..\APP\inc\LinkMode.h
 ..\output\obj\linkmode.o: ..\BSP\inc\client.h

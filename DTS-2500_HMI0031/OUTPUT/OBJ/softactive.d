@@ -79,5 +79,6 @@
 ..\output\obj\softactive.o: ..\UTILS\inc\usb.h
 ..\output\obj\softactive.o: ..\BSP\inc\netconf.h
 ..\output\obj\softactive.o: ..\UTILS\inc\active.h
+..\output\obj\softactive.o: ..\UTILS\inc\list.h
 ..\output\obj\softactive.o: ..\UTILS\inc\printer.h
 ..\output\obj\softactive.o: ..\APP\inc\SoftActive.h

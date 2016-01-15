@@ -79,6 +79,7 @@
 ..\output\obj\calibrationtable.o: ..\UTILS\inc\usb.h
 ..\output\obj\calibrationtable.o: ..\BSP\inc\netconf.h
 ..\output\obj\calibrationtable.o: ..\UTILS\inc\active.h
+..\output\obj\calibrationtable.o: ..\UTILS\inc\list.h
 ..\output\obj\calibrationtable.o: ..\UTILS\inc\printer.h
 ..\output\obj\calibrationtable.o: ..\APP\inc\CalibrationTable.h
 ..\output\obj\calibrationtable.o: ..\APP\inc\ControlParameter.h

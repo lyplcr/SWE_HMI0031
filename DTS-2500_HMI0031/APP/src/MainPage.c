@@ -62,6 +62,9 @@
 /* 抗拉试验结果 */
 #define	KL_TEST_MAX_RESULT_ROW_NUM			9
 
+/* 抗拉试验进度 */
+#define MAX_KL_TEST_PROCESS_NUM				10		//最大进度个数
+
 /* Private typedef -----------------------------------------------------------*/
 typedef enum
 {
@@ -253,6 +256,38 @@ typedef struct
 	BoolStatus isAutoPrintReport;					//是否自动打印报告
 }TEST_BODY_TypeDef;
 
+/* 抗拉试验进度 */
+typedef enum
+{
+	STATUS_KL_PROGRESS_IDLE = 0,				/* 空闲状态 */
+	STATUS_KL_PROGRESS_FORMAL_LOAD,				/* 正式加载 */
+	STATUS_KL_PROGRESS_ELASTIC_DEFORMATION,		/* 弹性变形 */
+	STATUS_KL_PROGRESS_YIELD,					/* 屈服阶段 */
+	STATUS_KL_PROGRESS_PLASTIC_DEFORMATION,		/* 塑性变形 */
+}STATUS_KL_TEST_PROGRESS_TypeDef;
+
+typedef struct _LIST_KL_TEST_PROGRESS_TypeDef
+{
+	uint16_t x;
+	uint16_t y;
+	uint16_t pointColor;
+	uint16_t backColor;
+	uint8_t fontSize;
+	const char *name;	
+	STATUS_KL_TEST_PROGRESS_TypeDef status;
+	struct list_head list;
+}LIST_KL_TEST_PROGRESS_TypeDef;
+
+typedef struct
+{
+	LIST_KL_TEST_PROGRESS_TypeDef progressList[MAX_KL_TEST_PROCESS_NUM];
+	struct list_head head;
+	struct list_head *pHead;
+	const char *pSeparator;	
+	uint8_t fontSize;
+}KL_TEST_PROGRESS_TypeDef;
+
+
 /* Private constants ---------------------------------------------------------*/
 const char * const pTestInfomationName[] = 
 {
@@ -358,13 +393,23 @@ const char * const pKLTestResultName[] =
 	"最大力总伸长率[Agt]：",			//8
 };
 
+const char * const pKLTestProgressName[] = 
+{
+	"正式加载阶段",		//0
+	"弹性变形阶段",		//1
+	"屈服阶段阶段",		//2
+	"塑性变形阶段",		//3
+};
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 #pragma arm section rwdata = "RAM_MAIN_PAGE",zidata = "RAM_MAIN_PAGE"
 	static MAIN_PAGE_TypeDef g_mainPage;
 	static TEST_BODY_TypeDef g_testBody;
+	static KL_TEST_PROGRESS_TypeDef g_klTestProgress;
 #pragma arm section
 
+/* 涉及到读取SD卡操作，不能放入ccm中 */
 static REPORT_TypeDef g_readReport;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -384,6 +429,10 @@ static void MainPageShortcutCycleTask( void );
 static void InitMainPageCoordinateDrawLine( void );
 static TestStatus MainPageCheckSerialRepeat( void );
 static void SetTestStatus( TEST_STATUS_TypeDef testStatus );
+
+static void InitKL_TestProgress( void );
+static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status );
+
 
 /* Private functions ---------------------------------------------------------*/
 /*------------------------------------------------------------
@@ -415,6 +464,13 @@ void LoadMainPage( void )
 
 	/* 打开屏幕 */
 	SetBackLightEffectOpen();
+	
+	InitKL_TestProgress();
+	SetKL_TestProgress(STATUS_KL_PROGRESS_IDLE);
+	SetKL_TestProgress(STATUS_KL_PROGRESS_FORMAL_LOAD);
+	SetKL_TestProgress(STATUS_KL_PROGRESS_ELASTIC_DEFORMATION);
+	SetKL_TestProgress(STATUS_KL_PROGRESS_YIELD);
+	SetKL_TestProgress(STATUS_KL_PROGRESS_PLASTIC_DEFORMATION);
 
 	while (g_mainPage.leavePage.flagLeavePage == RESET)
 	{
@@ -5230,6 +5286,197 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 static void MainPageJudgeBreakCycle( void )
 {
 	JudgeBreakCalculateCycle(SMPL_FH_NUM);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : InitKL_TestProgress
+ * Description    : 初始化抗拉试验进度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void InitKL_TestProgress( void )
+{
+	INIT_LIST_HEAD(&g_klTestProgress.head);
+	
+	g_klTestProgress.pHead = NULL;
+	g_klTestProgress.pSeparator = " -> ";
+	g_klTestProgress.fontSize = 24;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : FindKL_TestProgressStatusElement
+ * Description    : 查找与状态匹配的元素
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void *FindKL_TestProgressStatusElement( STATUS_KL_TEST_PROGRESS_TypeDef status )
+{
+	LIST_KL_TEST_PROGRESS_TypeDef *pElement = NULL;
+	
+	/* 遍历所有元素 */
+	list_for_each_entry_reverse(pElement,&g_klTestProgress.head,LIST_KL_TEST_PROGRESS_TypeDef,list)
+	{
+		if (pElement->status == status)
+		{
+			return pElement;
+		}
+	}
+	
+	return NULL;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : InitKL_TestProgress
+ * Description    : 初始化抗拉试验进度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status )
+{
+	const uint16_t START_X = 10;
+	const uint16_t START_Y = 400;//LCD_WIDTH_Y - 27;	
+	
+	switch ( status )
+	{
+		case STATUS_KL_PROGRESS_IDLE:
+			GUI_ClearShortcutMenu();
+			
+			g_klTestProgress.progressList[status].x = START_X;
+			g_klTestProgress.progressList[status].y = START_Y;
+			g_klTestProgress.progressList[status].pointColor = COLOR_POINT;
+			g_klTestProgress.progressList[status].backColor = DARKBLUE;
+			g_klTestProgress.progressList[status].fontSize = 24;
+			g_klTestProgress.progressList[status].name = "";
+			g_klTestProgress.progressList[status].status = STATUS_KL_PROGRESS_IDLE;
+			
+			list_add(&g_klTestProgress.progressList[status].list,&g_klTestProgress.head);	
+			break;
+		case STATUS_KL_PROGRESS_FORMAL_LOAD:
+			{
+				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = FindKL_TestProgressStatusElement(STATUS_KL_PROGRESS_IDLE);				
+				if (pElement == NULL)
+				{
+					return;
+				}
+				
+				/* 恢复上一个元素背景色 */
+				pElement->pointColor = COLOR_POINT;
+				pElement->backColor = COLOR_BACK;	
+				
+				g_klTestProgress.progressList[status].x = pElement->x + \
+						( strlen(pElement->name) * (pElement->fontSize >> 1) );
+				g_klTestProgress.progressList[status].y = pElement->y;
+				g_klTestProgress.progressList[status].pointColor = COLOR_POINT;
+				g_klTestProgress.progressList[status].backColor = DARKBLUE;
+				g_klTestProgress.progressList[status].fontSize = 24;
+				g_klTestProgress.progressList[status].name = pKLTestProgressName[0];
+				g_klTestProgress.progressList[status].status = STATUS_KL_PROGRESS_FORMAL_LOAD;
+				
+				list_add(&g_klTestProgress.progressList[status].list,&g_klTestProgress.head);
+			}
+			break;
+		case STATUS_KL_PROGRESS_ELASTIC_DEFORMATION:
+			{
+				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = FindKL_TestProgressStatusElement(STATUS_KL_PROGRESS_FORMAL_LOAD);				
+				if (pElement == NULL)
+				{
+					return;
+				}
+				
+				/* 恢复上一个元素背景色 */
+				pElement->pointColor = COLOR_POINT;
+				pElement->backColor = COLOR_BACK;	
+				
+				g_klTestProgress.progressList[status].x = pElement->x + \
+						( strlen(pElement->name) * (pElement->fontSize >> 1) ) +\
+						( strlen(g_klTestProgress.pSeparator) * (g_klTestProgress.fontSize >> 1) );
+				g_klTestProgress.progressList[status].y = pElement->y;
+				g_klTestProgress.progressList[status].pointColor = COLOR_POINT;
+				g_klTestProgress.progressList[status].backColor = DARKBLUE;
+				g_klTestProgress.progressList[status].fontSize = 24;
+				g_klTestProgress.progressList[status].name = pKLTestProgressName[1];
+				g_klTestProgress.progressList[status].status = STATUS_KL_PROGRESS_ELASTIC_DEFORMATION;
+				
+				list_add(&g_klTestProgress.progressList[status].list,&g_klTestProgress.head);
+			}
+			break;
+		case STATUS_KL_PROGRESS_YIELD:	
+			{
+				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = FindKL_TestProgressStatusElement(STATUS_KL_PROGRESS_ELASTIC_DEFORMATION);				
+				if (pElement == NULL)
+				{
+					return;
+				}
+				
+				/* 恢复上一个元素背景色 */
+				pElement->pointColor = COLOR_POINT;
+				pElement->backColor = COLOR_BACK;	
+				
+				g_klTestProgress.progressList[status].x = pElement->x + \
+						( strlen(pElement->name) * (pElement->fontSize >> 1) ) +\
+						( strlen(g_klTestProgress.pSeparator) * (g_klTestProgress.fontSize >> 1) );
+				g_klTestProgress.progressList[status].y = pElement->y;
+				g_klTestProgress.progressList[status].pointColor = COLOR_POINT;
+				g_klTestProgress.progressList[status].backColor = DARKBLUE;
+				g_klTestProgress.progressList[status].fontSize = 24;
+				g_klTestProgress.progressList[status].name = pKLTestProgressName[2];
+				g_klTestProgress.progressList[status].status = STATUS_KL_PROGRESS_YIELD;
+				
+				list_add(&g_klTestProgress.progressList[status].list,&g_klTestProgress.head);
+			}
+			break;
+		case STATUS_KL_PROGRESS_PLASTIC_DEFORMATION:
+			{
+				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = FindKL_TestProgressStatusElement(STATUS_KL_PROGRESS_YIELD);				
+				if (pElement == NULL)
+				{
+					return;
+				}
+				
+				/* 恢复上一个元素背景色 */
+				pElement->pointColor = COLOR_POINT;
+				pElement->backColor = COLOR_BACK;	
+				
+				g_klTestProgress.progressList[status].x = pElement->x + \
+						( strlen(pElement->name) * (pElement->fontSize >> 1) ) +\
+						( strlen(g_klTestProgress.pSeparator) * (g_klTestProgress.fontSize >> 1) );
+				g_klTestProgress.progressList[status].y = pElement->y;
+				g_klTestProgress.progressList[status].pointColor = COLOR_POINT;
+				g_klTestProgress.progressList[status].backColor = DARKBLUE;
+				g_klTestProgress.progressList[status].fontSize = 24;
+				g_klTestProgress.progressList[status].name = pKLTestProgressName[3];
+				g_klTestProgress.progressList[status].status = STATUS_KL_PROGRESS_PLASTIC_DEFORMATION;
+				
+				list_add(&g_klTestProgress.progressList[status].list,&g_klTestProgress.head);
+			}
+			break;
+
+		default:
+			break;
+	}
+	
+	/* 遍历所有元素 */
+	{
+		LIST_KL_TEST_PROGRESS_TypeDef *pElement = NULL;
+		
+		list_for_each_entry_reverse(pElement,&g_klTestProgress.head,LIST_KL_TEST_PROGRESS_TypeDef,list)
+		{			
+			if ( strcmp(pElement->name,"") )
+			{
+				GUI_DispStr24At(pElement->x,pElement->y,pElement->pointColor,pElement->backColor,pElement->name);
+				
+				if (pElement->status != STATUS_KL_PROGRESS_PLASTIC_DEFORMATION)
+				{
+					uint16_t x = pElement->x + strlen(pElement->name) * (pElement->fontSize >> 1) ;
+					
+					GUI_DispStr24At(x,pElement->y,COLOR_POINT,COLOR_BACK,g_klTestProgress.pSeparator);
+				}
+			}
+		}
+	}
 }
 
 /*------------------------------------------------------------

@@ -79,5 +79,6 @@
 ..\output\obj\systembackup.o: ..\UTILS\inc\usb.h
 ..\output\obj\systembackup.o: ..\BSP\inc\netconf.h
 ..\output\obj\systembackup.o: ..\UTILS\inc\active.h
+..\output\obj\systembackup.o: ..\UTILS\inc\list.h
 ..\output\obj\systembackup.o: ..\UTILS\inc\printer.h
 ..\output\obj\systembackup.o: ..\APP\inc\SystemBackup.h

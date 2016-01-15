@@ -79,5 +79,6 @@
 ..\output\obj\unitselect.o: ..\UTILS\inc\usb.h
 ..\output\obj\unitselect.o: ..\BSP\inc\netconf.h
 ..\output\obj\unitselect.o: ..\UTILS\inc\active.h
+..\output\obj\unitselect.o: ..\UTILS\inc\list.h
 ..\output\obj\unitselect.o: ..\UTILS\inc\printer.h
 ..\output\obj\unitselect.o: ..\APP\inc\UnitSelect.h

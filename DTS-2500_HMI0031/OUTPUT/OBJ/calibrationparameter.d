@@ -79,6 +79,7 @@
 ..\output\obj\calibrationparameter.o: ..\UTILS\inc\usb.h
 ..\output\obj\calibrationparameter.o: ..\BSP\inc\netconf.h
 ..\output\obj\calibrationparameter.o: ..\UTILS\inc\active.h
+..\output\obj\calibrationparameter.o: ..\UTILS\inc\list.h
 ..\output\obj\calibrationparameter.o: ..\UTILS\inc\printer.h
 ..\output\obj\calibrationparameter.o: ..\APP\inc\CalibrationParameter.h
 ..\output\obj\calibrationparameter.o: ..\APP\inc\ChannelSelect.h

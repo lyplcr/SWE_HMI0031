@@ -79,5 +79,6 @@
 ..\output\obj\systemrestore.o: ..\UTILS\inc\usb.h
 ..\output\obj\systemrestore.o: ..\BSP\inc\netconf.h
 ..\output\obj\systemrestore.o: ..\UTILS\inc\active.h
+..\output\obj\systemrestore.o: ..\UTILS\inc\list.h
 ..\output\obj\systemrestore.o: ..\UTILS\inc\printer.h
 ..\output\obj\systemrestore.o: ..\APP\inc\SystemRestore.h

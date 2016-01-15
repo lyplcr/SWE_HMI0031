@@ -79,6 +79,7 @@
 ..\output\obj\testparameter.o: ..\UTILS\inc\usb.h
 ..\output\obj\testparameter.o: ..\BSP\inc\netconf.h
 ..\output\obj\testparameter.o: ..\UTILS\inc\active.h
+..\output\obj\testparameter.o: ..\UTILS\inc\list.h
 ..\output\obj\testparameter.o: ..\UTILS\inc\printer.h
 ..\output\obj\testparameter.o: ..\APP\inc\TestParameter.h
 ..\output\obj\testparameter.o: ..\APP\inc\ModelSelect.h

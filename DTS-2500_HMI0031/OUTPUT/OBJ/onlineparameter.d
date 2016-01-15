@@ -79,5 +79,6 @@
 ..\output\obj\onlineparameter.o: ..\UTILS\inc\usb.h
 ..\output\obj\onlineparameter.o: ..\BSP\inc\netconf.h
 ..\output\obj\onlineparameter.o: ..\UTILS\inc\active.h
+..\output\obj\onlineparameter.o: ..\UTILS\inc\list.h
 ..\output\obj\onlineparameter.o: ..\UTILS\inc\printer.h
 ..\output\obj\onlineparameter.o: ..\APP\inc\OnlineParameter.h

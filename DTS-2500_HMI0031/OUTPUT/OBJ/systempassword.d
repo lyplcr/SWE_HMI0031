@@ -79,5 +79,6 @@
 ..\output\obj\systempassword.o: ..\UTILS\inc\usb.h
 ..\output\obj\systempassword.o: ..\BSP\inc\netconf.h
 ..\output\obj\systempassword.o: ..\UTILS\inc\active.h
+..\output\obj\systempassword.o: ..\UTILS\inc\list.h
 ..\output\obj\systempassword.o: ..\UTILS\inc\printer.h
 ..\output\obj\systempassword.o: ..\APP\inc\SystemPassword.h

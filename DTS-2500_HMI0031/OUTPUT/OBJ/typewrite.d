@@ -79,4 +79,5 @@
 ..\output\obj\typewrite.o: ..\UTILS\inc\usb.h
 ..\output\obj\typewrite.o: ..\BSP\inc\netconf.h
 ..\output\obj\typewrite.o: ..\UTILS\inc\active.h
+..\output\obj\typewrite.o: ..\UTILS\inc\list.h
 ..\output\obj\typewrite.o: ..\UTILS\inc\printer.h

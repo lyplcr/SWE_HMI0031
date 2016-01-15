@@ -79,5 +79,6 @@
 ..\output\obj\hardtest.o: ..\UTILS\inc\usb.h
 ..\output\obj\hardtest.o: ..\BSP\inc\netconf.h
 ..\output\obj\hardtest.o: ..\UTILS\inc\active.h
+..\output\obj\hardtest.o: ..\UTILS\inc\list.h
 ..\output\obj\hardtest.o: ..\UTILS\inc\printer.h
 ..\output\obj\hardtest.o: ..\APP\inc\HardTest.h

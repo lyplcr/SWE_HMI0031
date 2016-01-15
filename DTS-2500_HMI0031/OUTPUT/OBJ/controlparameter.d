@@ -79,6 +79,7 @@
 ..\output\obj\controlparameter.o: ..\UTILS\inc\usb.h
 ..\output\obj\controlparameter.o: ..\BSP\inc\netconf.h
 ..\output\obj\controlparameter.o: ..\UTILS\inc\active.h
+..\output\obj\controlparameter.o: ..\UTILS\inc\list.h
 ..\output\obj\controlparameter.o: ..\UTILS\inc\printer.h
 ..\output\obj\controlparameter.o: ..\APP\inc\ControlParameter.h
 ..\output\obj\controlparameter.o: ..\APP\inc\ChannelSelect.h

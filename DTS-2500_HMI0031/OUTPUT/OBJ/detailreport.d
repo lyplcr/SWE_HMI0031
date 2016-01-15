@@ -79,6 +79,7 @@
 ..\output\obj\detailreport.o: ..\UTILS\inc\usb.h
 ..\output\obj\detailreport.o: ..\BSP\inc\netconf.h
 ..\output\obj\detailreport.o: ..\UTILS\inc\active.h
+..\output\obj\detailreport.o: ..\UTILS\inc\list.h
 ..\output\obj\detailreport.o: ..\UTILS\inc\printer.h
 ..\output\obj\detailreport.o: ..\APP\inc\DetailReport.h
 ..\output\obj\detailreport.o: ..\APP\inc\TestReport.h

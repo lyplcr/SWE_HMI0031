@@ -79,5 +79,6 @@
 ..\output\obj\testtypeselect.o: ..\UTILS\inc\usb.h
 ..\output\obj\testtypeselect.o: ..\BSP\inc\netconf.h
 ..\output\obj\testtypeselect.o: ..\UTILS\inc\active.h
+..\output\obj\testtypeselect.o: ..\UTILS\inc\list.h
 ..\output\obj\testtypeselect.o: ..\UTILS\inc\printer.h
 ..\output\obj\testtypeselect.o: ..\APP\inc\TestTypeSelect.h

@@ -79,6 +79,7 @@
 ..\output\obj\forcecalibration.o: ..\UTILS\inc\usb.h
 ..\output\obj\forcecalibration.o: ..\BSP\inc\netconf.h
 ..\output\obj\forcecalibration.o: ..\UTILS\inc\active.h
+..\output\obj\forcecalibration.o: ..\UTILS\inc\list.h
 ..\output\obj\forcecalibration.o: ..\UTILS\inc\printer.h
 ..\output\obj\forcecalibration.o: ..\APP\inc\ForceCalibration.h
 ..\output\obj\forcecalibration.o: ..\APP\inc\ChannelSelect.h

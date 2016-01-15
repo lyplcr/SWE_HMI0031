@@ -79,6 +79,7 @@
 ..\output\obj\testselect.o: ..\UTILS\inc\usb.h
 ..\output\obj\testselect.o: ..\BSP\inc\netconf.h
 ..\output\obj\testselect.o: ..\UTILS\inc\active.h
+..\output\obj\testselect.o: ..\UTILS\inc\list.h
 ..\output\obj\testselect.o: ..\UTILS\inc\printer.h
 ..\output\obj\testselect.o: ..\APP\inc\TestSelect.h
 ..\output\obj\testselect.o: ..\APP\inc\ModelSelect.h

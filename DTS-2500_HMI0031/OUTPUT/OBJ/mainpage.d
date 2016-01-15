@@ -79,6 +79,7 @@
 ..\output\obj\mainpage.o: ..\UTILS\inc\usb.h
 ..\output\obj\mainpage.o: ..\BSP\inc\netconf.h
 ..\output\obj\mainpage.o: ..\UTILS\inc\active.h
+..\output\obj\mainpage.o: ..\UTILS\inc\list.h
 ..\output\obj\mainpage.o: ..\UTILS\inc\printer.h
 ..\output\obj\mainpage.o: ..\APP\inc\MainPage.h
 ..\output\obj\mainpage.o: ..\APP\inc\TestParameter.h

@@ -79,6 +79,7 @@
 ..\output\obj\channelselect.o: ..\UTILS\inc\usb.h
 ..\output\obj\channelselect.o: ..\BSP\inc\netconf.h
 ..\output\obj\channelselect.o: ..\UTILS\inc\active.h
+..\output\obj\channelselect.o: ..\UTILS\inc\list.h
 ..\output\obj\channelselect.o: ..\UTILS\inc\printer.h
 ..\output\obj\channelselect.o: ..\APP\inc\ChannelSelect.h
 ..\output\obj\channelselect.o: ..\APP\inc\ModelSelect.h

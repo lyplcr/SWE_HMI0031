@@ -19,6 +19,7 @@
 #include "usb.h"
 #include "netconf.h"
 #include "active.h"
+#include "list.h"
 
 /* Exported define -----------------------------------------------------------*/
 #define PIC_DIR_UP_DOWN			"image/DirUD.bin"			//上下方向键

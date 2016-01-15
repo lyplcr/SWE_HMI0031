@@ -79,6 +79,7 @@
 ..\output\obj\systemset.o: ..\UTILS\inc\usb.h
 ..\output\obj\systemset.o: ..\BSP\inc\netconf.h
 ..\output\obj\systemset.o: ..\UTILS\inc\active.h
+..\output\obj\systemset.o: ..\UTILS\inc\list.h
 ..\output\obj\systemset.o: ..\UTILS\inc\printer.h
 ..\output\obj\systemset.o: ..\APP\inc\SystemSet.h
 ..\output\obj\systemset.o: ..\APP\inc\ChannelSelect.h

@@ -79,5 +79,6 @@
 ..\output\obj\timedate.o: ..\UTILS\inc\usb.h
 ..\output\obj\timedate.o: ..\BSP\inc\netconf.h
 ..\output\obj\timedate.o: ..\UTILS\inc\active.h
+..\output\obj\timedate.o: ..\UTILS\inc\list.h
 ..\output\obj\timedate.o: ..\UTILS\inc\printer.h
 ..\output\obj\timedate.o: ..\APP\inc\TimeDate.h

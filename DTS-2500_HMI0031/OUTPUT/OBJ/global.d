@@ -79,5 +79,6 @@
 ..\output\obj\global.o: ..\UTILS\inc\usb.h
 ..\output\obj\global.o: ..\BSP\inc\netconf.h
 ..\output\obj\global.o: ..\UTILS\inc\active.h
+..\output\obj\global.o: ..\UTILS\inc\list.h
 ..\output\obj\global.o: ..\UTILS\inc\printer.h
 ..\output\obj\global.o: ..\APP\inc\ModelSelect.h

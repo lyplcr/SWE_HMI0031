@@ -79,5 +79,6 @@
 ..\output\obj\main.o: ..\UTILS\inc\usb.h
 ..\output\obj\main.o: ..\BSP\inc\netconf.h
 ..\output\obj\main.o: ..\UTILS\inc\active.h
+..\output\obj\main.o: ..\UTILS\inc\list.h
 ..\output\obj\main.o: ..\UTILS\inc\printer.h
 ..\output\obj\main.o: ..\APP\inc\initial.h

@@ -79,5 +79,6 @@
 ..\output\obj\userlogin.o: ..\UTILS\inc\usb.h
 ..\output\obj\userlogin.o: ..\BSP\inc\netconf.h
 ..\output\obj\userlogin.o: ..\UTILS\inc\active.h
+..\output\obj\userlogin.o: ..\UTILS\inc\list.h
 ..\output\obj\userlogin.o: ..\UTILS\inc\printer.h
 ..\output\obj\userlogin.o: ..\APP\inc\UserLogin.h

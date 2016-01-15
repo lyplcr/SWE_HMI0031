@@ -79,6 +79,7 @@
 ..\output\obj\systeminfomation.o: ..\UTILS\inc\usb.h
 ..\output\obj\systeminfomation.o: ..\BSP\inc\netconf.h
 ..\output\obj\systeminfomation.o: ..\UTILS\inc\active.h
+..\output\obj\systeminfomation.o: ..\UTILS\inc\list.h
 ..\output\obj\systeminfomation.o: ..\UTILS\inc\printer.h
 ..\output\obj\systeminfomation.o: ..\APP\inc\SystemInfomation.h
 ..\output\obj\systeminfomation.o: ..\APP\inc\ModelSelect.h

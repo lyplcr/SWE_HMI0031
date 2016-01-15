@@ -79,6 +79,7 @@
 ..\output\obj\searchreport.o: ..\UTILS\inc\usb.h
 ..\output\obj\searchreport.o: ..\BSP\inc\netconf.h
 ..\output\obj\searchreport.o: ..\UTILS\inc\active.h
+..\output\obj\searchreport.o: ..\UTILS\inc\list.h
 ..\output\obj\searchreport.o: ..\UTILS\inc\printer.h
 ..\output\obj\searchreport.o: ..\APP\inc\SearchReport.h
 ..\output\obj\searchreport.o: ..\APP\inc\ModelSelect.h

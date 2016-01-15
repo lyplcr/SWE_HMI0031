@@ -79,6 +79,7 @@
 ..\output\obj\pagemanage.o: ..\UTILS\inc\usb.h
 ..\output\obj\pagemanage.o: ..\BSP\inc\netconf.h
 ..\output\obj\pagemanage.o: ..\UTILS\inc\active.h
+..\output\obj\pagemanage.o: ..\UTILS\inc\list.h
 ..\output\obj\pagemanage.o: ..\UTILS\inc\printer.h
 ..\output\obj\pagemanage.o: ..\APP\inc\initial.h
 ..\output\obj\pagemanage.o: ..\APP\inc\TestParameter.h

@@ -79,4 +79,5 @@
 ..\output\obj\bsp_assert.o: ..\UTILS\inc\usb.h
 ..\output\obj\bsp_assert.o: ..\BSP\inc\netconf.h
 ..\output\obj\bsp_assert.o: ..\UTILS\inc\active.h
+..\output\obj\bsp_assert.o: ..\UTILS\inc\list.h
 ..\output\obj\bsp_assert.o: ..\UTILS\inc\printer.h

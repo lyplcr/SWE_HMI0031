@@ -164,7 +164,6 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name></Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -197,22 +196,17 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_hardTest.oneLevelMenuChannel</ItemText>
+          <ItemText>g_klTestProgress.head</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>pHmi</ItemText>
+          <ItemText>pElement</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>str</ItemText>
-        </Ww>
-        <Ww>
-          <count>3</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>g_hardTest.oneLevelMenuChannel</ItemText>
+          <ItemText>g_klTestProgress.progressList</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>
