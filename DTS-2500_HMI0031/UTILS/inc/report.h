@@ -81,14 +81,17 @@ typedef struct
 	float	yx_diameter;				//圆形直径
 	
 	/* 万能机参数 */
-	float maxForce;						//最大力
-	float maxStrength;					//最大强度
-	float upYieldForce;					//上屈服力
-	float downYieldForce;				//下屈服力
-	float upYieldStrength;				//上屈服强度
-	float downYieldStrength;			//下屈服强度
-	float maxForceSumExtend;			//最大力总延伸
-	float maxForceSumElongation;		//最大力总伸长率
+	float maxForce[20];					//最大力
+	float maxStrength[20];				//最大强度
+	float upYieldForce[20];				//上屈服力
+	float downYieldForce[20];			//下屈服力
+	float upYieldStrength[20];			//上屈服强度
+	float downYieldStrength[20];		//下屈服强度
+	float maxForceSumExtend[20];		//最大力总延伸
+	float maxForceSumElongation[20];	//最大力总伸长率
+	float parallelLenth;				//平行长度
+	float extensometerGauge;			//引伸计标距
+	float originalGauge;				//原始标距
 }REPORT_TypeDef;
     
 #pragma pack()     

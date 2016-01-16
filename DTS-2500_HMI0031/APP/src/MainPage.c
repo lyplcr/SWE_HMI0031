@@ -63,7 +63,7 @@
 #define	KL_TEST_MAX_RESULT_ROW_NUM			9
 
 /* 抗拉试验进度 */
-#define MAX_KL_TEST_PROCESS_NUM				10		//最大进度个数
+#define MAX_KL_TEST_PROCESS_NUM				6		//最大进度个数
 
 /* Private typedef -----------------------------------------------------------*/
 typedef enum
@@ -264,6 +264,7 @@ typedef enum
 	STATUS_KL_PROGRESS_ELASTIC_DEFORMATION,		/* 弹性变形 */
 	STATUS_KL_PROGRESS_YIELD,					/* 屈服阶段 */
 	STATUS_KL_PROGRESS_PLASTIC_DEFORMATION,		/* 塑性变形 */
+	STATUS_KL_PROGRESS_END,						/* 结束 	*/
 }STATUS_KL_TEST_PROGRESS_TypeDef;
 
 typedef struct _LIST_KL_TEST_PROGRESS_TypeDef
@@ -275,6 +276,7 @@ typedef struct _LIST_KL_TEST_PROGRESS_TypeDef
 	uint8_t fontSize;
 	const char *name;	
 	STATUS_KL_TEST_PROGRESS_TypeDef status;
+	FunctionalState enShowSeparator;
 	struct list_head list;
 }LIST_KL_TEST_PROGRESS_TypeDef;
 
@@ -284,8 +286,24 @@ typedef struct
 	struct list_head head;
 	struct list_head *pHead;
 	const char *pSeparator;	
-	uint8_t fontSize;
 }KL_TEST_PROGRESS_TypeDef;
+
+typedef struct
+{
+	float maxForce;						//最大力
+	float maxStrength;					//最大强度
+	float upYieldForce;					//上屈服力
+	float downYieldForce;				//下屈服力
+	float upYieldStrength;				//上屈服强度
+	float downYieldStrength;			//下屈服强度
+	float maxForceSumExtend;			//最大力总延伸
+	float maxForceSumElongation;		//最大力总伸长率
+	
+	/* 计算最大力总延伸 */
+	float originalDisplacemen;			//原始位移
+	float originalDeform;				//原始变形
+	float deform;						//变形量
+}KL_TEST_BODY_TypeDef;
 
 
 /* Private constants ---------------------------------------------------------*/
@@ -407,6 +425,7 @@ const char * const pKLTestProgressName[] =
 	static MAIN_PAGE_TypeDef g_mainPage;
 	static TEST_BODY_TypeDef g_testBody;
 	static KL_TEST_PROGRESS_TypeDef g_klTestProgress;
+	static KL_TEST_BODY_TypeDef	g_klTestBody;
 #pragma arm section
 
 /* 涉及到读取SD卡操作，不能放入ccm中 */
@@ -432,6 +451,8 @@ static void SetTestStatus( TEST_STATUS_TypeDef testStatus );
 
 static void InitKL_TestProgress( void );
 static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status );
+
+static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest );
 
 
 /* Private functions ---------------------------------------------------------*/
@@ -465,13 +486,6 @@ void LoadMainPage( void )
 	/* 打开屏幕 */
 	SetBackLightEffectOpen();
 	
-	InitKL_TestProgress();
-	SetKL_TestProgress(STATUS_KL_PROGRESS_IDLE);
-	SetKL_TestProgress(STATUS_KL_PROGRESS_FORMAL_LOAD);
-	SetKL_TestProgress(STATUS_KL_PROGRESS_ELASTIC_DEFORMATION);
-	SetKL_TestProgress(STATUS_KL_PROGRESS_YIELD);
-	SetKL_TestProgress(STATUS_KL_PROGRESS_PLASTIC_DEFORMATION);
-
 	while (g_mainPage.leavePage.flagLeavePage == RESET)
 	{
 		/* 输入处理 */
@@ -929,14 +943,24 @@ static void FromTestParameterCopyToReport( REPORT_TypeDef *pReport )
 	pReport->bgz_area = pCurTest->bgz_area;	
 	pReport->sample_shape_index = pCurTest->sample_shape_index;
 	pReport->yx_diameter = pCurTest->yx_diameter;
-	pReport->maxForce = 0;
-	pReport->maxStrength = 0;
-	pReport->upYieldForce = 0;
-	pReport->downYieldForce = 0;
-	pReport->upYieldStrength = 0;
-	pReport->downYieldStrength = 0;
-	pReport->maxForceSumExtend = 0;
-	pReport->maxForceSumElongation = 0;
+	pReport->parallelLenth = pCurTest->parallelLenth;
+	pReport->extensometerGauge = pCurTest->extensometerGauge;
+	pReport->originalGauge = pCurTest->originalGauge;
+	{
+		uint8_t i;
+		
+		for (i=0; i<MAX_RECORD_TEST_RESULT_NUM; ++i)
+		{
+			pReport->maxForce[i] = 0;
+			pReport->maxStrength[i] = 0;
+			pReport->upYieldForce[i] = 0;
+			pReport->downYieldForce[i] = 0;
+			pReport->upYieldStrength[i] = 0;
+			pReport->downYieldStrength[i] = 0;
+			pReport->maxForceSumExtend[i] = 0;
+			pReport->maxForceSumElongation[i] = 0;
+		}
+	}
 }	
 
 /*------------------------------------------------------------
@@ -1446,6 +1470,23 @@ static uint8_t GetCompletePiecePageNum( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : GetKL_TestCompletePiecePageNum
+ * Description    : 获取抗拉试验已做试块页号
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static uint8_t GetKL_TestCompletePiecePageNum( void )
+{
+	if (g_mainPage.sumPage == 0)
+	{
+		return 0;
+	}
+	
+	return g_testBody.curCompletePieceSerial;
+}
+
+/*------------------------------------------------------------
  * Function Name  : IsCurrentSampleReachToPageTail
  * Description    : 判断当前试块是否已到达页尾
  * Input          : None
@@ -1566,14 +1607,14 @@ static void MainPageWriteKLParameter( void )
 	}
 	
 	MainPageWriteKLTestSerial(g_mainPage.curPage);
-	MainPageWriteKLTestMaxForce(g_readReport.maxForce);
-	MainPageWriteKLTestMaxStrength(g_readReport.maxStrength);
-	MainPageWriteKLTestUpYieldForce(g_readReport.upYieldForce);
-	MainPageWriteKLTestDownYieldForce(g_readReport.downYieldForce);
-	MainPageWriteKLTestUpYieldStrength(g_readReport.upYieldStrength);
-	MainPageWriteKLTestDownYieldStrength(g_readReport.downYieldStrength);
-	MainPageWriteKLTestMaxForceAllExtend(g_readReport.maxForceSumExtend);
-	MainPageWriteKLTestMaxForceTotalElongation(g_readReport.maxForceSumElongation);
+	MainPageWriteKLTestMaxForce(g_readReport.maxForce[g_mainPage.curPage-1]);
+	MainPageWriteKLTestMaxStrength(g_readReport.maxStrength[g_mainPage.curPage-1]);
+	MainPageWriteKLTestUpYieldForce(g_readReport.upYieldForce[g_mainPage.curPage-1]);
+	MainPageWriteKLTestDownYieldForce(g_readReport.downYieldForce[g_mainPage.curPage-1]);
+	MainPageWriteKLTestUpYieldStrength(g_readReport.upYieldStrength[g_mainPage.curPage-1]);
+	MainPageWriteKLTestDownYieldStrength(g_readReport.downYieldStrength[g_mainPage.curPage-1]);
+	MainPageWriteKLTestMaxForceAllExtend(g_readReport.maxForceSumExtend[g_mainPage.curPage-1]);
+	MainPageWriteKLTestMaxForceTotalElongation(g_readReport.maxForceSumElongation[g_mainPage.curPage-1]);
 }
 
 /*------------------------------------------------------------
@@ -3765,6 +3806,11 @@ static void MainPageKeyProcess( void )
 					g_mainPage.leavePage.flagLeavePage = SET;
 					g_mainPage.leavePage.flagSaveData = RESET;
 				}
+				else
+				{
+					g_klTestBody.originalDisplacemen = 0.0f;
+					g_klTestBody.originalDeform = 0.0f;
+				}
 				break;
 			case KEY_DEFORMATE_TARE:
 				if (SendChannelTareCmd(SMPL_BX_NUM) == ERROR)
@@ -3785,6 +3831,9 @@ static void MainPageKeyProcess( void )
 					}
 					else
 					{
+						g_klTestBody.originalDisplacemen = get_smpl_value(SMPL_WY_NUM);
+						g_klTestBody.originalDeform = get_smpl_value(SMPL_BX_NUM);
+						
 						SetDisplacementOrDeformShow(SHOW_DISPLACEMENT);
 					}
 					MainPageConfig();
@@ -4044,21 +4093,16 @@ static FunctionalState MainPageAllowRunTest( void )
 }	
 
 /*------------------------------------------------------------
- * Function Name  : MainPageExecuteTestStartBody
- * Description    : 试验开始
+ * Function Name  : KZKY_TestJumpTestResultPage
+ * Description    : 抗折抗压试验跳转到试验结果页
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MainPageExecuteTestStartBody( void )
+static void KZKY_TestJumpTestResultPage( void )
 {
-	uint8_t curPage = 0;
+	uint8_t curPage = GetCompletePiecePageNum();
 	
-	/* 初始化判破 */
-	InitJudgeBreakPoint();
-	
-	/* 跳转到试验结果页 */
-	curPage = GetCompletePiecePageNum();
 	if(curPage != g_mainPage.curPage)
 	{
 		g_mainPage.curPage = curPage;
@@ -4084,18 +4128,84 @@ static void MainPageExecuteTestStartBody( void )
 	{
 		MainPageClearCursor(g_testBody.curCompletePieceSerial);
 		MainPageLoadCursor(g_testBody.curCompletePieceSerial+1);
-	}	
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : KL_TestJumpTestResultPage
+ * Description    : 抗拉试验跳转到试验结果页
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void KL_TestJumpTestResultPage( void )
+{
+	uint8_t curPage = GetKL_TestCompletePiecePageNum();
+	uint8_t targetPage = 0;
 	
+	targetPage = (curPage + 1) % (g_mainPage.sumPage + 1);
+	
+	if (g_mainPage.curPage != targetPage)
+	{
+		g_mainPage.curPage = targetPage;
+		
+		ReloadTestResultArea();
+		
+		#ifdef DEBUG_TEST_LOAD
+			printf("跳转到已做试块页面！\r\n");
+		#endif
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageExecuteTestStartBody
+ * Description    : 试验开始
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageExecuteTestStartBody( void )
+{
+	switch ( g_mainPage.testAttribute )
+	{
+		case COMPRESSION_TEST:
+		case BENDING_TEST:
+			/* 初始化判破 */
+			InitJudgeBreakPoint();
+		
+			/* 跳转到试验结果页 */
+			KZKY_TestJumpTestResultPage();
+			
+			g_mainPage.refreshShortcut = ENABLE;
+			break;
+		case STRETCH_TEST:	
+			/* 初始化判破 */
+			InitJudgeBreakPoint();
+			
+			/* 初始化抗拉试验 */
+			InitKL_TestBody(&g_klTestBody);
+		
+			InitKL_TestProgress();
+			SetKL_TestProgress(STATUS_KL_PROGRESS_IDLE);
+			SetKL_TestProgress(STATUS_KL_PROGRESS_ELASTIC_DEFORMATION);
+		
+			/* 跳转到试验结果页 */
+			KL_TestJumpTestResultPage();
+			
+			/* 此时菜单栏正在显示进度，不能刷新 */
+			g_mainPage.refreshShortcut = DISABLE;
+			break;
+	}
+
 	g_testBody.startTest = SET;
 	g_testBody.endTest = RESET;
+	
 	g_testBody.flagOnePieceSampleComplete = RESET;
 	g_testBody.flagOneGroupSampleComplete = RESET;
 	g_testBody.flagStartJudgeBreak = RESET;
 	
 	g_testBody.breakPeak = 0;
 	g_testBody.breakStrength = 0;
-	
-	g_mainPage.refreshShortcut = ENABLE;
 	
 	SetTestStatus(TEST_LOAD);
 }
@@ -4234,6 +4344,123 @@ static void MainPageJudgeBreakCoreCycle( void )
 		#endif
 	}
 }	
+
+/*------------------------------------------------------------
+ * Function Name  : KL_TestLoadCoreCycle
+ * Description    : 抗拉试验加载循环体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void KL_TestLoadCoreCycle( void )
+{
+	float force = get_smpl_value(SMPL_FH_NUM);
+	float peak = GetPeakValue(SMPL_FH_NUM);
+	
+	/* 首次力值下降点 */
+	if (force < peak)
+	{
+		g_klTestBody.upYieldForce = peak;
+		
+		/* 下屈服力值不能高于上屈服力值 */
+		g_klTestBody.downYieldForce = g_klTestBody.upYieldForce;
+		
+		g_klTestBody.upYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.upYieldForce);
+		
+		SetTestStatus(TEST_YIELD);
+		
+		SetKL_TestProgress(STATUS_KL_PROGRESS_YIELD);
+		
+		#ifdef DEBUG_TEST_LOAD
+			printf("到达上屈服点！\r\n");
+			printf("上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
+		#endif
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : KL_TestYieldCoreCycle
+ * Description    : 抗拉试验屈服段循环体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void KL_TestYieldCoreCycle( void )
+{
+	float force = get_smpl_value(SMPL_FH_NUM);
+	float startLoadForce = smpl_ctrl_entry_get(SMPL_FH_NUM);
+	
+	/* 记录屈服阶段最低力值点 */
+	if (force < g_klTestBody.downYieldForce)
+	{
+		g_klTestBody.downYieldForce = force;
+	}
+	
+	/* 离开屈服段 */
+	if (force > g_klTestBody.upYieldForce)
+	{
+		g_klTestBody.downYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.downYieldForce);
+		
+		SetTestStatus(TEST_DEFORM);
+		
+		SetKL_TestProgress(STATUS_KL_PROGRESS_PLASTIC_DEFORMATION);
+		
+		#ifdef DEBUG_TEST_LOAD
+			printf("离开屈服段！\r\n");
+			printf("下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);
+		#endif
+	}
+	
+	if (force < startLoadForce)
+	{
+		g_mainPage.refreshShortcut = ENABLE;
+		
+		SetTestStatus(TEST_IDLE);
+		
+		#ifdef DEBUG_TEST_LOAD
+			printf("试验停止！\r\n");
+		#endif
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : KL_TestDeformCoreCycle
+ * Description    : 抗拉试验塑性变形段循环体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void KL_TestDeformCoreCycle( void )
+{
+	float force = get_smpl_value(SMPL_FH_NUM);
+	float startLoadForce = smpl_ctrl_entry_get(SMPL_FH_NUM);
+	
+	if (force < startLoadForce)
+	{
+		float peak = GetPeakValue(SMPL_FH_NUM);
+		
+		g_klTestBody.maxForce = peak;
+		g_klTestBody.maxStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.maxForce);
+		
+		SetTestStatus(TEST_SAVE);
+		SetKL_TestProgress(STATUS_KL_PROGRESS_END);
+		
+		g_testBody.startTest = RESET;
+		g_testBody.flagOnePieceSampleComplete = SET;
+		
+		g_testBody.curCompletePieceSerial++;
+		
+		if (g_testBody.curCompletePieceSerial >= g_mainPage.sumSampleNum)
+		{
+			g_testBody.flagOneGroupSampleComplete = SET;
+		}
+		
+		#ifdef DEBUG_TEST_LOAD
+			printf("试验后处理！\r\n");
+			printf("最大力：%f, 最大强度：%f\r\n",g_klTestBody.maxForce,g_klTestBody.maxStrength);
+		#endif
+	}
+}
 
 /*------------------------------------------------------------
  * Function Name  : JudgeForceAvail
@@ -4856,13 +5083,43 @@ static void MainPageExecuteHandEndGroup( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : MainPageExecuteBreakProcess
- * Description    : 执行判破
+ * Function Name  : GetMaxForceSumExtend
+ * Description    : 获取最大力总延伸
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MainPageExecuteBreakProcess( void )
+static float GetMaxForceSumExtend( void )
+{
+	return g_klTestBody.deform;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetMaxForceSumElongation
+ * Description    : 获取最大力总延伸率
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static float GetMaxForceSumElongation( void )
+{
+	float maxForceSumExtend = GetMaxForceSumExtend();
+	float maxForceSumElongation = 0;
+	float parallelLenth = GetParallelLenth();
+	
+	maxForceSumElongation = maxForceSumExtend / parallelLenth * 100;
+	
+	return maxForceSumElongation;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageExecuteEndOnePieceProcess
+ * Description    : 结束一块
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageExecuteEndOnePieceProcess( void )
 {
 	if (g_testBody.flagOnePieceSampleComplete == SET)
 	{
@@ -4874,19 +5131,55 @@ static void MainPageExecuteBreakProcess( void )
 		
 		g_testBody.isExecuteEndGroup = YES;
 		
-		MainPageWriteForce(GetCompletePieceSerialInCurrentPageSerial(),g_testBody.breakPeak);
-		MainPageWriteStrength(GetCompletePieceSerialInCurrentPageSerial(),g_testBody.breakStrength);
-		
-		if (g_mainPage.curPage)
+		switch ( g_mainPage.testAttribute )
 		{
-			Show_MainPageTestResultTable(GetCompletePieceSerialInCurrentPageSerial(),OBJECT_FORCE);
-			Show_MainPageTestResultTable(GetCompletePieceSerialInCurrentPageSerial(),OBJECT_STRENGTH);
-		}
-		
-		if (g_testBody.curCompletePieceSerial)
-		{
-			g_readReport.force[g_testBody.curCompletePieceSerial-1] = g_testBody.breakPeak;
-			g_readReport.strength[g_testBody.curCompletePieceSerial-1] = g_testBody.breakStrength;
+			case COMPRESSION_TEST:
+			case BENDING_TEST:
+				MainPageWriteForce(GetCompletePieceSerialInCurrentPageSerial(),g_testBody.breakPeak);
+				MainPageWriteStrength(GetCompletePieceSerialInCurrentPageSerial(),g_testBody.breakStrength);
+				
+				if (g_mainPage.curPage)
+				{
+					Show_MainPageTestResultTable(GetCompletePieceSerialInCurrentPageSerial(),OBJECT_FORCE);
+					Show_MainPageTestResultTable(GetCompletePieceSerialInCurrentPageSerial(),OBJECT_STRENGTH);
+				}
+				
+				if (g_testBody.curCompletePieceSerial)
+				{
+					g_readReport.force[g_testBody.curCompletePieceSerial-1] = g_testBody.breakPeak;
+					g_readReport.strength[g_testBody.curCompletePieceSerial-1] = g_testBody.breakStrength;
+				}
+				break;
+			case STRETCH_TEST:	
+				if (g_testBody.curCompletePieceSerial)
+				{
+					g_klTestBody.maxForceSumExtend = GetMaxForceSumExtend();
+					g_klTestBody.maxForceSumElongation = GetMaxForceSumElongation();
+				
+					g_readReport.maxForce[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForce;
+					g_readReport.maxStrength[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxStrength;
+					g_readReport.upYieldForce[g_testBody.curCompletePieceSerial-1] = g_klTestBody.upYieldForce;
+					g_readReport.downYieldForce[g_testBody.curCompletePieceSerial-1] = g_klTestBody.downYieldForce;
+					g_readReport.upYieldStrength[g_testBody.curCompletePieceSerial-1] = g_klTestBody.upYieldStrength;
+					g_readReport.downYieldStrength[g_testBody.curCompletePieceSerial-1] = g_klTestBody.downYieldStrength;
+					g_readReport.maxForceSumExtend[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForceSumExtend;
+					g_readReport.maxForceSumElongation[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForceSumElongation;
+				}
+				
+				if (g_mainPage.curPage)
+				{
+					MainPageWriteKLTestMaxForce(g_klTestBody.maxForce);
+					MainPageWriteKLTestMaxStrength(g_klTestBody.maxStrength);
+					MainPageWriteKLTestUpYieldForce(g_klTestBody.upYieldForce);
+					MainPageWriteKLTestDownYieldForce(g_klTestBody.downYieldForce);
+					MainPageWriteKLTestUpYieldStrength(g_klTestBody.upYieldStrength);
+					MainPageWriteKLTestDownYieldStrength(g_klTestBody.downYieldStrength);
+					MainPageWriteKLTestMaxForceAllExtend(g_klTestBody.maxForceSumExtend);
+					MainPageWriteKLTestMaxForceTotalElongation(g_klTestBody.maxForceSumElongation);
+					
+					Show_MainPageKLTestResultOneLevelMenuContent();
+				}
+				break;
 		}
 		
 		g_readReport.sample_serial = g_testBody.curCompletePieceSerial;
@@ -4983,7 +5276,7 @@ static void MainPageTestAfterDisposeExecuteCycle( void )
 	MainPageExecuteHandEndGroup();
 	
 	/* 一块试样结束 */
-	MainPageExecuteBreakProcess();
+	MainPageExecuteEndOnePieceProcess();
 	
 	/* 一组试样结束 */
 	MainPageExecuteEndOneGroupProcess();
@@ -4994,6 +5287,89 @@ static void MainPageTestAfterDisposeExecuteCycle( void )
 	/* 自动打印报告 */
 	MainPageAutoPrintReportProcess();
 }	
+
+/*------------------------------------------------------------
+ * Function Name  : AccordDispalcementGetDeformIncrement
+ * Description    : 获取变形增量
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static float AccordDispalcementGetDeformIncrement( float dispalcement )
+{
+	float originalGauge = GetOriginalGauge();
+	float extensometerGauge = GetExtensometerGauge();
+	float deformIncrement = 0;
+	const float COF = 1.0f;
+	
+	deformIncrement = COF * (extensometerGauge / originalGauge) * (dispalcement - g_klTestBody.originalDisplacemen);
+	
+	return deformIncrement;
+}	
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageGetDeform
+ * Description    : 获取变形量
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static float MainPageGetDeform( void )
+{
+	float deform = 0;
+	
+	if (g_mainPage.testAttribute != STRETCH_TEST)
+	{
+		return 0;
+	}
+	
+	if (GetDisplacementOrDeformShow() == SHOW_DISPLACEMENT)
+	{
+		deform = g_klTestBody.originalDeform + AccordDispalcementGetDeformIncrement( get_smpl_value(SMPL_WY_NUM) );
+	}
+	else
+	{
+		deform = get_smpl_value(SMPL_BX_NUM);
+	}
+	
+	#ifdef DEBUG_DEFORM_SHOW
+		printf("deform： %f \r\n",deform);
+	#endif
+	
+	return deform;
+}	
+
+/*------------------------------------------------------------
+ * Function Name  : CountDeformCycle
+ * Description    : 计算变形循环体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void CountDeformCycle( void )
+{
+	float deform = 0;
+	static float recordPeak = 0;
+	float nowPeak = 0;
+	
+	if (g_mainPage.testAttribute != STRETCH_TEST)
+	{
+		return;
+	}
+	
+	deform = MainPageGetDeform();
+	
+	nowPeak = GetPeakValue(SMPL_FH_NUM);
+	
+	/* 检测峰值变化 */
+	if ( fabs(nowPeak-recordPeak) > MIN_FLOAT_PRECISION_DIFF_VALUE)
+	{
+		recordPeak = nowPeak;
+		
+		/* 计算力值峰值时，对应的变形值 */
+		g_klTestBody.deform = deform;
+	}
+}
 
 /*------------------------------------------------------------
  * Function Name  : MainPageTestExecuteCoreCycle
@@ -5015,6 +5391,7 @@ static void MainPageTestExecuteCoreCycle( void )
 				if (MainPageAllowRunTest() == ENABLE)
 				{
 					MainPageExecuteTestStartBody();
+					
 					#ifdef DEBUG_TEST_LOAD
 						printf("试验加载！\r\n");
 					#endif
@@ -5038,7 +5415,22 @@ static void MainPageTestExecuteCoreCycle( void )
 				#endif
 			}
 			
-			MainPageJudgeBreakCoreCycle();			
+			switch ( g_mainPage.testAttribute )
+			{
+				case COMPRESSION_TEST:
+				case BENDING_TEST:
+					MainPageJudgeBreakCoreCycle();		
+					break;
+				case STRETCH_TEST:	
+					KL_TestLoadCoreCycle();
+					break;
+			}			
+			break;
+		case TEST_YIELD:
+			KL_TestYieldCoreCycle();
+			break;
+		case TEST_DEFORM:
+			KL_TestDeformCoreCycle();
 			break;
 		case TEST_BREAK:
 			SetShortCutMenuCue(COLOR_POINT,DARKBLUE,"试样已破碎！");
@@ -5055,6 +5447,7 @@ static void MainPageTestExecuteCoreCycle( void )
 				GUI_ClearShortcutMenu();
 				
 				MainPageExecuteTestEndBody();
+				
 				SetTestStatus(TEST_SAVE);
 				
 				#ifdef DEBUG_TEST_LOAD
@@ -5064,6 +5457,7 @@ static void MainPageTestExecuteCoreCycle( void )
 			break;
 		case TEST_SAVE:
 			MainPageTestAfterDisposeExecuteCycle();
+		
 			SetTestStatus(TEST_IDLE);
 
 			g_mainPage.refreshShortcut = ENABLE;
@@ -5077,6 +5471,9 @@ static void MainPageTestExecuteCoreCycle( void )
 			SetTestStatus(TEST_IDLE);	
 			break;
 	}
+	
+	/* 计算变形量 */
+	CountDeformCycle();
 }
 
 /*------------------------------------------------------------
@@ -5301,31 +5698,30 @@ static void InitKL_TestProgress( void )
 	
 	g_klTestProgress.pHead = NULL;
 	g_klTestProgress.pSeparator = " -> ";
-	g_klTestProgress.fontSize = 24;
 }
 
-/*------------------------------------------------------------
- * Function Name  : FindKL_TestProgressStatusElement
- * Description    : 查找与状态匹配的元素
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void *FindKL_TestProgressStatusElement( STATUS_KL_TEST_PROGRESS_TypeDef status )
-{
-	LIST_KL_TEST_PROGRESS_TypeDef *pElement = NULL;
-	
-	/* 遍历所有元素 */
-	list_for_each_entry_reverse(pElement,&g_klTestProgress.head,LIST_KL_TEST_PROGRESS_TypeDef,list)
-	{
-		if (pElement->status == status)
-		{
-			return pElement;
-		}
-	}
-	
-	return NULL;
-}
+///*------------------------------------------------------------
+// * Function Name  : FindKL_TestProgressStatusElement
+// * Description    : 查找与状态匹配的元素
+// * Input          : None
+// * Output         : None
+// * Return         : None
+// *------------------------------------------------------------*/
+//static void *FindKL_TestProgressStatusElement( STATUS_KL_TEST_PROGRESS_TypeDef status )
+//{
+//	LIST_KL_TEST_PROGRESS_TypeDef *pElement = NULL;
+//	
+//	/* 遍历所有元素 */
+//	list_for_each_entry_reverse(pElement,&g_klTestProgress.head,LIST_KL_TEST_PROGRESS_TypeDef,list)
+//	{
+//		if (pElement->status == status)
+//		{
+//			return pElement;
+//		}
+//	}
+//	
+//	return NULL;
+//}
 
 /*------------------------------------------------------------
  * Function Name  : InitKL_TestProgress
@@ -5337,7 +5733,7 @@ static void *FindKL_TestProgressStatusElement( STATUS_KL_TEST_PROGRESS_TypeDef s
 static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status )
 {
 	const uint16_t START_X = 10;
-	const uint16_t START_Y = 400;//LCD_WIDTH_Y - 27;	
+	const uint16_t START_Y = LCD_WIDTH_Y - 27;	
 	
 	switch ( status )
 	{
@@ -5351,12 +5747,14 @@ static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status )
 			g_klTestProgress.progressList[status].fontSize = 24;
 			g_klTestProgress.progressList[status].name = "";
 			g_klTestProgress.progressList[status].status = STATUS_KL_PROGRESS_IDLE;
+			g_klTestProgress.progressList[status].enShowSeparator = DISABLE;
 			
 			list_add(&g_klTestProgress.progressList[status].list,&g_klTestProgress.head);	
 			break;
 		case STATUS_KL_PROGRESS_FORMAL_LOAD:
 			{
-				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = FindKL_TestProgressStatusElement(STATUS_KL_PROGRESS_IDLE);				
+				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = \
+					list_first_entry(&g_klTestProgress.head,LIST_KL_TEST_PROGRESS_TypeDef,list);				
 				if (pElement == NULL)
 				{
 					return;
@@ -5374,13 +5772,15 @@ static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status )
 				g_klTestProgress.progressList[status].fontSize = 24;
 				g_klTestProgress.progressList[status].name = pKLTestProgressName[0];
 				g_klTestProgress.progressList[status].status = STATUS_KL_PROGRESS_FORMAL_LOAD;
+				g_klTestProgress.progressList[status].enShowSeparator = ENABLE;
 				
 				list_add(&g_klTestProgress.progressList[status].list,&g_klTestProgress.head);
 			}
 			break;
 		case STATUS_KL_PROGRESS_ELASTIC_DEFORMATION:
 			{
-				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = FindKL_TestProgressStatusElement(STATUS_KL_PROGRESS_FORMAL_LOAD);				
+				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = \
+					list_first_entry(&g_klTestProgress.head,LIST_KL_TEST_PROGRESS_TypeDef,list);				
 				if (pElement == NULL)
 				{
 					return;
@@ -5392,20 +5792,22 @@ static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status )
 				
 				g_klTestProgress.progressList[status].x = pElement->x + \
 						( strlen(pElement->name) * (pElement->fontSize >> 1) ) +\
-						( strlen(g_klTestProgress.pSeparator) * (g_klTestProgress.fontSize >> 1) );
+						( strlen(g_klTestProgress.pSeparator) * (pElement->fontSize >> 1) );
 				g_klTestProgress.progressList[status].y = pElement->y;
 				g_klTestProgress.progressList[status].pointColor = COLOR_POINT;
 				g_klTestProgress.progressList[status].backColor = DARKBLUE;
 				g_klTestProgress.progressList[status].fontSize = 24;
 				g_klTestProgress.progressList[status].name = pKLTestProgressName[1];
 				g_klTestProgress.progressList[status].status = STATUS_KL_PROGRESS_ELASTIC_DEFORMATION;
+				g_klTestProgress.progressList[status].enShowSeparator = ENABLE;
 				
 				list_add(&g_klTestProgress.progressList[status].list,&g_klTestProgress.head);
 			}
 			break;
 		case STATUS_KL_PROGRESS_YIELD:	
 			{
-				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = FindKL_TestProgressStatusElement(STATUS_KL_PROGRESS_ELASTIC_DEFORMATION);				
+				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = \
+					list_first_entry(&g_klTestProgress.head,LIST_KL_TEST_PROGRESS_TypeDef,list);				
 				if (pElement == NULL)
 				{
 					return;
@@ -5417,20 +5819,22 @@ static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status )
 				
 				g_klTestProgress.progressList[status].x = pElement->x + \
 						( strlen(pElement->name) * (pElement->fontSize >> 1) ) +\
-						( strlen(g_klTestProgress.pSeparator) * (g_klTestProgress.fontSize >> 1) );
+						( strlen(g_klTestProgress.pSeparator) * (pElement->fontSize >> 1) );
 				g_klTestProgress.progressList[status].y = pElement->y;
 				g_klTestProgress.progressList[status].pointColor = COLOR_POINT;
 				g_klTestProgress.progressList[status].backColor = DARKBLUE;
 				g_klTestProgress.progressList[status].fontSize = 24;
 				g_klTestProgress.progressList[status].name = pKLTestProgressName[2];
 				g_klTestProgress.progressList[status].status = STATUS_KL_PROGRESS_YIELD;
+				g_klTestProgress.progressList[status].enShowSeparator = ENABLE;
 				
 				list_add(&g_klTestProgress.progressList[status].list,&g_klTestProgress.head);
 			}
 			break;
 		case STATUS_KL_PROGRESS_PLASTIC_DEFORMATION:
 			{
-				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = FindKL_TestProgressStatusElement(STATUS_KL_PROGRESS_YIELD);				
+				LIST_KL_TEST_PROGRESS_TypeDef * const pElement = \
+					list_first_entry(&g_klTestProgress.head,LIST_KL_TEST_PROGRESS_TypeDef,list);				
 				if (pElement == NULL)
 				{
 					return;
@@ -5442,17 +5846,22 @@ static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status )
 				
 				g_klTestProgress.progressList[status].x = pElement->x + \
 						( strlen(pElement->name) * (pElement->fontSize >> 1) ) +\
-						( strlen(g_klTestProgress.pSeparator) * (g_klTestProgress.fontSize >> 1) );
+						( strlen(g_klTestProgress.pSeparator) * (pElement->fontSize >> 1) );
 				g_klTestProgress.progressList[status].y = pElement->y;
 				g_klTestProgress.progressList[status].pointColor = COLOR_POINT;
 				g_klTestProgress.progressList[status].backColor = DARKBLUE;
 				g_klTestProgress.progressList[status].fontSize = 24;
 				g_klTestProgress.progressList[status].name = pKLTestProgressName[3];
 				g_klTestProgress.progressList[status].status = STATUS_KL_PROGRESS_PLASTIC_DEFORMATION;
+				g_klTestProgress.progressList[status].enShowSeparator = DISABLE;
 				
 				list_add(&g_klTestProgress.progressList[status].list,&g_klTestProgress.head);
 			}
-			break;
+			break;			
+		case STATUS_KL_PROGRESS_END:
+			GUI_ClearShortcutMenu();
+			
+			return;
 
 		default:
 			break;
@@ -5464,19 +5873,39 @@ static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status )
 		
 		list_for_each_entry_reverse(pElement,&g_klTestProgress.head,LIST_KL_TEST_PROGRESS_TypeDef,list)
 		{			
-			if ( strcmp(pElement->name,"") )
+			GUI_DispStr24At(pElement->x,pElement->y,pElement->pointColor,pElement->backColor,pElement->name);
+			
+			if (pElement->enShowSeparator == ENABLE)
 			{
-				GUI_DispStr24At(pElement->x,pElement->y,pElement->pointColor,pElement->backColor,pElement->name);
+				uint16_t x = pElement->x + strlen(pElement->name) * (pElement->fontSize >> 1) ;
 				
-				if (pElement->status != STATUS_KL_PROGRESS_PLASTIC_DEFORMATION)
-				{
-					uint16_t x = pElement->x + strlen(pElement->name) * (pElement->fontSize >> 1) ;
-					
-					GUI_DispStr24At(x,pElement->y,COLOR_POINT,COLOR_BACK,g_klTestProgress.pSeparator);
-				}
+				GUI_DispStr24At(x,pElement->y,COLOR_POINT,COLOR_BACK,g_klTestProgress.pSeparator);
 			}
 		}
 	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : InitKL_TestBody
+ * Description    : 初始化
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest )
+{
+	pKlTest->maxForce = 0;
+	pKlTest->maxStrength = 0;
+	pKlTest->upYieldForce = 0;
+	pKlTest->downYieldForce = 0;
+	pKlTest->upYieldStrength = 0;
+	pKlTest->downYieldStrength = 0;
+	pKlTest->maxForceSumExtend = 0;
+	pKlTest->maxForceSumElongation = 0;
+	
+//	pKlTest->originalDisplacemen = 0;
+//	pKlTest->originalDeform = 0;
+	pKlTest->deform = 0;
 }
 
 /*------------------------------------------------------------

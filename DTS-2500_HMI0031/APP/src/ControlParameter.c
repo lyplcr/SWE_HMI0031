@@ -1635,7 +1635,7 @@ static TestStatus ControlParameterCheckDataCycle( void )
 				tempf = str2float(g_controlParameter.parameterData[index]);
 				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
 				{
-					tempu *= 1000;
+					tempf *= 1000;
 					if ((tempf < 100) || (tempf > 100000))
 					{
 						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[10]);

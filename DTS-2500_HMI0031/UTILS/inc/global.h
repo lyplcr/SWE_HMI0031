@@ -29,7 +29,7 @@
 
 #define RECORD_COORDINATE_PERIOD		100					//100ms记录一个点
 #define RECORD_COORDINATE_FREQ			(1000/RECORD_COORDINATE_PERIOD)	
-#define RECORD_COORDINATE_TIME_SECOND	(5 * 60)			//5分钟	
+#define RECORD_COORDINATE_TIME_SECOND	(6 * 60)			//6分钟	
 #define DECORD_COORDINATE_FORCE_NUM		(RECORD_COORDINATE_TIME_SECOND * RECORD_COORDINATE_FREQ) 
 
 /* Exported types ------------------------------------------------------------*/
@@ -96,6 +96,8 @@ typedef enum
 	TEST_IDLE = 0,		//空闲
 	TEST_LOAD,			//加载
 	TEST_KEEP,			//保持
+	TEST_YIELD,			//屈服
+	TEST_DEFORM,		//变形
 	TEST_BREAK,			//判破
 	TEST_UNLOAD,		//卸载
 	TEST_SAVE,			//存储
@@ -403,6 +405,9 @@ void SetDynamicContentFHSpeed( FH_UINT_TypeDef fhUnit );
 void SetDynamicContentWYSpeed( WY_UINT_TypeDef wyUnit );
 void SetDynamicContentBXSpeed( BX_UINT_TypeDef bxUnit );
 
+float GetExtensometerGauge( void );
+float GetParallelLenth( void );
+float GetOriginalGauge( void );
 
 #endif
 

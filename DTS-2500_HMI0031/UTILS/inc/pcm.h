@@ -125,8 +125,10 @@ typedef struct
 	float		gz_area;						//规则试件的面积	
 	uint8_t 	yx_diameter_index;				//圆形直径索引值
 	float 		yx_diameter;					//圆形直径
-	uint16_t 	extensometer_gauge;				//引伸计标距
-	uint8_t 	rsv[29];
+	float 		extensometerGauge;				//引伸计标距
+	float 		parallelLenth;					//平行长度
+	float		originalGauge;					//原始标距
+	uint8_t 	rsv[19];
 }TEST_TypeDef; 	/* 194Byte(0XC2) */	
     
         

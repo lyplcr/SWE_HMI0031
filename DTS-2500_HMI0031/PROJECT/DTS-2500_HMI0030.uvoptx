@@ -208,6 +208,11 @@
           <WinNumber>1</WinNumber>
           <ItemText>g_klTestProgress.progressList</ItemText>
         </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>pElement</ItemText>
+        </Ww>
       </WatchWindow1>
       <MemoryWindow1>
         <Mm>

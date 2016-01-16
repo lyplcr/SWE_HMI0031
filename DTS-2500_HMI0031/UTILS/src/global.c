@@ -696,6 +696,12 @@ void RefreshDynamicTestStatus( uint16_t x, uint16_t y, uint16_t pointColor, uint
 		case TEST_KEEP:
 			GUI_DispStr16At(x,y,pointColor,backColor,"保持");
 			break;
+		case TEST_YIELD:
+			GUI_DispStr16At(x,y,pointColor,backColor,"屈服");
+			break;
+		case TEST_DEFORM:
+			GUI_DispStr16At(x,y,pointColor,backColor,"变形");
+			break;
 		case TEST_BREAK:
 			GUI_DispStr16At(x,y,pointColor,backColor,"判破");
 			break;
@@ -2823,6 +2829,42 @@ void SetDynamicContentBXSpeed( BX_UINT_TypeDef bxUnit )
 	}
 
 	SetInterfaceElementBXSpeed(speed);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetExtensometerGauge
+ * Description    : 获取引伸计标距
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float GetExtensometerGauge( void )
+{
+	return pTest->extensometerGauge;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetParallelLenth
+ * Description    : 获取平行长度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float GetParallelLenth( void )
+{
+	return pTest->parallelLenth;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetOriginalGauge
+ * Description    : 获取原始标距
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float GetOriginalGauge( void )
+{
+	return pTest->originalGauge;
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

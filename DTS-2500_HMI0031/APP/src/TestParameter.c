@@ -51,6 +51,8 @@ typedef enum
 	OBJECT_SHAPE,				/* 形状 	*/
 	OBJECT_ROUND_DIAMETER,		/* 圆形直径 	*/
 	OBJECT_EXTERNSOMETER_GAUGE,	/* 引伸计标距 */
+	OBJECT_PARALLEL_LENTH,		/* 平行长度 */
+	OBJECT_ORIGINAL_GAUGE,		/* 原始标距 */
 }ALL_PATAMETER_NAME_TypeDef;
 
 typedef enum				//水泥胶砂抗折
@@ -169,8 +171,10 @@ typedef enum				 //金属室温抗拉
 {
 	TEST_SERIAL_KLJSSW = 0,			//试验编号
 	SAMPLE_ROUND_DIAMETER_KLJSSW,	//圆形直径
-	ORIGINAL_CROSS_AREA,			//原始截面积
-	EXTERNSOMETER_GAUGE,			//引伸计标距
+	ORIGINAL_CROSS_AREA_KLJSSW,		//原始截面积
+	EXTERNSOMETER_GAUGE_KLJSSW,		//引伸计标距
+	ORIGINAL_GAUGE_KLJSSW,			//原始标距
+	PARALLEL_LENTH_KLJSSW,			//平行长度
 	SAMPLE_NUM_KLJSSW,				//试件根数
 }KLJSSW_PARA_NAME_TypeDef;
 
@@ -387,6 +391,8 @@ const char * const pValue_KLJSSW[] =
 	"原始截面积：",
 	"引伸计标距：",
 	"试件根数：",
+	"平行长度：",
+	"原始标距：",
 };
 
 
@@ -1797,27 +1803,33 @@ static void TestParameterConfig( void )
 			g_testParameter.pTestStandard = pTestStandard[4];
 		
 			/* 试块个数 */
-			g_testParameter.curParameterNum = 5;
+			g_testParameter.curParameterNum = 7;
 			
 			/* 索引值 */
 			g_testParameter.indexArray[TEST_SERIAL_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
 			g_testParameter.indexArray[SAMPLE_ROUND_DIAMETER_KLJSSW] 	= OBJECT_ROUND_DIAMETER;		/* 圆形直径 */
-			g_testParameter.indexArray[ORIGINAL_CROSS_AREA] 			= OBJECT_AREA;					/* 原始截面积 */
-			g_testParameter.indexArray[EXTERNSOMETER_GAUGE] 			= OBJECT_EXTERNSOMETER_GAUGE;	/* 引伸计标距 */
+			g_testParameter.indexArray[ORIGINAL_CROSS_AREA_KLJSSW] 		= OBJECT_AREA;					/* 原始截面积 */
+			g_testParameter.indexArray[EXTERNSOMETER_GAUGE_KLJSSW] 		= OBJECT_EXTERNSOMETER_GAUGE;	/* 引伸计标距 */
+			g_testParameter.indexArray[ORIGINAL_GAUGE_KLJSSW] 			= OBJECT_ORIGINAL_GAUGE;		/* 原始标距 */
+			g_testParameter.indexArray[PARALLEL_LENTH_KLJSSW]			= OBJECT_PARALLEL_LENTH;		/* 平行长度 	*/
 			g_testParameter.indexArray[SAMPLE_NUM_KLJSSW] 	        	= OBJECT_SPECIMEN_NUMS;			/* 试件边长 */
 			
 			/* 参数名称 */
 			g_testParameter.pParameterNameArray[TEST_SERIAL_KLJSSW] 			= pValue_KLJSSW[1];
 			g_testParameter.pParameterNameArray[SAMPLE_ROUND_DIAMETER_KLJSSW] 	= pValue_KLJSSW[2];
-			g_testParameter.pParameterNameArray[ORIGINAL_CROSS_AREA] 			= pValue_KLJSSW[3];
-			g_testParameter.pParameterNameArray[EXTERNSOMETER_GAUGE] 			= pValue_KLJSSW[4];
+			g_testParameter.pParameterNameArray[ORIGINAL_CROSS_AREA_KLJSSW] 	= pValue_KLJSSW[3];
+			g_testParameter.pParameterNameArray[EXTERNSOMETER_GAUGE_KLJSSW] 	= pValue_KLJSSW[4];
+			g_testParameter.pParameterNameArray[ORIGINAL_GAUGE_KLJSSW] 			= pValue_KLJSSW[7];
+			g_testParameter.pParameterNameArray[PARALLEL_LENTH_KLJSSW]			= pValue_KLJSSW[6];
 			g_testParameter.pParameterNameArray[SAMPLE_NUM_KLJSSW] 				= pValue_KLJSSW[5];
 			
 			/* 单位 */
 			g_testParameter.pParameterUnitArray[TEST_SERIAL_KLJSSW] 			= "NULL";
 			g_testParameter.pParameterUnitArray[SAMPLE_ROUND_DIAMETER_KLJSSW] 	= pUnitType[4];
-			g_testParameter.pParameterUnitArray[ORIGINAL_CROSS_AREA]			= pUnitType[5];
-			g_testParameter.pParameterUnitArray[EXTERNSOMETER_GAUGE] 			= pUnitType[4];
+			g_testParameter.pParameterUnitArray[ORIGINAL_CROSS_AREA_KLJSSW]		= pUnitType[5];
+			g_testParameter.pParameterUnitArray[EXTERNSOMETER_GAUGE_KLJSSW] 	= pUnitType[4];
+			g_testParameter.pParameterUnitArray[ORIGINAL_GAUGE_KLJSSW] 			= pUnitType[4];
+			g_testParameter.pParameterUnitArray[PARALLEL_LENTH_KLJSSW]			= pUnitType[4];
 			g_testParameter.pParameterUnitArray[SAMPLE_NUM_KLJSSW] 				= "NULL";
 			
 			/* 标题 */
@@ -1826,36 +1838,46 @@ static void TestParameterConfig( void )
 			/* 二级菜单参数个数 */
 			g_testParameter.twoLevelMenu[TEST_SERIAL_KLJSSW].parameterCnt 			= 0;
 			g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].parameterCnt	= 9;
-			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA].parameterCnt 			= 0;
-			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE].parameterCnt 			= 0;
+			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_KLJSSW].parameterCnt 	= 0;
+			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_KLJSSW].parameterCnt 	= 0;
+			g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_KLJSSW].parameterCnt 		= 0;
+			g_testParameter.twoLevelMenu[PARALLEL_LENTH_KLJSSW].parameterCnt 		= 0;
 			g_testParameter.twoLevelMenu[SAMPLE_NUM_KLJSSW].parameterCnt 	    	= 7;
 			
 			/* 二级菜单类型 */
 			g_testParameter.twoLevelMenu[TEST_SERIAL_KLJSSW].parameterType 				= IMMEDIATELY_PUTIN_SHIFT;
 			g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].parameterType 	= USE_USER_DEFINE;
-			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA].parameterType 			= NONE_PARAMETER;
-			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE].parameterType 			= IMMEDIATELY_PUTIN_NONE;
+			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_KLJSSW].parameterType 		= NONE_PARAMETER;
+			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_KLJSSW].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+			g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_KLJSSW].parameterType 			= IMMEDIATELY_PUTIN_NONE;
+			g_testParameter.twoLevelMenu[PARALLEL_LENTH_KLJSSW].parameterType			= IMMEDIATELY_PUTIN_NONE;
 			g_testParameter.twoLevelMenu[SAMPLE_NUM_KLJSSW].parameterType 	    		= USE_USER_DEFINE;
 			
 			/* 二级菜单参数名 */
 			g_testParameter.twoLevelMenu[TEST_SERIAL_KLJSSW].pParameterNameArray 				= NULL;
 			g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].pParameterNameArray 		= pRoundDiameter_KLJSSW;
-			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA].pParameterNameArray 				= NULL;
-			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE].pParameterNameArray 				= NULL;
+			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_KLJSSW].pParameterNameArray 		= NULL;
+			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_KLJSSW].pParameterNameArray 		= NULL;
+			g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_KLJSSW].pParameterNameArray 			= NULL;
+			g_testParameter.twoLevelMenu[PARALLEL_LENTH_KLJSSW].pParameterNameArray				= NULL;
 			g_testParameter.twoLevelMenu[SAMPLE_NUM_KLJSSW].pParameterNameArray 				= pSample_num;
             
 			/* 数据保存类型 */
 			g_testParameter.oneLevelMenu[TEST_SERIAL_KLJSSW].saveType 				= TYPE_CHAR;
 			g_testParameter.oneLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].saveType 	= TYPE_FLOAT;
-			g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA].saveType 				= TYPE_FLOAT;
-			g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE].saveType 				= TYPE_FLOAT;
+			g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_KLJSSW].saveType 		= TYPE_FLOAT;
+			g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_KLJSSW].saveType 		= TYPE_FLOAT;
+			g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_KLJSSW].saveType 			= TYPE_FLOAT;
+			g_testParameter.oneLevelMenu[PARALLEL_LENTH_KLJSSW].saveType			= TYPE_FLOAT;
 			g_testParameter.oneLevelMenu[SAMPLE_NUM_KLJSSW].saveType 				= TYPE_INT;
 
 			/* 小数点位数 */
 			g_testParameter.oneLevelMenu[TEST_SERIAL_KLJSSW].pointBit 				= 0;
 			g_testParameter.oneLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].pointBit 	= 2;
-			g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA].pointBit 				= 2;
-			g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE].pointBit 				= 2;
+			g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_KLJSSW].pointBit 		= 2;
+			g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_KLJSSW].pointBit 		= 2;
+			g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_KLJSSW].pointBit 			= 2;
+			g_testParameter.oneLevelMenu[PARALLEL_LENTH_KLJSSW].pointBit			= 2;
 			g_testParameter.oneLevelMenu[SAMPLE_NUM_KLJSSW].pointBit 				= 0;
 			break;
 	}
@@ -2033,7 +2055,19 @@ static void TestParameterReadParameter( void )
 	index = GetTestParameterIndex(OBJECT_EXTERNSOMETER_GAUGE);
 	if (index != 0xff)
 	{
-		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->extensometer_gauge,g_testParameter.parameterData[index]);
+		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->extensometerGauge,g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_PARALLEL_LENTH);
+	if (index != 0xff)
+	{
+		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->parallelLenth,g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_ORIGINAL_GAUGE);
+	if (index != 0xff)
+	{
+		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->originalGauge,g_testParameter.parameterData[index]);
 	}
 }
 
@@ -2195,7 +2229,19 @@ static void TestParameterWriteParameter( void )
 	index = GetTestParameterIndex(OBJECT_EXTERNSOMETER_GAUGE);
 	if (index != 0xff)
 	{
-		pCurTest->extensometer_gauge = str2float(g_testParameter.parameterData[index]);
+		pCurTest->extensometerGauge = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_PARALLEL_LENTH);
+	if (index != 0xff)
+	{
+		pCurTest->parallelLenth = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_ORIGINAL_GAUGE);
+	if (index != 0xff)
+	{
+		pCurTest->originalGauge = str2float(g_testParameter.parameterData[index]);
 	}
 	
 	pcm_save();
