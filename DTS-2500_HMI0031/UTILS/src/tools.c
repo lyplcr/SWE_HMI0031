@@ -906,29 +906,85 @@ uint8_t FindArrayValNotZeroCount( uint8_t num, uint8_t *Array )
 }
 
 /*------------------------------------------------------------
- * Function Name  : SortSmallToLarge
- * Description    : 数字元素从小到大排序
+ * Function Name  : SortBubble
+ * Description    : 冒泡排序
+ * Input          : data：存储待排序的数据， num：待排序的数据个数，temp：存储临时数据，cmp：比较方法体
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SortBubble( void *data[], uint32_t num, void *temp, comp_t cmp)
+{
+	uint32_t i,j;
+	
+	if (num < 2)
+	{
+		return;
+	}
+	
+	for (i=0; i<num-1; i++)
+	{
+		for (j=0; j<num-i-1; j++)
+		{
+			if (cmp(&data[j],&data[j+1]) > 0)
+			{
+				temp = data[j];
+				data[j] = data[j+1];
+				data[j+1] = temp;
+			}
+		}
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : compFloatData
+ * Description    : 比较float数据大小
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-void SortSmallToLarge( uint8_t n, float *p )
+int32_t compFloatData( const void* const pSource, const void* const pTarget ) 
 {
-	uint8_t i,j;
-	float temp;
-	
-	for (i=0; i<n-1; i++)
+	const float source = *(const float*)pSource;
+	const float target = *(const float*)pTarget;
+	 
+	if (source > target)
 	{
-		for (j=0; j<n-i-1; j++)
-		{
-			if (p[j] > p[j+1])
-			{
-				temp = p[j];
-				p[j] = p[j+1];
-				p[j+1] = temp;
-			}
-		}
-	}			
+		return 1;
+	}
+	else if (source < target)
+	{
+		return -1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : compUnsignedData
+ * Description    : 比较无符号数据大小
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+int32_t compUnsignedData( const void* const pSource, const void* const pTarget ) 
+{
+	const uint32_t source = *(const uint32_t*)pSource;
+	const uint32_t target = *(const uint32_t*)pTarget;
+	
+	if (source > target)
+	{
+		return 1;
+	}
+	else if (source == target)
+	{
+		return 0;
+	}
+	else
+	{
+		return -1;
+	}
 }
 
 /*------------------------------------------------------------
@@ -1062,7 +1118,11 @@ float FindNotMatch_Per15_Condition( uint8_t num, float *Array, uint8_t *cnt_matc
 	
 	memcpy(buff,Array,sizeof(float)*num);
 	
-	SortSmallToLarge(num,buff);
+	{	
+		float tempf = 0;
+		
+		SortBubble((void *)buff,num,&tempf,compFloatData);
+	}
 	
 	if ( (buff[1]-buff[0]>buff[1]*0.15f) && (buff[2]-buff[1]>buff[1]*0.15f) )
 	{		

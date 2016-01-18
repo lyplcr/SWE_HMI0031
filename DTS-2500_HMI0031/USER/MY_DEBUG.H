@@ -25,7 +25,7 @@
 	#define DEBUG_TEST_LOAD
 //	#define	DEBUG_REAL_TIME_DATA_FRAM
 //	#define	DEBUG_KEY
-	#define DEBUG_DEFORM_SHOW
+//	#define DEBUG_DEFORM_SHOW
 #endif
 
 #endif

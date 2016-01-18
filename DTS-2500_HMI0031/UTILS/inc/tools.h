@@ -14,6 +14,8 @@
 #define MIN_FLOAT_PRECISION_DIFF_VALUE	0.0001f						//float最小精度差值，因为浮点数可能表示不精确 
 #define PI								3.1415926f					//圆心率
 
+typedef int32_t (*comp_t)(const void* const,const void* const);
+
 /* Exported types ------------------------------------------------------------*/
 typedef enum
 {
@@ -63,7 +65,9 @@ TestStatus JudgeCharIsEqual( uint8_t n, const char *source, const char *target )
 float GetCircularArea( float diameter );
 float GetAverage( float *pVal, uint8_t num );
 uint8_t FindArrayValNotZeroCount( uint8_t num, uint8_t *Array );
-void SortSmallToLarge( uint8_t n, float *p );
+void SortBubble( void *data[], uint32_t num, void *temp, comp_t cmp);
+int32_t compFloatData( const void* const pSource, const void* const pTarget );
+int32_t compUnsignedData( const void* const pSource, const void* const pTarget );
 uint8_t GetArrayEqualZeroIndex( uint8_t all_cnt, const uint8_t *pArray, uint8_t *pIndex );
 void FindNotMatch_10_To_90_Condition( uint8_t num, float *Array, uint8_t *cnt_match );
 uint8_t FindArrayElementIsOneIndex( uint8_t num, uint8_t *Array );

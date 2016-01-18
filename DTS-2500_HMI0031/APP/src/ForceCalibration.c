@@ -226,6 +226,7 @@ const char * const pForceCalibrationWarning[] =
 	"发送力值清零命令失败！",		//5
 	"发送位移清零命令失败！",		//6
 	"发送变形清零命令失败！",		//7
+	"系统不支持当前配置的机型！",		//8
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -2270,6 +2271,14 @@ static void RefreshForceCalibrationDynamicContent( void )
  *------------------------------------------------------------*/
 static FunctionalState ForceCalibrationAllowRunCalibration( void )
 {
+	/* 检测机型 */
+	if (CheckCurrentModel() == FAILED)
+	{
+		SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[8]);
+		
+		return DISABLE;
+	}
+	
 	/* 检测联机状态 */
 	if (GetLinkStatus() == LINK_UNLINK)
 	{

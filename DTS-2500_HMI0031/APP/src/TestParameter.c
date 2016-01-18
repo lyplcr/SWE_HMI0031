@@ -881,9 +881,19 @@ const char * const pRoundDiameter_KLJSSW[] =
 /* 警告信息 */
 const char * const pSampleNumRangeCue[] = 
 {
-	"试块个数输入范围：(1 ~ 20)",	
-	"延时时间设置范围：(3 ~ 300)",
-	"定荷级数输入范围：(1 ~ 6)",
+	"试块个数输入范围：(1 ~ 20)",		//0
+	"延时时间设置范围：(3 ~ 300)",		//1
+	"定荷级数输入范围：(1 ~ 6)",			//2
+	"圆形直径不能为0！",					//3
+	"引伸计标距不能为0！",				//4
+	"平行长度不能为0！",					//5
+	"原始标距不能为0！",					//6
+	"试件长度不能为0！",					//7
+	"试件宽度不能为0！",					//8
+	"修正系数不能为0！",					//9
+	"试件面积不能为0！",					//10
+	"试件高度不能为0！",					//11
+	"试件跨距不能为0！",					//12
 };
 
 const char * const pSerialPutinCue[] = 
@@ -1001,6 +1011,15 @@ static void TestParameterInit( void )
 	GetTestContent();
 	
 	g_testParameter.testType = (TEST_TYPE_TypeDef)pHmi->test_standard_index;
+	
+	if (pHmi->test_standard_index == KZTY)
+	{
+		pHmi->test_standard_index = KZSNJS;
+		
+		GetTestContent();
+		
+		pcm_save();
+	}
 	
 	if (g_testParameter.testType == NONE_TEST)
 	{
@@ -2793,6 +2812,196 @@ static void TestParameterPullData( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : TestParameterCheckPutinData
+ * Description    : 检测进输入数据
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static TestStatus TestParameterCheckPutinData( uint8_t nowIndex )
+{
+	uint8_t checkIndex = 0;
+	
+	checkIndex = GetTestParameterIndex(OBJECT_SPECIMEN_NUMS);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			int32_t putinNum = *GetPutinIntDataAddr();
+			
+			if ((putinNum==0) || (putinNum>MAX_SPECIMEN_NUMS))
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[0]);
+				
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_ROUND_DIAMETER);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[3]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_EXTERNSOMETER_GAUGE);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[4]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_PARALLEL_LENTH);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[5]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_ORIGINAL_GAUGE);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[6]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_SPECIMEN_LENTH);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[7]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_SPECIMEN_WIDTH);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[8]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_CORRECTION_FACTOR);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[9]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_AREA);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[10]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_SPECIMEN_HIGH);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[11]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_SPECIMEN_SPAN);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[12]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	return PASSED;
+}
+
+/*------------------------------------------------------------
  * Function Name  : TestParameterTwoLevelMenuKeyProcess
  * Description    : 二级菜单按键处理
  * Input          : None
@@ -2803,7 +3012,6 @@ static void TestParameterTwoLevelMenuKeyProcess( void )
 {
 	STATUS_PUTIN_TypeDef status;
 	uint8_t index = g_testParameter.nowIndex;
-	int32_t putinNum = 0;
 	
 	g_testParameter.enablePutin = ENABLE;
 	
@@ -2817,20 +3025,15 @@ static void TestParameterTwoLevelMenuKeyProcess( void )
 		
 		switch ( status )
 		{
-			case STATUS_EDIT_COMP:	
-				if (index == GetTestParameterIndex(OBJECT_SPECIMEN_NUMS) )
+			case STATUS_EDIT_COMP:				
+				if (TestParameterCheckPutinData(index) == FAILED)
 				{
-					putinNum = *GetPutinIntDataAddr();
-					if ((putinNum==0) || (putinNum > MAX_SPECIMEN_NUMS))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[0]);
-						g_testParameter.leavePage.flagLeavePage = SET;
-						g_testParameter.leavePage.flagSaveData = RESET;
-						
-						return;
-					}
+					g_testParameter.leavePage.flagLeavePage = SET;
+					g_testParameter.leavePage.flagSaveData = RESET;
+					
+					return;
 				}
-			
+				
 				TestParameterPullData();
 				return;
 				
@@ -3174,6 +3377,14 @@ static void TestParameterKeyProcess( void )
 										g_testParameter.leavePage.flagSaveData = RESET;
 										break;
 								}
+							}
+							
+							if (TestParameterCheckPutinData(index) == FAILED)
+							{
+								g_testParameter.leavePage.flagLeavePage = SET;
+								g_testParameter.leavePage.flagSaveData = RESET;
+								
+								return;
 							}
 							
 							TestParameterPullData();		

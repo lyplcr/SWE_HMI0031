@@ -28,11 +28,16 @@ Project File Date:  01/04/2016
 *** Using Compiler 'V5.06 (build 20)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'DTS-2500_HMI0030'
 compiling MainPage.c...
-linking...
-Program Size: Code=266096 RO-data=30012 RW-data=928 ZI-data=130028  
-FromELF: creating hex file...
-After Build - User command #1: fromelf --bin -o ..\BIN\DTS-2500_HMI0030(SYOR1.0.0.0)_151221.bin ..\OUTPUT\OBJ\DTS-2500_HMI0030.axf
-"..\OUTPUT\OBJ\DTS-2500_HMI0030.axf" - 0 Error(s), 0 Warning(s).
+..\APP\src\MainPage.c(5824): warning:  #174-D: expression has no effect
+  	if (s_ctrlCoordinateDrawLineCount < pDrawLine->recordPointFreq)1
+..\APP\src\MainPage.c(5825): error:  #65: expected a ";"
+  	{
+..\APP\src\MainPage.c(5828): warning:  #12-D: parsing restarts here after previous syntax error
+  	s_ctrlCoordinateDrawLineCount = 0;
+..\APP\src\MainPage.c(5812): warning:  #177-D: variable "DRAW_COORDINATE_COUNT" was declared but never referenced
+  	const uint8_t DRAW_COORDINATE_COUNT = 5;		//100MS
+..\APP\src\MainPage.c: 3 warnings, 1 error
+"..\OUTPUT\OBJ\DTS-2500_HMI0030.axf" - 1 Error(s), 3 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -50,7 +55,8 @@ Package Vendor: ARM
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:4.1.0
-Build Time Elapsed:  00:00:06
+Target not created.
+Build Time Elapsed:  00:00:03
 </pre>
 </body>
 </html>

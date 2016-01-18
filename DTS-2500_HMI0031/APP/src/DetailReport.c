@@ -54,7 +54,7 @@ typedef enum
 	OBJECT_PRESSURE,			/* 压强 	*/
 	OBJECT_SAMPLE_SHAPE,		/* 形状 	*/
 	OBJECT_SAMPLE_AREA,			/* 面积 	*/
-	OBJECT_DIAMETER,			/* 直径 	*/
+	OBJECT_ROUND_DIAMETER,		/* 圆形直径 	*/
 }DETAIL_REPORT_PATAMETER_NAME_TypeDef;
 
 typedef enum
@@ -787,7 +787,7 @@ static void DetailReportConfig( void )
 					/* 索引值 */
 					g_detailReport.indexArray[INDEX_TYKY_ROUND_TEST_SERIAL] 		= OBJECT_SERIAL;
 					g_detailReport.indexArray[INDEX_TYKY_ROUND_TEST_SAMPLE_SHAPE] 	= OBJECT_SAMPLE_SHAPE;
-					g_detailReport.indexArray[INDEX_TYKY_ROUND_DIAMETER] 			= OBJECT_DIAMETER;
+					g_detailReport.indexArray[INDEX_TYKY_ROUND_DIAMETER] 			= OBJECT_ROUND_DIAMETER;
 					g_detailReport.indexArray[INDEX_TYKY_ROUND_TEST_CORRECTION] 	= OBJECT_CORRECTION_FACTOR;
 					g_detailReport.indexArray[INDEX_TYKY_ROUND_TEST_FORCE] 			= OBJECT_FORCE;
 					g_detailReport.indexArray[INDEX_TYKY_ROUND_TEST_PRESSURE] 		= OBJECT_PRESSURE;
@@ -1283,7 +1283,7 @@ static void DetailReportReadParameter( void )
 		}
 	}
 	
-	index = GetDetailReportFieldIndex(OBJECT_DIAMETER);
+	index = GetDetailReportFieldIndex(OBJECT_ROUND_DIAMETER);
 	if (index != 0xff)
 	{
 		for (i=0; i<g_detailReport.curPageSampleNum; ++i)
@@ -1328,7 +1328,7 @@ static void ConfigDetailReportOneFieldRectangleFrameCoordinate( uint8_t rowIndex
 		case OBJECT_SAMPLE_SHAPE:
 			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 192;
 			break;
-		case OBJECT_DIAMETER:
+		case OBJECT_ROUND_DIAMETER:
 			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 150;
 			break;
 		case OBJECT_SAMPLE_AREA:

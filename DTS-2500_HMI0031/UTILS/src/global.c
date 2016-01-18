@@ -296,6 +296,25 @@ void GetTestContent( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : CheckCurrentModel
+ * Description    : 检测当前机型
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+TestStatus CheckCurrentModel( void )
+{
+	MODEL_TYPE_TypeDef Type = GetModelType();
+	
+	if (Type != MODEL_UNIVERSAL)
+	{
+		return FAILED;
+	}
+	
+	return PASSED;
+}
+
+/*------------------------------------------------------------
  * Function Name  : ProcessMachineMatchTestType
  * Description    : 处理机型与试验类型匹配
  * Input          : None
@@ -700,7 +719,7 @@ void RefreshDynamicTestStatus( uint16_t x, uint16_t y, uint16_t pointColor, uint
 			GUI_DispStr16At(x,y,pointColor,backColor,"屈服");
 			break;
 		case TEST_DEFORM:
-			GUI_DispStr16At(x,y,pointColor,backColor,"变形");
+			GUI_DispStr16At(x,y,pointColor,backColor,"加载");
 			break;
 		case TEST_BREAK:
 			GUI_DispStr16At(x,y,pointColor,backColor,"判破");
@@ -1777,6 +1796,37 @@ void CheckSystemWarningStatusCycle( void )
 COORDINATE_DRAW_LINE_TypeDef *GetDrawLineAddr( void )
 {
 	return &g_coordinateDrawLine;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetDrawLineNowTimePoint
+ * Description    : 获取坐标系画线当前时间点
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+uint32_t GetDrawLineNowTimePoint( void )
+{
+	return g_coordinateDrawLine.nowTimePoint;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetDrawLineSomeTimePointForce
+ * Description    : 获取坐标系画线某个时间点力值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float GetDrawLineSomeTimePointForce( uint32_t nowTimePoint )
+{
+	if (nowTimePoint >= DECORD_COORDINATE_FORCE_NUM)
+	{
+		return 0.0f;
+	}
+	else
+	{
+		return g_coordinateDrawLine.force[nowTimePoint];
+	}
 }
 
 /*------------------------------------------------------------
