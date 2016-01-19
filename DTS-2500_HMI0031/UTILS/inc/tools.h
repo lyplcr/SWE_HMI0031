@@ -38,6 +38,58 @@ typedef struct
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
+/*------------------------------------------------------------
+ * Function Name  : compFloatData
+ * Description    : 比较float数据大小
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static __INLINE int32_t compFloatData( const void* const pSource, const void* const pTarget ) 
+{
+	const float source = *(const float*)pSource;
+	const float target = *(const float*)pTarget;
+	 
+	if (source > target)
+	{
+		return 1;
+	}
+	else if (source < target)
+	{
+		return -1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : compUnsignedData
+ * Description    : 比较无符号数据大小
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static __INLINE int32_t compUnsignedData( const void* const pSource, const void* const pTarget ) 
+{
+	const uint32_t source = *(const uint32_t*)pSource;
+	const uint32_t target = *(const uint32_t*)pTarget;
+	
+	if (source > target)
+	{
+		return 1;
+	}
+	else if (source == target)
+	{
+		return 0;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
 /* Exported variables --------------------------------------------------------*/
 
 
@@ -66,7 +118,6 @@ float GetCircularArea( float diameter );
 float GetAverage( float *pVal, uint8_t num );
 uint8_t FindArrayValNotZeroCount( uint8_t num, uint8_t *Array );
 void SortBubble( void *data[], uint32_t num, void *temp, comp_t cmp);
-int32_t compFloatData( const void* const pSource, const void* const pTarget );
 int32_t compUnsignedData( const void* const pSource, const void* const pTarget );
 uint8_t GetArrayEqualZeroIndex( uint8_t all_cnt, const uint8_t *pArray, uint8_t *pIndex );
 void FindNotMatch_10_To_90_Condition( uint8_t num, float *Array, uint8_t *cnt_match );

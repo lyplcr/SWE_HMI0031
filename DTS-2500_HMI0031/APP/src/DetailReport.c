@@ -166,6 +166,13 @@ typedef enum
 	INDEX_YJSNJKZ_TEST_PRESSURE,
 }INDEX_YJSNJKZ_TypeDef;
 
+typedef enum
+{
+	INDEX_JSSWKL_TEST_SERIAL = 0,
+	INDEX_JSSWKL_MAX_FORCE,
+	INDEX_JSSWKL_MAX_STRENGTH,
+}INDEX_JSSWKL_TypeDef;
+
 typedef struct
 {
 	char parameterData[MAX_FIELD_NUM][MAX_REPORT_NAME_BIT+1];
@@ -1268,8 +1275,17 @@ static void DetailReportReadParameter( void )
 			case KLJSSW:
 				switch (g_readReport.sample_shape_index)
 				{
-					case KLJSSW_SHAPE_ROUND:
+					case JSSWKL_SHAPE_RECTANGLE:
 						area = g_readReport.gz_area;
+						break;
+					case JSSWKL_SHAPE_ROUND:
+						area = g_readReport.gz_area;
+						break;
+					case JSSWKL_SHAPE_TUBE:
+						area = g_readReport.gz_area;
+						break;
+					case JSSWKL_SHAPE_IRREGULAR:
+						area = g_readReport.bgz_area;
 						break;
 				}
 				break;

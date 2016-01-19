@@ -217,6 +217,7 @@ TEST_TypeDef *pTest = NULL;			//ÊÔÑé²ÎÊý
 	static JUDGE_BREAK_TypeDef g_judgeBreak;	//ÅÐÆÆµã
 #pragma arm section
 
+static COORDINATE_POINT_TypeDef g_coordinatePoint;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -1537,6 +1538,9 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			area = GetSampleSpecificationArea(report->sample_spec,temp);
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{
+				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+					printf("³ýÁã´íÎó£¡\r\n");
+				#endif
 				area = 1;
 			}
 			MPa = CurForce / area;
@@ -1546,6 +1550,9 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			area = GetSampleSpecificationArea(report->sample_spec,temp);
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{
+				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+					printf("³ýÁã´íÎó£¡\r\n");
+				#endif
 				area = 1;
 			}
 			MPa = report->correct_cof * CurForce / area;
@@ -1561,6 +1568,9 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{
+				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+					printf("³ýÁã´íÎó£¡\r\n");
+				#endif
 				area = 1;
 			}
 			
@@ -1574,6 +1584,9 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			span = high * 3;
 			if ((fabs(high) < MIN_FLOAT_PRECISION_DIFF_VALUE) || (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE))
 			{
+				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+					printf("³ýÁã´íÎó£¡\r\n");
+				#endif
 				high = 1;
 				width = 1;
 			}
@@ -1585,6 +1598,9 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			width = report->width;
 			if ((fabs(lenth) < MIN_FLOAT_PRECISION_DIFF_VALUE) || (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE))
 			{
+				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+					printf("³ýÁã´íÎó£¡\r\n");
+				#endif
 				lenth = 1;
 				width = 1;
 			}
@@ -1609,6 +1625,9 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{
+				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+					printf("³ýÁã´íÎó£¡\r\n");
+				#endif
 				area = 1;
 			}
 			MPa = report->correct_cof * CurForce / area;
@@ -1620,6 +1639,9 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			span = report->sample_span;
 			if (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{
+				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+					printf("³ýÁã´íÎó£¡\r\n");
+				#endif
 				width = 1;
 			}
 			MPa = 1.5f * CurForce * span / (width * width * width);
@@ -1630,6 +1652,9 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			span = report->sample_span;
 			if (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{
+				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+					printf("³ýÁã´íÎó£¡\r\n");
+				#endif
 				width = 1;
 			}
 			MPa = 1.5f * CurForce * span / (width * width * width);
@@ -1644,13 +1669,25 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 				
 				switch (report->sample_shape_index)
 				{
-					case KLJSSW_SHAPE_ROUND:
+					case JSSWKL_SHAPE_RECTANGLE:
 						area = report->gz_area;
+						break;
+					case JSSWKL_SHAPE_ROUND:
+						area = report->gz_area;
+						break;
+					case JSSWKL_SHAPE_TUBE:
+						area = report->gz_area;
+						break;
+					case JSSWKL_SHAPE_IRREGULAR:
+						area = report->bgz_area;
 						break;
 				}
 				
 				if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 				{
+					#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+						printf("³ýÁã´íÎó£¡\r\n");
+					#endif
 					area = 1;
 				}
 				MPa = CurForce / area;
@@ -2915,6 +2952,18 @@ float GetParallelLenth( void )
 float GetOriginalGauge( void )
 {
 	return pTest->originalGauge;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetCoordinatePointAddr
+ * Description    : »ñÈ¡×ø±êµãµØÖ·
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+COORDINATE_POINT_TypeDef *GetCoordinatePointAddr( void )
+{
+	return &g_coordinatePoint;
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

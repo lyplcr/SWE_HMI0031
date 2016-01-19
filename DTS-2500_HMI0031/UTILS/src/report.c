@@ -46,6 +46,7 @@ TEST_PATH_TypeDef test_path[] =
 	{KLJSSW,	"0:test/KLJSSW"		},
 };
 
+/* 保存至USB的路径 */
 TEST_PATH_TypeDef test_path_usb[] =
 {
     {NONE_TEST, "1:/"				},
@@ -60,6 +61,23 @@ TEST_PATH_TypeDef test_path_usb[] =
     {KZYJSNJ,	"1:/test/KZYJSNJ"	}, 
     {KZTY, 		"1:/test/KZTY"		},
 	{KLJSSW, 	"1:/test/KLJSSW"	},
+};
+
+/* 保存至SD卡的坐标点路径 */
+TEST_PATH_TypeDef g_coordinatePointPath[] =
+{
+    {NONE_TEST, "0:/"				},
+    {KYSNJS,	"0:curve/KYSNJS"	},
+    {KYJZSJ, 	"0:curve/KYJZSJ"	},
+    {KYHNT, 	"0:curve/KYHNT"		},
+    {KZHNT, 	"0:curve/KZHNT"		}, 
+    {KYQQZ, 	"0:curve/KYQQZ"		},
+	{KYZJDH, 	"0:curve/KYZJDH"	},
+    {KYTY, 		"0:curve/KYTY"		},
+    {KZSNJS, 	"0:curve/KZSNJS"	}, 
+    {KZYJSNJ, 	"0:curve/KZYJSNJ"	}, 
+    {KZTY, 		"0:curve/KZTY"		},
+	{KLJSSW,	"0:curve/KLJSSW"	},
 };
 
 
@@ -627,5 +645,62 @@ FRESULT report_save_usb_set_time (uint8_t type, const char *file)
 	return result;
 }
 
+/*------------------------------------------------------------
+ * Function Name  : SaveCoordinatePointToSD
+ * Description    : 保存坐标点信息到SD卡
+ * Input          : testType：试验类型，sampleNum：试块序号，pSerial：试件编号，pCoordinate：坐标点信息
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+FRESULT SaveCoordinatePointToSD( uint8_t testType, uint8_t sampleNum, \
+			const char * const pSerial, const COORDINATE_POINT_TypeDef * const pCoordinate )
+{
+	FRESULT fresult;
+	FIL file_obj;  
+	uint32_t br;  
+	char pathFile[PATH_BUF_SIZE];  
+	char pathSerial[PATH_BUF_SIZE];
+	const uint8_t MAX_TEST_SERIAL_LEN = 16;		//一组试样编号长度
+	const uint8_t MAX_SAMPLE_NUM = 20;			//最大试块个数
+	const uint8_t MAX_CURVE_SERIAL_LEN = 20;	
+	char fileSerialBuff[MAX_CURVE_SERIAL_LEN];	
+	char tempBuff[5];
+	
+	if ( (strlen(pSerial) > MAX_TEST_SERIAL_LEN) 	||\
+		(sampleNum > MAX_SAMPLE_NUM) 				||\
+		(testType >= SUPPORT_TEST_NUM)	)
+	{
+		return FR_INVALID_NAME;
+	}
+	
+	usprintf(tempBuff,"_%02d",sampleNum);	
+	strcpy(fileSerialBuff,pSerial);
+	strcat(fileSerialBuff,tempBuff);
+	
+	usprintf(pathFile,"%s/%s/%s.bin",g_coordinatePointPath[testType].path,pSerial,fileSerialBuff);  
+	
+	fresult = f_open(&file_obj,pathFile,FA_CREATE_ALWAYS|FA_WRITE); 
+	
+	if (fresult == FR_NO_PATH)
+	{	 
+		fresult = f_mkdir("0:/curve"); 
+		fresult = f_mkdir(g_coordinatePointPath[testType].path); 	
+		usprintf(pathSerial,"%s/%s",g_coordinatePointPath[testType].path,pSerial);  	
+		fresult = f_mkdir(pathSerial); 	
+		
+		fresult = f_open(&file_obj,pathFile,FA_CREATE_NEW|FA_WRITE);  		
+	}
+	
+	if (fresult != FR_OK)
+	{
+		return fresult; 
+	}
+	
+	fresult = f_write(&file_obj,pCoordinate,sizeof(COORDINATE_POINT_TypeDef),&br);   
+	
+	f_close(&file_obj);
+
+	return fresult; 
+}
 
 /******************* (C) COPYRIGHT 2012 XinGao Tech *****END OF FILE************************************/ 

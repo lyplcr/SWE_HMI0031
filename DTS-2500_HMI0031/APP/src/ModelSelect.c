@@ -664,6 +664,17 @@ static void DefaultParameterSet( MODEL_ATTRIBUTE_TypeDef type, uint16_t ton, \
 	pHmi->test_standard_index = KYSNJS;
 	pHmi->attenuationRate[SMPL_KY_NUM] = 50;
 	pHmi->curveStayTime = 5;
+	if ((ton>=1) && (ton<=10))
+	{
+		pHmi->fhUnit = FH_UNIT_N;
+	}
+	else
+	{
+		pHmi->fhUnit = FH_UNIT_kN;
+	}
+	pHmi->wyUnit = WY_UNIT_MM;
+	pHmi->bxUnit = BX_UNIT_MM;
+	pHmi->wyConvBx = 0;
 	
 	for (index=0; index<USE_CHANNEL; ++index)
 	{

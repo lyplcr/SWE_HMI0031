@@ -92,7 +92,30 @@ typedef struct
 	float parallelLenth;				//平行长度
 	float extensometerGauge;			//引伸计标距
 	float originalGauge;				//原始标距
+	float pipeThickness;				//管段厚度
+	float pipeOuterDiameter;			//管段外径
 }REPORT_TypeDef;
+
+#define RECORD_COORDINATE_PERIOD		100					//100ms记录一个点
+#define RECORD_COORDINATE_FREQ			(1000/RECORD_COORDINATE_PERIOD)	
+#define RECORD_COORDINATE_TIME_SECOND	(5 * 60)			//5分钟	
+#define DECORD_COORDINATE_FORCE_NUM		(RECORD_COORDINATE_TIME_SECOND * RECORD_COORDINATE_FREQ) 
+
+typedef struct
+{
+	uint8_t xType;						//X轴类型（0：时间）
+	uint8_t yType;						//Y轴类型（0：力值，1：位移，2：变形）
+	uint8_t xUint;						//X轴单位（0：s，1：ms）
+	uint8_t yUint;						//Y轴单位（0：kN，1：N）	
+	uint32_t maxValueX;					//最大X轴值
+	float maxValueY;					//最大Y轴值
+	float systemMaxForce;				//系统最大力值
+	uint16_t recordPointFreq;			//记录每个点频率
+	uint32_t nowUsePointNum;			//已使用的点数
+	uint32_t maxPointNum;				//支持的最大点数
+	float yScalingCoefficient;			//缩放系数（将Y轴当前值按照缩放系数修饰）
+	float force[DECORD_COORDINATE_FORCE_NUM];
+}COORDINATE_POINT_TypeDef;
     
 #pragma pack()     
 
@@ -121,6 +144,9 @@ FRESULT report_search_date(uint8_t type,tTime date_start,tTime date_end,uint16_t
   
 FRESULT report_save_usb(uint8_t type,const char *file,REPORT_TypeDef *report);
 FRESULT report_save_usb_set_time (uint8_t type,const char *file);
+
+FRESULT SaveCoordinatePointToSD( uint8_t testType, uint8_t sampleNum, \
+			const char * const pSerial, const COORDINATE_POINT_TypeDef * const pCoordinate );
 
 #endif
 

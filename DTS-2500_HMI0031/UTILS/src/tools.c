@@ -936,58 +936,6 @@ void SortBubble( void *data[], uint32_t num, void *temp, comp_t cmp)
 }
 
 /*------------------------------------------------------------
- * Function Name  : compFloatData
- * Description    : 比较float数据大小
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-int32_t compFloatData( const void* const pSource, const void* const pTarget ) 
-{
-	const float source = *(const float*)pSource;
-	const float target = *(const float*)pTarget;
-	 
-	if (source > target)
-	{
-		return 1;
-	}
-	else if (source < target)
-	{
-		return -1;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-/*------------------------------------------------------------
- * Function Name  : compUnsignedData
- * Description    : 比较无符号数据大小
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-int32_t compUnsignedData( const void* const pSource, const void* const pTarget ) 
-{
-	const uint32_t source = *(const uint32_t*)pSource;
-	const uint32_t target = *(const uint32_t*)pTarget;
-	
-	if (source > target)
-	{
-		return 1;
-	}
-	else if (source == target)
-	{
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
-}
-
-/*------------------------------------------------------------
  * Function Name  : GetArrayEqualZeroIndex
  * Description    : 获取数组中等于0的元素的下标
  * Input          : None

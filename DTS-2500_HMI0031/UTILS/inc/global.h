@@ -27,11 +27,6 @@
 #define PIC_ETHERNET_SHOW		"image/PIC_NET.bin"			//以太网联机标识
 #define PIC_USB_SHOW			"image/PIC_USB.bin"			//USB连接标识
 
-#define RECORD_COORDINATE_PERIOD		100					//100ms记录一个点
-#define RECORD_COORDINATE_FREQ			(1000/RECORD_COORDINATE_PERIOD)	
-#define RECORD_COORDINATE_TIME_SECOND	(6 * 60)			//6分钟	
-#define DECORD_COORDINATE_FORCE_NUM		(RECORD_COORDINATE_TIME_SECOND * RECORD_COORDINATE_FREQ) 
-
 /* Exported types ------------------------------------------------------------*/
 /* 可读写输出位 */
 typedef enum
@@ -193,8 +188,7 @@ typedef struct
 	uint32_t maxTime;				//单位：ms
 	uint32_t nowTimePoint;			//当前画线的时间点
 	uint16_t lineColor;
-	float forceScalingCoefficient;	//缩放系数
-	float recordPointFreq;			//记录每个点频率
+	float forceScalingCoefficient;	//缩放系数（将当前值按照缩放系数修饰）
 	void (*pDrawCoordinate)( uint32_t maxForce, uint32_t maxTime );	//画坐标系
 	float force[DECORD_COORDINATE_FORCE_NUM];
 }COORDINATE_DRAW_LINE_TypeDef;
@@ -275,8 +269,11 @@ typedef enum
 
 typedef enum
 {
-	KLJSSW_SHAPE_ROUND = 0,
-}KLJSSW_TEST_SHAPE_TypeDef;
+	JSSWKL_SHAPE_RECTANGLE = 0,
+	JSSWKL_SHAPE_ROUND,
+	JSSWKL_SHAPE_TUBE,
+	JSSWKL_SHAPE_IRREGULAR,
+}JSSWKL_TEST_SHAPE_TypeDef;
 
 typedef enum
 {
@@ -412,6 +409,8 @@ void SetDynamicContentBXSpeed( BX_UINT_TypeDef bxUnit );
 float GetExtensometerGauge( void );
 float GetParallelLenth( void );
 float GetOriginalGauge( void );
+
+COORDINATE_POINT_TypeDef *GetCoordinatePointAddr( void );
 
 #endif
 

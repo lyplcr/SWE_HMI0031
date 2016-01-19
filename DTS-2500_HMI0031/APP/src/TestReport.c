@@ -115,7 +115,8 @@ const char * const pReportSearchName[] =
 	"通用抗压",
 	"水泥胶砂抗折",
 	"压浆水泥浆抗折",
-	"通用抗折",		
+	"通用抗折",	
+	"金属室温拉伸",
 };
 
 const char * const pReportDeleteContent[] = 

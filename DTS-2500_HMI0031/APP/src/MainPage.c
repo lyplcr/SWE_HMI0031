@@ -402,6 +402,7 @@ const char * const pMainPageWarning[] =
 	"系统不支持当前配置的机型！",		//16
 	"请按“<- ->”键，将页面切换至",	//17
 	"已做试样的最后一页！",
+	"坐标点数据保存失败！",			//19
 };	
 
 const char * const pKLTestResultName[] = 
@@ -4489,6 +4490,9 @@ static float AccordDispalcementGetDeformIncrement( float dispalcement )
 	
 	if (fabs(originalGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
+		#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+			printf("除零错误！\r\n");
+		#endif
 		originalGauge = 1;
 	}
 	
@@ -5271,6 +5275,14 @@ static float GetMaxForceSumElongation( void )
 	float maxForceSumElongation = 0;
 	float parallelLenth = GetParallelLenth();
 	
+	if (fabs(parallelLenth) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+	{
+		#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
+			printf("除零错误！\r\n");
+		#endif
+		parallelLenth = 1;
+	}
+	
 	maxForceSumElongation = maxForceSumExtend / parallelLenth * 100;
 	
 	return maxForceSumElongation;
@@ -5285,13 +5297,11 @@ static float GetMaxForceSumElongation( void )
  *------------------------------------------------------------*/
 static float GetDownYieldForce( void )
 {
-	float downYieldForce = 0;
-	
 	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 	
 	if (g_klTestBody.upYieldForceIndex >= g_klTestBody.maxForceIndex)
 	{
-		downYieldForce = 0;
+		float downYieldForce = 0;
 		
 		return downYieldForce;
 	}
@@ -5301,8 +5311,12 @@ static float GetDownYieldForce( void )
 		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 		uint32_t num = (g_klTestBody.maxForceIndex - g_klTestBody.upYieldForceIndex) + 1;		
 		
+//		SetTime(0);
+		
 		SortBubble((void *)&(pDrawLine->force[g_klTestBody.upYieldForceIndex]),\
 			num,&tempf,compFloatData);
+		
+//		GetTime(0);
 		
 		return pDrawLine->force[g_klTestBody.upYieldForceIndex];
 	}
@@ -5354,6 +5368,52 @@ void PrintfUpYieldToMaxForceData( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : MainPageSaveCoordinateCurveToSD
+ * Description    : 保存曲线信息
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageSaveCoordinateCurveToSD( void )
+{	
+	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
+	COORDINATE_POINT_TypeDef *pCoordinatePoint = GetCoordinatePointAddr();
+	
+	pCoordinatePoint->xType = 0;
+	pCoordinatePoint->yType = 0;
+	pCoordinatePoint->xUint = 0;
+	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+	{
+		pCoordinatePoint->yUint = 0;
+	}
+	else
+	{
+		pCoordinatePoint->yUint = 1;
+	}
+	pCoordinatePoint->maxValueX = pDrawLine->maxTime;
+	pCoordinatePoint->maxValueY = pDrawLine->maxForce;
+	pCoordinatePoint->systemMaxForce = smpl_ctrl_full_p_get(g_mainPage.fhChannelUnit);
+	pCoordinatePoint->recordPointFreq = RECORD_COORDINATE_FREQ;
+	pCoordinatePoint->nowUsePointNum = pDrawLine->nowTimePoint;
+	pCoordinatePoint->maxPointNum = DECORD_COORDINATE_FORCE_NUM;
+	pCoordinatePoint->yScalingCoefficient = pDrawLine->forceScalingCoefficient;
+	memcpy(pCoordinatePoint->force,pDrawLine->force,sizeof(float) * DECORD_COORDINATE_FORCE_NUM);
+	
+	{
+		FRESULT result = SaveCoordinatePointToSD(g_mainPage.testType,g_testBody.curCompletePieceSerial,\
+							pTest->test_serial,pCoordinatePoint);
+		if (result != FR_OK)
+		{
+			SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[19]);
+			
+			#ifdef DEBUG_TEST_LOAD
+				printf("保存曲线失败！\r\n");
+			#endif
+		}
+	}
+}	
+
+/*------------------------------------------------------------
  * Function Name  : MainPageExecuteEndOnePieceProcess
  * Description    : 结束一块
  * Input          : None
@@ -5369,6 +5429,13 @@ static void MainPageExecuteEndOnePieceProcess( void )
 		#ifdef DEBUG_TEST_LOAD
 			printf("一块试块结束！\r\n");
 		#endif
+		
+		#ifdef DEBUG_TEST_LOAD
+			printf("保存曲线...\r\n");
+		#endif
+//		SetTime(0);
+		MainPageSaveCoordinateCurveToSD();
+//		GetTime(0);
 		
 		g_testBody.isExecuteEndGroup = YES;
 		
@@ -5711,7 +5778,6 @@ static void InitMainPageCoordinateDrawLine( void )
 	{
 		pDrawLine->forceScalingCoefficient = 1;
 	}
-	pDrawLine->recordPointFreq = 10;
 	pDrawLine->pDrawCoordinate = GUI_MainPageDrawCoordinate;
 				
 	InitCoordinateDrawLine(pDrawLine);
@@ -5809,7 +5875,6 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 	float force = 0;
 	static uint8_t s_ctrlCoordinateDrawLineCount = 0;
-	const uint8_t DRAW_COORDINATE_COUNT = 5;		//100MS
 
 	/* 画线判断条件 */
 	MainPageCoordinateDrawLineJudgeCondition(pDrawLine);
@@ -5819,14 +5884,15 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 		return;
 	}
 	
-	/* 画线周期：100ms */
+	/* 画线周期 */
 	s_ctrlCoordinateDrawLineCount++;
-	if (s_ctrlCoordinateDrawLineCount < pDrawLine->recordPointFreq)1
+	if (s_ctrlCoordinateDrawLineCount < (uint16_t)(CTRL_FREQ/RECORD_COORDINATE_FREQ))
 	{
 		return;
 	}	
 	s_ctrlCoordinateDrawLineCount = 0;
-	
+//	GetTime(0);
+//	SetTime(0);
 	/* 记录力值信息 */
 	pDrawLine->nowTimePoint++;
 	if (IsCoordinateRecordPointOverflow(pDrawLine) == YES)

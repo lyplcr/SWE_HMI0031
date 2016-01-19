@@ -53,6 +53,8 @@ typedef enum
 	OBJECT_EXTERNSOMETER_GAUGE,	/* 引伸计标距 */
 	OBJECT_PARALLEL_LENTH,		/* 平行长度 */
 	OBJECT_ORIGINAL_GAUGE,		/* 原始标距 */
+	OBJECT_PIPE_THICKNESS,		/* 管段厚度 */
+	OBJECT_PIPE_OUTER_DIAMETER,	/* 管段外直径 */
 }ALL_PATAMETER_NAME_TypeDef;
 
 typedef enum				//水泥胶砂抗折
@@ -167,16 +169,54 @@ union KYTY_PARA_NAME_TypeDef		//通用抗压
 	}KYTY_SHAPE_RIRREGULAR;
 };
 
-typedef enum				 //金属室温抗拉
+union KLJSSW_PARA_NAME_TypeDef		//金属室温拉伸
 {
-	TEST_SERIAL_KLJSSW = 0,			//试验编号
-	SAMPLE_ROUND_DIAMETER_KLJSSW,	//圆形直径
-	ORIGINAL_CROSS_AREA_KLJSSW,		//原始截面积
-	EXTERNSOMETER_GAUGE_KLJSSW,		//引伸计标距
-	ORIGINAL_GAUGE_KLJSSW,			//原始标距
-	PARALLEL_LENTH_KLJSSW,			//平行长度
-	SAMPLE_NUM_KLJSSW,				//试件根数
-}KLJSSW_PARA_NAME_TypeDef;
+	enum 				 
+	{
+		TEST_SERIAL_RECTANGLE_KLJSSW = 0,			//试验编号
+		SAMPLE_SHAPE_RECTANGLE_KLJSSW,				//试件形状
+		SAMPLE_THICKNESS_RECTANGLE_KLJSSW,			//矩形厚度
+		SAMPLE_WIDTH_RECTANGLE_KLJSSW,				//矩形宽度
+		ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW,		//原始截面积
+		EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW,		//引伸计标距
+		ORIGINAL_GAUGE_RECTANGLE_KLJSSW,			//原始标距
+		PARALLEL_LENTH_RECTANGLE_KLJSSW,			//平行长度
+		SAMPLE_NUM_RECTANGLE_KLJSSW,				//试件根数
+	}KYTY_SHAPE_RECTANGLE;
+	enum				 
+	{
+		TEST_SERIAL_ROUND_KLJSSW = 0,			//试验编号
+		SAMPLE_SHAPE_ROUND_KLJSSW,				//试件形状
+		SAMPLE_ROUND_DIAMETER_ROUND_KLJSSW,		//圆形直径
+		ORIGINAL_CROSS_AREA_ROUND_KLJSSW,		//原始截面积
+		EXTERNSOMETER_GAUGE_ROUND_KLJSSW,		//引伸计标距
+		ORIGINAL_GAUGE_ROUND_KLJSSW,			//原始标距
+		PARALLEL_LENTH_ROUND_KLJSSW,			//平行长度
+		SAMPLE_NUM_ROUND_KLJSSW,				//试件根数
+	}KLJSSW_SHAPE_ROUND;
+	enum				 
+	{
+		TEST_SERIAL_TUBE_KLJSSW = 0,			//试验编号
+		SAMPLE_SHAPE_TUBE_KLJSSW,				//试件形状
+		SAMPLE_PIPE_THICKNESS_TUBE_KLJSSW,		//管段厚度
+		SAMPLE_PIPE_OUTER_DIAMETER_TUBE_KLJSSW,	//管段外径
+		ORIGINAL_CROSS_AREA_TUBE_KLJSSW,		//原始截面积
+		EXTERNSOMETER_GAUGE_TUBE_KLJSSW,		//引伸计标距
+		ORIGINAL_GAUGE_TUBE_KLJSSW,				//原始标距
+		PARALLEL_LENTH_TUBE_KLJSSW,				//平行长度
+		SAMPLE_NUM_TUBE_KLJSSW,					//试件根数
+	}KYTY_SHAPE_TUBE;
+	enum				 
+	{
+		TEST_SERIAL_RIRREGULAR_KLJSSW = 0,				//试验编号
+		SAMPLE_SHAPE_RIRREGULAR_KLJSSW,					//试件形状
+		ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW,			//原始截面积
+		EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW,			//引伸计标距
+		ORIGINAL_GAUGE_RIRREGULAR_KLJSSW,				//原始标距
+		PARALLEL_LENTH_RIRREGULAR_KLJSSW,				//平行长度
+		SAMPLE_NUM_RIRREGULAR_KLJSSW,					//试件根数
+	}KYTY_SHAPE_RIRREGULAR;
+};
 
 typedef struct
 {
@@ -385,14 +425,19 @@ const char * const pValue_KZTY[] =
 /* 金属室温抗拉参数名称显示 */
 const char * const pValue_KLJSSW[] = 
 {
-	"试验类型：",
-	"试件编号：",
-	"圆形直径：",
-	"原始截面积：",
-	"引伸计标距：",
-	"试件根数：",
-	"平行长度：",
-	"原始标距：",
+	"试验类型：",		//0
+	"试件编号：",		//1
+	"圆形直径：",		//2
+	"原始截面积：",		//3
+	"引伸计标距：",		//4
+	"试件根数：",		//5
+	"平行长度：",		//6
+	"原始标距：",		//7
+	"矩形厚度：",		//8
+	"矩形宽度：",		//9
+	"管段厚度：",		//10
+	"管段外径：",		//11
+	"试件形状：",		//12
 };
 
 
@@ -876,6 +921,15 @@ const char * const pRoundDiameter_KLJSSW[] =
 	"25",
 };
 
+//试件形状
+const char * const pSpecimenSharp_KLJSSW[] = 
+{
+	"长方形",
+	"圆形",
+	"管形",
+	"不规则",
+};
+
 //试件块数同 -> pSample_num
 
 /* 警告信息 */
@@ -894,6 +948,8 @@ const char * const pSampleNumRangeCue[] =
 	"试件面积不能为0！",					//10
 	"试件高度不能为0！",					//11
 	"试件跨距不能为0！",					//12
+	"管壁厚度不能为0！",					//13
+	"管段外径不能为0！",					//14
 };
 
 const char * const pSerialPutinCue[] = 
@@ -1444,9 +1500,9 @@ static void TestParameterConfig( void )
 		{
 			TYKY_TEST_SHAPE_TypeDef sampleShape;
 			
-			if (pTest->sample_type_index > 2)
+			if (pTest->sample_type_index > TYKY_SHAPE_IRREGULAR)
 			{
-				pTest->sample_type_index = 0;
+				pTest->sample_type_index = TYKY_SHAPE_RECTANGLE;
 			}
 			
 			sampleShape = (TYKY_TEST_SHAPE_TypeDef)pTest->sample_shape_index;
@@ -1818,87 +1874,371 @@ static void TestParameterConfig( void )
 			
 			break;
 		case KLJSSW:
-			/* 试验标准 */
-			g_testParameter.pTestStandard = pTestStandard[4];
-		
-			/* 试块个数 */
-			g_testParameter.curParameterNum = 7;
+			{
+				JSSWKL_TEST_SHAPE_TypeDef sampleShape;
+				
+				if (pTest->sample_type_index > JSSWKL_SHAPE_IRREGULAR)
+				{
+					pTest->sample_type_index = JSSWKL_SHAPE_RECTANGLE;
+				}
+				
+				sampleShape = (JSSWKL_TEST_SHAPE_TypeDef)pTest->sample_shape_index;
+				
+				/* 标题 */
+				g_testParameter.pTitle = pTestParameterTitleName[10];
+				
+				/* 试验标准 */
+				g_testParameter.pTestStandard = pTestStandard[4];
 			
-			/* 索引值 */
-			g_testParameter.indexArray[TEST_SERIAL_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
-			g_testParameter.indexArray[SAMPLE_ROUND_DIAMETER_KLJSSW] 	= OBJECT_ROUND_DIAMETER;		/* 圆形直径 */
-			g_testParameter.indexArray[ORIGINAL_CROSS_AREA_KLJSSW] 		= OBJECT_AREA;					/* 原始截面积 */
-			g_testParameter.indexArray[EXTERNSOMETER_GAUGE_KLJSSW] 		= OBJECT_EXTERNSOMETER_GAUGE;	/* 引伸计标距 */
-			g_testParameter.indexArray[ORIGINAL_GAUGE_KLJSSW] 			= OBJECT_ORIGINAL_GAUGE;		/* 原始标距 */
-			g_testParameter.indexArray[PARALLEL_LENTH_KLJSSW]			= OBJECT_PARALLEL_LENTH;		/* 平行长度 	*/
-			g_testParameter.indexArray[SAMPLE_NUM_KLJSSW] 	        	= OBJECT_SPECIMEN_NUMS;			/* 试件边长 */
-			
-			/* 参数名称 */
-			g_testParameter.pParameterNameArray[TEST_SERIAL_KLJSSW] 			= pValue_KLJSSW[1];
-			g_testParameter.pParameterNameArray[SAMPLE_ROUND_DIAMETER_KLJSSW] 	= pValue_KLJSSW[2];
-			g_testParameter.pParameterNameArray[ORIGINAL_CROSS_AREA_KLJSSW] 	= pValue_KLJSSW[3];
-			g_testParameter.pParameterNameArray[EXTERNSOMETER_GAUGE_KLJSSW] 	= pValue_KLJSSW[4];
-			g_testParameter.pParameterNameArray[ORIGINAL_GAUGE_KLJSSW] 			= pValue_KLJSSW[7];
-			g_testParameter.pParameterNameArray[PARALLEL_LENTH_KLJSSW]			= pValue_KLJSSW[6];
-			g_testParameter.pParameterNameArray[SAMPLE_NUM_KLJSSW] 				= pValue_KLJSSW[5];
-			
-			/* 单位 */
-			g_testParameter.pParameterUnitArray[TEST_SERIAL_KLJSSW] 			= "NULL";
-			g_testParameter.pParameterUnitArray[SAMPLE_ROUND_DIAMETER_KLJSSW] 	= pUnitType[4];
-			g_testParameter.pParameterUnitArray[ORIGINAL_CROSS_AREA_KLJSSW]		= pUnitType[5];
-			g_testParameter.pParameterUnitArray[EXTERNSOMETER_GAUGE_KLJSSW] 	= pUnitType[4];
-			g_testParameter.pParameterUnitArray[ORIGINAL_GAUGE_KLJSSW] 			= pUnitType[4];
-			g_testParameter.pParameterUnitArray[PARALLEL_LENTH_KLJSSW]			= pUnitType[4];
-			g_testParameter.pParameterUnitArray[SAMPLE_NUM_KLJSSW] 				= "NULL";
-			
-			/* 标题 */
-			g_testParameter.pTitle = pTestParameterTitleName[10];
-			
-			/* 二级菜单参数个数 */
-			g_testParameter.twoLevelMenu[TEST_SERIAL_KLJSSW].parameterCnt 			= 0;
-			g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].parameterCnt	= 9;
-			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_KLJSSW].parameterCnt 	= 0;
-			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_KLJSSW].parameterCnt 	= 0;
-			g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_KLJSSW].parameterCnt 		= 0;
-			g_testParameter.twoLevelMenu[PARALLEL_LENTH_KLJSSW].parameterCnt 		= 0;
-			g_testParameter.twoLevelMenu[SAMPLE_NUM_KLJSSW].parameterCnt 	    	= 7;
-			
-			/* 二级菜单类型 */
-			g_testParameter.twoLevelMenu[TEST_SERIAL_KLJSSW].parameterType 				= IMMEDIATELY_PUTIN_SHIFT;
-			g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].parameterType 	= USE_USER_DEFINE;
-			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_KLJSSW].parameterType 		= NONE_PARAMETER;
-			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_KLJSSW].parameterType 		= IMMEDIATELY_PUTIN_NONE;
-			g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_KLJSSW].parameterType 			= IMMEDIATELY_PUTIN_NONE;
-			g_testParameter.twoLevelMenu[PARALLEL_LENTH_KLJSSW].parameterType			= IMMEDIATELY_PUTIN_NONE;
-			g_testParameter.twoLevelMenu[SAMPLE_NUM_KLJSSW].parameterType 	    		= USE_USER_DEFINE;
-			
-			/* 二级菜单参数名 */
-			g_testParameter.twoLevelMenu[TEST_SERIAL_KLJSSW].pParameterNameArray 				= NULL;
-			g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].pParameterNameArray 		= pRoundDiameter_KLJSSW;
-			g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_KLJSSW].pParameterNameArray 		= NULL;
-			g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_KLJSSW].pParameterNameArray 		= NULL;
-			g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_KLJSSW].pParameterNameArray 			= NULL;
-			g_testParameter.twoLevelMenu[PARALLEL_LENTH_KLJSSW].pParameterNameArray				= NULL;
-			g_testParameter.twoLevelMenu[SAMPLE_NUM_KLJSSW].pParameterNameArray 				= pSample_num;
-            
-			/* 数据保存类型 */
-			g_testParameter.oneLevelMenu[TEST_SERIAL_KLJSSW].saveType 				= TYPE_CHAR;
-			g_testParameter.oneLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].saveType 	= TYPE_FLOAT;
-			g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_KLJSSW].saveType 		= TYPE_FLOAT;
-			g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_KLJSSW].saveType 		= TYPE_FLOAT;
-			g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_KLJSSW].saveType 			= TYPE_FLOAT;
-			g_testParameter.oneLevelMenu[PARALLEL_LENTH_KLJSSW].saveType			= TYPE_FLOAT;
-			g_testParameter.oneLevelMenu[SAMPLE_NUM_KLJSSW].saveType 				= TYPE_INT;
+				switch ( sampleShape )
+				{
+					case JSSWKL_SHAPE_RECTANGLE:
+						/* 试块个数 */
+						g_testParameter.curParameterNum = 9;
+						
+						/* 索引值 */
+						g_testParameter.indexArray[TEST_SERIAL_RECTANGLE_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
+						g_testParameter.indexArray[SAMPLE_SHAPE_RECTANGLE_KLJSSW] 				= OBJECT_SHAPE;					/* 形状 	 */
+						g_testParameter.indexArray[SAMPLE_THICKNESS_RECTANGLE_KLJSSW] 			= OBJECT_SPECIMEN_LENTH;		/* 试件长度  */
+						g_testParameter.indexArray[SAMPLE_WIDTH_RECTANGLE_KLJSSW] 				= OBJECT_SPECIMEN_WIDTH;		/* 试件宽度 	 */
+						g_testParameter.indexArray[ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW] 		= OBJECT_AREA;					/* 原始截面积 */
+						g_testParameter.indexArray[EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW]		= OBJECT_EXTERNSOMETER_GAUGE;	/* 引伸计标距 */
+						g_testParameter.indexArray[ORIGINAL_GAUGE_RECTANGLE_KLJSSW] 	        = OBJECT_ORIGINAL_GAUGE;		/* 原始标距 	 */
+						g_testParameter.indexArray[PARALLEL_LENTH_RECTANGLE_KLJSSW] 	        = OBJECT_PARALLEL_LENTH;		/* 平行长度 	 */
+						g_testParameter.indexArray[SAMPLE_NUM_RECTANGLE_KLJSSW] 	        	= OBJECT_SPECIMEN_NUMS;			/* 试件根数 	 */
+					
+						/* 参数名称 */
+						g_testParameter.pParameterNameArray[TEST_SERIAL_RECTANGLE_KLJSSW] 			= pValue_KLJSSW[1];
+						g_testParameter.pParameterNameArray[SAMPLE_SHAPE_RECTANGLE_KLJSSW] 			= pValue_KLJSSW[12];
+						g_testParameter.pParameterNameArray[SAMPLE_THICKNESS_RECTANGLE_KLJSSW] 		= pValue_KLJSSW[8];
+						g_testParameter.pParameterNameArray[SAMPLE_WIDTH_RECTANGLE_KLJSSW] 			= pValue_KLJSSW[9];
+						g_testParameter.pParameterNameArray[ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW] 	= pValue_KLJSSW[3];
+						g_testParameter.pParameterNameArray[EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW]	= pValue_KLJSSW[4];
+						g_testParameter.pParameterNameArray[ORIGINAL_GAUGE_RECTANGLE_KLJSSW] 		= pValue_KLJSSW[7];
+						g_testParameter.pParameterNameArray[PARALLEL_LENTH_RECTANGLE_KLJSSW] 	    = pValue_KLJSSW[6];		
+						g_testParameter.pParameterNameArray[SAMPLE_NUM_RECTANGLE_KLJSSW] 	       	= pValue_KLJSSW[5];
+						
+						/* 单位 */
+						g_testParameter.pParameterUnitArray[TEST_SERIAL_RECTANGLE_KLJSSW] 			= "NULL";
+						g_testParameter.pParameterUnitArray[SAMPLE_SHAPE_RECTANGLE_KLJSSW] 			= "NULL";
+						g_testParameter.pParameterUnitArray[SAMPLE_THICKNESS_RECTANGLE_KLJSSW]		= pUnitType[4];
+						g_testParameter.pParameterUnitArray[SAMPLE_WIDTH_RECTANGLE_KLJSSW] 			= pUnitType[4];
+						g_testParameter.pParameterUnitArray[ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW] 	= pUnitType[5];
+						g_testParameter.pParameterUnitArray[EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW]	= pUnitType[4];
+						g_testParameter.pParameterUnitArray[ORIGINAL_GAUGE_RECTANGLE_KLJSSW] 		= pUnitType[4];
+						g_testParameter.pParameterUnitArray[PARALLEL_LENTH_RECTANGLE_KLJSSW] 	    = pUnitType[4];
+						g_testParameter.pParameterUnitArray[SAMPLE_NUM_RECTANGLE_KLJSSW] 	       	= "NULL";
+						
+						/* 二级菜单参数个数 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_RECTANGLE_KLJSSW].parameterCnt 			= 0;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RECTANGLE_KLJSSW].parameterCnt			= 4;
+						g_testParameter.twoLevelMenu[SAMPLE_THICKNESS_RECTANGLE_KLJSSW].parameterCnt 		= 0;
+						g_testParameter.twoLevelMenu[SAMPLE_WIDTH_RECTANGLE_KLJSSW].parameterCnt 			= 0;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW].parameterCnt 	= 0;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW].parameterCnt 	= 0;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RECTANGLE_KLJSSW].parameterCnt 	    	= 0;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RECTANGLE_KLJSSW].parameterCnt  	   	= 0;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KLJSSW].parameterCnt  	       	= 7;
+						
+						/* 二级菜单类型 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_RECTANGLE_KLJSSW].parameterType 			= IMMEDIATELY_PUTIN_SHIFT;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RECTANGLE_KLJSSW].parameterType 			= NONE_USE_USER_DEFINE;
+						g_testParameter.twoLevelMenu[SAMPLE_THICKNESS_RECTANGLE_KLJSSW].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[SAMPLE_WIDTH_RECTANGLE_KLJSSW].parameterType 			= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW].parameterType 	= NONE_PARAMETER;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW].parameterType	= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RECTANGLE_KLJSSW].parameterType 	    = IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RECTANGLE_KLJSSW].parameterType  	   	= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KLJSSW].parameterType  	       	= USE_USER_DEFINE;
+						
+						/* 二级菜单参数名 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_RECTANGLE_KLJSSW].pParameterNameArray 			= NULL;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RECTANGLE_KLJSSW].pParameterNameArray 		= pSpecimenSharp_KLJSSW;
+						g_testParameter.twoLevelMenu[SAMPLE_THICKNESS_RECTANGLE_KLJSSW].pParameterNameArray 	= NULL;
+						g_testParameter.twoLevelMenu[SAMPLE_WIDTH_RECTANGLE_KLJSSW].pParameterNameArray 		= NULL;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW].pParameterNameArray 	= NULL;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW].pParameterNameArray	= NULL;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RECTANGLE_KLJSSW].pParameterNameArray 		= NULL;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RECTANGLE_KLJSSW].pParameterNameArray  	   	= NULL;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KLJSSW].pParameterNameArray  	       	= pSample_num;
+						
+						/* 数据保存类型 */
+						g_testParameter.oneLevelMenu[TEST_SERIAL_RECTANGLE_KLJSSW].saveType 			= TYPE_CHAR;
+						g_testParameter.oneLevelMenu[SAMPLE_SHAPE_RECTANGLE_KLJSSW].saveType 			= TYPE_INT;
+						g_testParameter.oneLevelMenu[SAMPLE_THICKNESS_RECTANGLE_KLJSSW].saveType 		= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[SAMPLE_WIDTH_RECTANGLE_KLJSSW].saveType 			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW].saveType 	= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW].saveType		= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_RECTANGLE_KLJSSW].saveType 			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[PARALLEL_LENTH_RECTANGLE_KLJSSW].saveType  	   	= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[SAMPLE_NUM_RECTANGLE_KLJSSW].saveType  	       	= TYPE_INT;
 
-			/* 小数点位数 */
-			g_testParameter.oneLevelMenu[TEST_SERIAL_KLJSSW].pointBit 				= 0;
-			g_testParameter.oneLevelMenu[SAMPLE_ROUND_DIAMETER_KLJSSW].pointBit 	= 2;
-			g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_KLJSSW].pointBit 		= 2;
-			g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_KLJSSW].pointBit 		= 2;
-			g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_KLJSSW].pointBit 			= 2;
-			g_testParameter.oneLevelMenu[PARALLEL_LENTH_KLJSSW].pointBit			= 2;
-			g_testParameter.oneLevelMenu[SAMPLE_NUM_KLJSSW].pointBit 				= 0;
-			break;
+						/* 小数点位数 */
+						g_testParameter.oneLevelMenu[TEST_SERIAL_RECTANGLE_KLJSSW].pointBit 			= 0;
+						g_testParameter.oneLevelMenu[SAMPLE_SHAPE_RECTANGLE_KLJSSW].pointBit 			= 0;
+						g_testParameter.oneLevelMenu[SAMPLE_THICKNESS_RECTANGLE_KLJSSW].pointBit 		= 2;
+						g_testParameter.oneLevelMenu[SAMPLE_WIDTH_RECTANGLE_KLJSSW].pointBit 			= 2;
+						g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW].pointBit 	= 2;
+						g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW].pointBit		= 2;
+						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_RECTANGLE_KLJSSW].pointBit 			= 2;
+						g_testParameter.oneLevelMenu[PARALLEL_LENTH_RECTANGLE_KLJSSW].pointBit  	   	= 2;
+						g_testParameter.oneLevelMenu[SAMPLE_NUM_RECTANGLE_KLJSSW].pointBit  	       	= 0;
+						break;
+					case JSSWKL_SHAPE_ROUND:
+						/* 试块个数 */
+						g_testParameter.curParameterNum = 8;
+						
+						/* 索引值 */
+						g_testParameter.indexArray[TEST_SERIAL_ROUND_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
+						g_testParameter.indexArray[SAMPLE_SHAPE_ROUND_KLJSSW] 				= OBJECT_SHAPE;					/* 形状 	 */
+						g_testParameter.indexArray[SAMPLE_ROUND_DIAMETER_ROUND_KLJSSW] 		= OBJECT_ROUND_DIAMETER;		/* 圆形直径 */
+						g_testParameter.indexArray[ORIGINAL_CROSS_AREA_ROUND_KLJSSW] 		= OBJECT_AREA;					/* 原始截面积 */
+						g_testParameter.indexArray[EXTERNSOMETER_GAUGE_ROUND_KLJSSW]		= OBJECT_EXTERNSOMETER_GAUGE;	/* 引伸计标距 */
+						g_testParameter.indexArray[ORIGINAL_GAUGE_ROUND_KLJSSW] 	        = OBJECT_ORIGINAL_GAUGE;		/* 原始标距 	 */
+						g_testParameter.indexArray[PARALLEL_LENTH_ROUND_KLJSSW] 	        = OBJECT_PARALLEL_LENTH;		/* 平行长度 	 */
+						g_testParameter.indexArray[SAMPLE_NUM_ROUND_KLJSSW] 	        	= OBJECT_SPECIMEN_NUMS;			/* 试件根数 	 */
+					
+						/* 参数名称 */
+						g_testParameter.pParameterNameArray[TEST_SERIAL_ROUND_KLJSSW] 					= pValue_KLJSSW[1];
+						g_testParameter.pParameterNameArray[SAMPLE_SHAPE_ROUND_KLJSSW] 					= pValue_KLJSSW[12];
+						g_testParameter.pParameterNameArray[SAMPLE_ROUND_DIAMETER_ROUND_KLJSSW] 		= pValue_KLJSSW[2];
+						g_testParameter.pParameterNameArray[ORIGINAL_CROSS_AREA_ROUND_KLJSSW] 			= pValue_KLJSSW[3];
+						g_testParameter.pParameterNameArray[EXTERNSOMETER_GAUGE_ROUND_KLJSSW]			= pValue_KLJSSW[4];
+						g_testParameter.pParameterNameArray[ORIGINAL_GAUGE_ROUND_KLJSSW] 				= pValue_KLJSSW[7];
+						g_testParameter.pParameterNameArray[PARALLEL_LENTH_ROUND_KLJSSW] 	   		 	= pValue_KLJSSW[6];		
+						g_testParameter.pParameterNameArray[SAMPLE_NUM_ROUND_KLJSSW] 	      		 	= pValue_KLJSSW[5];
+						
+						/* 单位 */
+						g_testParameter.pParameterUnitArray[TEST_SERIAL_ROUND_KLJSSW] 					= "NULL";
+						g_testParameter.pParameterUnitArray[SAMPLE_SHAPE_ROUND_KLJSSW] 					= "NULL";
+						g_testParameter.pParameterUnitArray[SAMPLE_ROUND_DIAMETER_ROUND_KLJSSW] 		= pUnitType[4];
+						g_testParameter.pParameterUnitArray[ORIGINAL_CROSS_AREA_ROUND_KLJSSW] 			= pUnitType[5];
+						g_testParameter.pParameterUnitArray[EXTERNSOMETER_GAUGE_ROUND_KLJSSW]			= pUnitType[4];
+						g_testParameter.pParameterUnitArray[ORIGINAL_GAUGE_ROUND_KLJSSW] 				= pUnitType[4];
+						g_testParameter.pParameterUnitArray[PARALLEL_LENTH_ROUND_KLJSSW] 	   			= pUnitType[4];
+						g_testParameter.pParameterUnitArray[SAMPLE_NUM_ROUND_KLJSSW] 	       			= "NULL";
+						
+						/* 二级菜单参数个数 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KLJSSW].parameterCnt 					= 0;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_ROUND_KLJSSW].parameterCnt					= 4;
+						g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_ROUND_KLJSSW].parameterCnt 			= 0;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_ROUND_KLJSSW].parameterCnt 			= 0;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_ROUND_KLJSSW].parameterCnt 			= 0;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_ROUND_KLJSSW].parameterCnt 	    			= 0;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_ROUND_KLJSSW].parameterCnt  	   			= 0;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KLJSSW].parameterCnt  	       			= 7;
+						
+						/* 二级菜单类型 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KLJSSW].parameterType 				= IMMEDIATELY_PUTIN_SHIFT;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_ROUND_KLJSSW].parameterType 				= NONE_USE_USER_DEFINE;
+						g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_ROUND_KLJSSW].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_ROUND_KLJSSW].parameterType 		= NONE_PARAMETER;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_ROUND_KLJSSW].parameterType		= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_ROUND_KLJSSW].parameterType 	    	= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_ROUND_KLJSSW].parameterType  	   		= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KLJSSW].parameterType  	       		= USE_USER_DEFINE;
+						
+						/* 二级菜单参数名 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KLJSSW].pParameterNameArray 					= NULL;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_ROUND_KLJSSW].pParameterNameArray 				= pSpecimenSharp_KLJSSW;
+						g_testParameter.twoLevelMenu[SAMPLE_ROUND_DIAMETER_ROUND_KLJSSW].pParameterNameArray 		= NULL;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_ROUND_KLJSSW].pParameterNameArray 			= NULL;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_ROUND_KLJSSW].pParameterNameArray			= NULL;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_ROUND_KLJSSW].pParameterNameArray 				= NULL;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_ROUND_KLJSSW].pParameterNameArray  	   			= NULL;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KLJSSW].pParameterNameArray  	       			= pSample_num;
+						
+						/* 数据保存类型 */
+						g_testParameter.oneLevelMenu[TEST_SERIAL_ROUND_KLJSSW].saveType 					= TYPE_CHAR;
+						g_testParameter.oneLevelMenu[SAMPLE_SHAPE_ROUND_KLJSSW].saveType 					= TYPE_INT;
+						g_testParameter.oneLevelMenu[SAMPLE_ROUND_DIAMETER_ROUND_KLJSSW].saveType 			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_ROUND_KLJSSW].saveType 			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_ROUND_KLJSSW].saveType				= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_ROUND_KLJSSW].saveType 					= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[PARALLEL_LENTH_ROUND_KLJSSW].saveType  	   			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[SAMPLE_NUM_ROUND_KLJSSW].saveType  	       			= TYPE_INT;
+
+						/* 小数点位数 */
+						g_testParameter.oneLevelMenu[TEST_SERIAL_ROUND_KLJSSW].pointBit 					= 0;
+						g_testParameter.oneLevelMenu[SAMPLE_SHAPE_ROUND_KLJSSW].pointBit 					= 0;
+						g_testParameter.oneLevelMenu[SAMPLE_ROUND_DIAMETER_ROUND_KLJSSW].pointBit 			= 2;
+						g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_ROUND_KLJSSW].pointBit 			= 2;
+						g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_ROUND_KLJSSW].pointBit				= 2;
+						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_ROUND_KLJSSW].pointBit 					= 2;
+						g_testParameter.oneLevelMenu[PARALLEL_LENTH_ROUND_KLJSSW].pointBit  	   			= 2;
+						g_testParameter.oneLevelMenu[SAMPLE_NUM_ROUND_KLJSSW].pointBit  	   				= 0;
+						break;
+					case JSSWKL_SHAPE_TUBE:
+						/* 试块个数 */
+						g_testParameter.curParameterNum = 9;
+						
+						/* 索引值 */
+						g_testParameter.indexArray[TEST_SERIAL_TUBE_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
+						g_testParameter.indexArray[SAMPLE_SHAPE_TUBE_KLJSSW] 				= OBJECT_SHAPE;					/* 形状 	 */
+						g_testParameter.indexArray[SAMPLE_PIPE_THICKNESS_TUBE_KLJSSW] 		= OBJECT_PIPE_THICKNESS;		/* 管段厚度  */
+						g_testParameter.indexArray[SAMPLE_PIPE_OUTER_DIAMETER_TUBE_KLJSSW] 	= OBJECT_PIPE_OUTER_DIAMETER;	/* 管段外直径 */
+						g_testParameter.indexArray[ORIGINAL_CROSS_AREA_TUBE_KLJSSW] 		= OBJECT_AREA;					/* 原始截面积 */
+						g_testParameter.indexArray[EXTERNSOMETER_GAUGE_TUBE_KLJSSW]			= OBJECT_EXTERNSOMETER_GAUGE;	/* 引伸计标距 */
+						g_testParameter.indexArray[ORIGINAL_GAUGE_TUBE_KLJSSW] 	        	= OBJECT_ORIGINAL_GAUGE;		/* 原始标距 	 */
+						g_testParameter.indexArray[PARALLEL_LENTH_TUBE_KLJSSW] 	        	= OBJECT_PARALLEL_LENTH;		/* 平行长度 	 */
+						g_testParameter.indexArray[SAMPLE_NUM_TUBE_KLJSSW] 	        		= OBJECT_SPECIMEN_NUMS;			/* 试件根数 	 */
+					
+						/* 参数名称 */
+						g_testParameter.pParameterNameArray[TEST_SERIAL_TUBE_KLJSSW] 					= pValue_KLJSSW[1];
+						g_testParameter.pParameterNameArray[SAMPLE_SHAPE_TUBE_KLJSSW] 					= pValue_KLJSSW[12];
+						g_testParameter.pParameterNameArray[SAMPLE_PIPE_THICKNESS_TUBE_KLJSSW] 			= pValue_KLJSSW[10];
+						g_testParameter.pParameterNameArray[SAMPLE_PIPE_OUTER_DIAMETER_TUBE_KLJSSW] 	= pValue_KLJSSW[11];
+						g_testParameter.pParameterNameArray[ORIGINAL_CROSS_AREA_TUBE_KLJSSW] 			= pValue_KLJSSW[3];
+						g_testParameter.pParameterNameArray[EXTERNSOMETER_GAUGE_TUBE_KLJSSW]			= pValue_KLJSSW[4];
+						g_testParameter.pParameterNameArray[ORIGINAL_GAUGE_TUBE_KLJSSW] 				= pValue_KLJSSW[7];
+						g_testParameter.pParameterNameArray[PARALLEL_LENTH_TUBE_KLJSSW] 	   		 	= pValue_KLJSSW[6];		
+						g_testParameter.pParameterNameArray[SAMPLE_NUM_TUBE_KLJSSW] 	      		 	= pValue_KLJSSW[5];
+						
+						/* 单位 */
+						g_testParameter.pParameterUnitArray[TEST_SERIAL_TUBE_KLJSSW] 					= "NULL";
+						g_testParameter.pParameterUnitArray[SAMPLE_SHAPE_TUBE_KLJSSW] 					= "NULL";
+						g_testParameter.pParameterUnitArray[SAMPLE_PIPE_THICKNESS_TUBE_KLJSSW]			= pUnitType[4];
+						g_testParameter.pParameterUnitArray[SAMPLE_PIPE_OUTER_DIAMETER_TUBE_KLJSSW] 	= pUnitType[4];
+						g_testParameter.pParameterUnitArray[ORIGINAL_CROSS_AREA_TUBE_KLJSSW] 			= pUnitType[5];
+						g_testParameter.pParameterUnitArray[EXTERNSOMETER_GAUGE_TUBE_KLJSSW]			= pUnitType[4];
+						g_testParameter.pParameterUnitArray[ORIGINAL_GAUGE_TUBE_KLJSSW] 				= pUnitType[4];
+						g_testParameter.pParameterUnitArray[PARALLEL_LENTH_TUBE_KLJSSW] 	   			= pUnitType[4];
+						g_testParameter.pParameterUnitArray[SAMPLE_NUM_TUBE_KLJSSW] 	       			= "NULL";
+						
+						/* 二级菜单参数个数 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_TUBE_KLJSSW].parameterCnt 					= 0;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_TUBE_KLJSSW].parameterCnt					= 4;
+						g_testParameter.twoLevelMenu[SAMPLE_PIPE_THICKNESS_TUBE_KLJSSW].parameterCnt 		= 0;
+						g_testParameter.twoLevelMenu[SAMPLE_PIPE_OUTER_DIAMETER_TUBE_KLJSSW].parameterCnt 	= 0;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_TUBE_KLJSSW].parameterCnt 			= 0;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_TUBE_KLJSSW].parameterCnt 			= 0;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_TUBE_KLJSSW].parameterCnt 	    		= 0;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_TUBE_KLJSSW].parameterCnt  	   			= 0;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_TUBE_KLJSSW].parameterCnt  	       			= 7;
+						
+						/* 二级菜单类型 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_TUBE_KLJSSW].parameterType 				= IMMEDIATELY_PUTIN_SHIFT;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_TUBE_KLJSSW].parameterType 				= NONE_USE_USER_DEFINE;
+						g_testParameter.twoLevelMenu[SAMPLE_PIPE_THICKNESS_TUBE_KLJSSW].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[SAMPLE_PIPE_OUTER_DIAMETER_TUBE_KLJSSW].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_TUBE_KLJSSW].parameterType 		= NONE_PARAMETER;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_TUBE_KLJSSW].parameterType			= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_TUBE_KLJSSW].parameterType 	    		= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_TUBE_KLJSSW].parameterType  	   		= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_TUBE_KLJSSW].parameterType  	       		= USE_USER_DEFINE;
+						
+						/* 二级菜单参数名 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_TUBE_KLJSSW].pParameterNameArray 					= NULL;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_TUBE_KLJSSW].pParameterNameArray 					= pSpecimenSharp_KLJSSW;
+						g_testParameter.twoLevelMenu[SAMPLE_PIPE_THICKNESS_TUBE_KLJSSW].pParameterNameArray 		= NULL;
+						g_testParameter.twoLevelMenu[SAMPLE_PIPE_OUTER_DIAMETER_TUBE_KLJSSW].pParameterNameArray 	= NULL;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_TUBE_KLJSSW].pParameterNameArray 			= NULL;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_TUBE_KLJSSW].pParameterNameArray			= NULL;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_TUBE_KLJSSW].pParameterNameArray 				= NULL;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_TUBE_KLJSSW].pParameterNameArray  	   			= NULL;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_TUBE_KLJSSW].pParameterNameArray  	       			= pSample_num;
+						
+						/* 数据保存类型 */
+						g_testParameter.oneLevelMenu[TEST_SERIAL_TUBE_KLJSSW].saveType 					= TYPE_CHAR;
+						g_testParameter.oneLevelMenu[SAMPLE_SHAPE_TUBE_KLJSSW].saveType 				= TYPE_INT;
+						g_testParameter.oneLevelMenu[SAMPLE_PIPE_THICKNESS_TUBE_KLJSSW].saveType 		= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[SAMPLE_PIPE_OUTER_DIAMETER_TUBE_KLJSSW].saveType 	= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_TUBE_KLJSSW].saveType 			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_TUBE_KLJSSW].saveType			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_TUBE_KLJSSW].saveType 				= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[PARALLEL_LENTH_TUBE_KLJSSW].saveType  	   			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[SAMPLE_NUM_TUBE_KLJSSW].saveType  	       			= TYPE_INT;
+
+						/* 小数点位数 */
+						g_testParameter.oneLevelMenu[TEST_SERIAL_TUBE_KLJSSW].pointBit 					= 0;
+						g_testParameter.oneLevelMenu[SAMPLE_SHAPE_TUBE_KLJSSW].pointBit 				= 0;
+						g_testParameter.oneLevelMenu[SAMPLE_PIPE_THICKNESS_TUBE_KLJSSW].pointBit 		= 2;
+						g_testParameter.oneLevelMenu[SAMPLE_PIPE_OUTER_DIAMETER_TUBE_KLJSSW].pointBit 	= 2;
+						g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_TUBE_KLJSSW].pointBit 			= 2;
+						g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_TUBE_KLJSSW].pointBit			= 2;
+						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_TUBE_KLJSSW].pointBit 				= 2;
+						g_testParameter.oneLevelMenu[PARALLEL_LENTH_TUBE_KLJSSW].pointBit  	   			= 2;
+						g_testParameter.oneLevelMenu[SAMPLE_NUM_TUBE_KLJSSW].pointBit  	       			= 0;
+						break;
+					case JSSWKL_SHAPE_IRREGULAR:
+						/* 试块个数 */
+						g_testParameter.curParameterNum = 7;
+						
+						/* 索引值 */
+						g_testParameter.indexArray[TEST_SERIAL_RIRREGULAR_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
+						g_testParameter.indexArray[SAMPLE_SHAPE_RIRREGULAR_KLJSSW] 				= OBJECT_SHAPE;					/* 形状 	 */
+						g_testParameter.indexArray[ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW] 		= OBJECT_AREA;					/* 原始截面积 */
+						g_testParameter.indexArray[EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW]		= OBJECT_EXTERNSOMETER_GAUGE;	/* 引伸计标距 */
+						g_testParameter.indexArray[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW] 	        = OBJECT_ORIGINAL_GAUGE;		/* 原始标距 	 */
+						g_testParameter.indexArray[PARALLEL_LENTH_RIRREGULAR_KLJSSW] 	        = OBJECT_PARALLEL_LENTH;		/* 平行长度 	 */
+						g_testParameter.indexArray[SAMPLE_NUM_RIRREGULAR_KLJSSW] 	        	= OBJECT_SPECIMEN_NUMS;			/* 试件根数 	 */
+					
+						/* 参数名称 */
+						g_testParameter.pParameterNameArray[TEST_SERIAL_RIRREGULAR_KLJSSW] 					= pValue_KLJSSW[1];
+						g_testParameter.pParameterNameArray[SAMPLE_SHAPE_RIRREGULAR_KLJSSW] 				= pValue_KLJSSW[12];
+						g_testParameter.pParameterNameArray[ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW] 			= pValue_KLJSSW[3];
+						g_testParameter.pParameterNameArray[EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW]			= pValue_KLJSSW[4];
+						g_testParameter.pParameterNameArray[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW] 				= pValue_KLJSSW[7];
+						g_testParameter.pParameterNameArray[PARALLEL_LENTH_RIRREGULAR_KLJSSW] 	   		 	= pValue_KLJSSW[6];		
+						g_testParameter.pParameterNameArray[SAMPLE_NUM_RIRREGULAR_KLJSSW] 	      		 	= pValue_KLJSSW[5];
+						
+						/* 单位 */
+						g_testParameter.pParameterUnitArray[TEST_SERIAL_RIRREGULAR_KLJSSW] 					= "NULL";
+						g_testParameter.pParameterUnitArray[SAMPLE_SHAPE_RIRREGULAR_KLJSSW] 				= "NULL";
+						g_testParameter.pParameterUnitArray[ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW] 			= pUnitType[5];
+						g_testParameter.pParameterUnitArray[EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW]			= pUnitType[4];
+						g_testParameter.pParameterUnitArray[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW] 				= pUnitType[4];
+						g_testParameter.pParameterUnitArray[PARALLEL_LENTH_RIRREGULAR_KLJSSW] 	   			= pUnitType[4];
+						g_testParameter.pParameterUnitArray[SAMPLE_NUM_RIRREGULAR_KLJSSW] 	       			= "NULL";
+						
+						/* 二级菜单参数个数 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_RIRREGULAR_KLJSSW].parameterCnt 					= 0;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RIRREGULAR_KLJSSW].parameterCnt					= 4;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW].parameterCnt 			= 0;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW].parameterCnt 			= 0;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW].parameterCnt 	    		= 0;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RIRREGULAR_KLJSSW].parameterCnt  	   			= 0;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_RIRREGULAR_KLJSSW].parameterCnt  	       			= 7;
+						
+						/* 二级菜单类型 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_RIRREGULAR_KLJSSW].parameterType 				= IMMEDIATELY_PUTIN_SHIFT;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RIRREGULAR_KLJSSW].parameterType 				= NONE_USE_USER_DEFINE;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW].parameterType		= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW].parameterType 	    	= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RIRREGULAR_KLJSSW].parameterType  	   		= IMMEDIATELY_PUTIN_NONE;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_RIRREGULAR_KLJSSW].parameterType  	       		= USE_USER_DEFINE;
+						
+						/* 二级菜单参数名 */
+						g_testParameter.twoLevelMenu[TEST_SERIAL_RIRREGULAR_KLJSSW].pParameterNameArray 				= NULL;
+						g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RIRREGULAR_KLJSSW].pParameterNameArray 				= pSpecimenSharp_KLJSSW;
+						g_testParameter.twoLevelMenu[ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW].pParameterNameArray 		= NULL;
+						g_testParameter.twoLevelMenu[EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW].pParameterNameArray			= NULL;
+						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW].pParameterNameArray 				= NULL;
+						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RIRREGULAR_KLJSSW].pParameterNameArray  	   		= NULL;
+						g_testParameter.twoLevelMenu[SAMPLE_NUM_RIRREGULAR_KLJSSW].pParameterNameArray  	       		= pSample_num;
+						
+						/* 数据保存类型 */
+						g_testParameter.oneLevelMenu[TEST_SERIAL_RIRREGULAR_KLJSSW].saveType 					= TYPE_CHAR;
+						g_testParameter.oneLevelMenu[SAMPLE_SHAPE_RIRREGULAR_KLJSSW].saveType 					= TYPE_INT;
+						g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW].saveType 			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW].saveType			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW].saveType 				= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[PARALLEL_LENTH_RIRREGULAR_KLJSSW].saveType  	   			= TYPE_FLOAT;
+						g_testParameter.oneLevelMenu[SAMPLE_NUM_RIRREGULAR_KLJSSW].saveType  	       			= TYPE_INT;
+
+						/* 小数点位数 */
+						g_testParameter.oneLevelMenu[TEST_SERIAL_RIRREGULAR_KLJSSW].pointBit 					= 0;
+						g_testParameter.oneLevelMenu[SAMPLE_SHAPE_RIRREGULAR_KLJSSW].pointBit 					= 0;
+						g_testParameter.oneLevelMenu[ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW].pointBit 			= 2;
+						g_testParameter.oneLevelMenu[EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW].pointBit			= 2;
+						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW].pointBit 				= 2;
+						g_testParameter.oneLevelMenu[PARALLEL_LENTH_RIRREGULAR_KLJSSW].pointBit  	   			= 2;
+						g_testParameter.oneLevelMenu[SAMPLE_NUM_RIRREGULAR_KLJSSW].pointBit  	   				= 0;
+						break;
+				}
+				break;
+			}
 	}
 }
 
@@ -2021,14 +2361,6 @@ static void TestParameterReadParameter( void )
 		g_testParameter.twoLevelMenu[index].index = pCurTest->sample_shape_index;
 	}
 	
-	/* 金属室温抗拉试验没有“试件形状”参数，
-		需要默认一个的索引值 
-	*/
-	if (g_testParameter.testType == KLJSSW)
-	{
-		pCurTest->sample_shape_index = KLJSSW_SHAPE_ROUND;
-	}
-	
 	index = GetTestParameterIndex(OBJECT_AREA);
 	if (index != 0xff)
 	{
@@ -2054,8 +2386,20 @@ static void TestParameterReadParameter( void )
 			case KLJSSW:
 				switch (pCurTest->sample_shape_index)
 				{
-					case KLJSSW_SHAPE_ROUND:
+					case JSSWKL_SHAPE_RECTANGLE:
 						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_ROUND:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_TUBE:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_IRREGULAR:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
+						break;
+					default:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
 						break;
 				}
 				break;
@@ -2087,6 +2431,18 @@ static void TestParameterReadParameter( void )
 	if (index != 0xff)
 	{
 		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->originalGauge,g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_PIPE_THICKNESS);
+	if (index != 0xff)
+	{
+		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->pipeThickness,g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_PIPE_OUTER_DIAMETER);
+	if (index != 0xff)
+	{
+		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->pipeOuterDiameter,g_testParameter.parameterData[index]);
 	}
 }
 
@@ -2212,8 +2568,17 @@ static void TestParameterWriteParameter( void )
 			case KLJSSW:
 				switch ( pCurTest->sample_shape_index )
 				{
-					case KLJSSW_SHAPE_ROUND:
+					case JSSWKL_SHAPE_RECTANGLE:
 						pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_ROUND:
+						pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_TUBE:
+						pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_IRREGULAR:
+						pCurTest->bgz_area = str2float(g_testParameter.parameterData[index]);
 						break;
 				}			
 				break;
@@ -2261,6 +2626,18 @@ static void TestParameterWriteParameter( void )
 	if (index != 0xff)
 	{
 		pCurTest->originalGauge = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_PIPE_THICKNESS);
+	if (index != 0xff)
+	{
+		pCurTest->pipeThickness = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_PIPE_OUTER_DIAMETER);
+	if (index != 0xff)
+	{
+		pCurTest->pipeOuterDiameter = str2float(g_testParameter.parameterData[index]);
 	}
 	
 	pcm_save();
@@ -2998,6 +3375,38 @@ static TestStatus TestParameterCheckPutinData( uint8_t nowIndex )
 		}
 	}
 	
+	checkIndex = GetTestParameterIndex(OBJECT_PIPE_THICKNESS);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[13]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_PIPE_OUTER_DIAMETER);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[14]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
 	return PASSED;
 }
 
@@ -3546,9 +3955,13 @@ static void TestParameterExchangeSampleShape( uint8_t nowIndex )
 {
 	uint8_t index = 0;
 	
-	if (g_testParameter.testType != KYTY)
+	switch ( g_testParameter.testType )
 	{
-		return;
+		case KYTY:
+		case KLJSSW:	
+			break;
+		default:
+			return;
 	}
 	
 	index = GetTestParameterIndex(OBJECT_SHAPE);

@@ -128,7 +128,9 @@ typedef struct
 	float 		extensometerGauge;				//引伸计标距
 	float 		parallelLenth;					//平行长度
 	float		originalGauge;					//原始标距
-	uint8_t 	rsv[19];
+	float		pipeThickness;					//管段厚度
+	float		pipeOuterDiameter;				//管段外径
+	uint8_t 	rsv[11];
 }TEST_TypeDef; 	/* 194Byte(0XC2) */	
     
         

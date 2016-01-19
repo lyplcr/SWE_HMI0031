@@ -106,6 +106,21 @@ const char * const pReportSearchNameKZKY[] =
 	"通用抗折",		
 };
 
+const char * const pReportSearchNameUniversal[] = 
+{
+	"全部试验",
+	"水泥胶砂抗压",
+	"建筑砂浆抗压",
+	"混凝土抗压",
+	"混凝土抗折",
+	"砌墙砖抗压",
+	"通用抗压",
+	"水泥胶砂抗折",
+	"压浆水泥浆抗折",
+	"通用抗折",		
+	"金属室温拉伸",
+};
+
 const char * const pReportSearchParameterName[] = 
 {
 	"查找对象：",
@@ -401,7 +416,20 @@ static void ReportSearchConfig( void )
 			g_reportSearch.testIndexArray[7] 	= KZSNJS;	
 			g_reportSearch.testIndexArray[8] 	= KZYJSNJ;	
 			g_reportSearch.testIndexArray[9] 	= KZTY;
-			break;		
+			break;	
+		case MODEL_UNIVERSAL:
+			g_reportSearch.testIndexArray[0] 	= 0xff;
+			g_reportSearch.testIndexArray[1] 	= KYSNJS;	
+			g_reportSearch.testIndexArray[2] 	= KYJZSJ;		
+			g_reportSearch.testIndexArray[3] 	= KYHNT;		
+			g_reportSearch.testIndexArray[4] 	= KZHNT;			
+			g_reportSearch.testIndexArray[5] 	= KYQQZ;
+			g_reportSearch.testIndexArray[6] 	= KYTY;
+			g_reportSearch.testIndexArray[7] 	= KZSNJS;	
+			g_reportSearch.testIndexArray[8] 	= KZYJSNJ;	
+			g_reportSearch.testIndexArray[9] 	= KZTY;
+			g_reportSearch.testIndexArray[10] 	= KLJSSW;
+			break;
 	}
 	
 	/* 二级菜单参数个数 */
@@ -415,7 +443,10 @@ static void ReportSearchConfig( void )
 			break;
 		case MODEL_KZKY:
 			g_reportSearch.twoLevelMenu[INDEX_FIND_OBJECT].parameterCnt = 10;
-			break;		
+			break;	
+		case MODEL_UNIVERSAL:
+			g_reportSearch.twoLevelMenu[INDEX_FIND_OBJECT].parameterCnt = 11;
+			break;
 	}	
 	g_reportSearch.twoLevelMenu[INDEX_FIND_MODE].parameterCnt			= 2;
 	g_reportSearch.twoLevelMenu[INDEX_START_DATE].parameterCnt 			= 0;
@@ -441,6 +472,9 @@ static void ReportSearchConfig( void )
 		case MODEL_KZKY:
 			g_reportSearch.twoLevelMenu[INDEX_FIND_OBJECT].pParameterNameArray = pReportSearchNameKZKY;
 			break;		
+		case MODEL_UNIVERSAL:
+			g_reportSearch.twoLevelMenu[INDEX_FIND_OBJECT].pParameterNameArray = pReportSearchNameUniversal;
+			break;
 	}	
 	g_reportSearch.twoLevelMenu[INDEX_FIND_MODE].pParameterNameArray 		= pFindModeName;
 	g_reportSearch.twoLevelMenu[INDEX_START_DATE].pParameterNameArray 		= NULL;
@@ -1249,7 +1283,7 @@ void GetTestDataFromSD( FunctionalState SearchAll, FIND_TYPE_INDEX_TypeDef searc
 			{
 				if (SearchAll == ENABLE)	//所有结果
 				{
-					for (testIndex=KYSNJS; testIndex<=KZTY; ++testIndex)
+					for (testIndex=KYSNJS; testIndex<=SUPPORT_TEST_NUM-1; ++testIndex)
 					{
 						report_search_date(testIndex,start,end,0,temp_info,&search_cnt);
 						g_searchResult.searchNum[testIndex] = search_cnt;
@@ -1261,13 +1295,13 @@ void GetTestDataFromSD( FunctionalState SearchAll, FIND_TYPE_INDEX_TypeDef searc
 				else				//指定位置处开始的结果
 				{
 					//定位偏移量在试验中的位置
-					for (testIndex=KYSNJS; testIndex<=KZTY; ++testIndex)
+					for (testIndex=KYSNJS; testIndex<=SUPPORT_TEST_NUM-1; ++testIndex)
 					{
 						if (offset_temp + g_searchResult.searchNum[testIndex] > offset)
 						{
 							temp_pos = offset - offset_temp;
 							
-							while (testIndex <= KZTY)
+							while (testIndex <= SUPPORT_TEST_NUM-1)
 							{
 								if ( g_searchResult.searchNum[testIndex] )
 								{
@@ -1334,7 +1368,7 @@ void GetTestDataFromSD( FunctionalState SearchAll, FIND_TYPE_INDEX_TypeDef searc
 			{
 				if (SearchAll == ENABLE)	//所有结果
 				{
-					for (testIndex=KYSNJS; testIndex<=KZTY; ++testIndex)
+					for (testIndex=KYSNJS; testIndex<=SUPPORT_TEST_NUM-1; ++testIndex)
 					{
 						report_search_sn(testIndex,file_name,0,temp_info,&search_cnt);
 						g_searchResult.searchNum[testIndex] = search_cnt;
@@ -1346,13 +1380,13 @@ void GetTestDataFromSD( FunctionalState SearchAll, FIND_TYPE_INDEX_TypeDef searc
 				else				//指定位置处开始的结果
 				{
 					//定位偏移量在试验中的位置
-					for (testIndex=KYSNJS; testIndex<=KZTY; ++testIndex)
+					for (testIndex=KYSNJS; testIndex<=SUPPORT_TEST_NUM-1; ++testIndex)
 					{
 						if (offset_temp + g_searchResult.searchNum[testIndex] > offset)
 						{
 							temp_pos = offset - offset_temp;
 							
-							while (testIndex <= KZTY)
+							while (testIndex <= SUPPORT_TEST_NUM-1)
 							{
 								if ( g_searchResult.searchNum[testIndex] )
 								{

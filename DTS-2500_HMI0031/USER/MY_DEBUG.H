@@ -26,6 +26,8 @@
 //	#define	DEBUG_REAL_TIME_DATA_FRAM
 //	#define	DEBUG_KEY
 //	#define DEBUG_DEFORM_SHOW
+	#define	DEBUG_EXCEPTION_DIVISION_ZERO		//≥˝¡„“Ï≥£
+	#define DEBUG_PRINTF_TIMING					//¥Ú”°∫ƒ ±
 #endif
 
 #endif
