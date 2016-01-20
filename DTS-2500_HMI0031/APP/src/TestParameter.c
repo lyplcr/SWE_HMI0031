@@ -148,6 +148,7 @@ union KYTY_PARA_NAME_TypeDef		//通用抗压
 		SAMPLE_SHAPE_RECTANGLE_KYTY,	//形状
 		SAMPLE_LENTH_RECTANGLE_KYTY,	//长度
 		SAMPLE_WIDTH_RECTANGLE_KYTY,	//宽度
+		SAMPLE_AREA_RECTANGLE_KYTY,		//面积
 		CORRECT_COF_RECTANGLE_KYTY,		//修正系数
 		SAMPLE_NUM_RECTANGLE_KYTY,		//试件块数
 	}KYTY_SHAPE_RECTANGLE;
@@ -156,6 +157,7 @@ union KYTY_PARA_NAME_TypeDef		//通用抗压
 		TEST_SERIAL_ROUND_KYTY = 0,	//试验编号
 		SAMPLE_SHAPE_ROUND_KYTY,	//形状
 		SAMPLE_DIAMETER_ROUND_KYTY,	//直径
+		SAMPLE_AREA_ROUND_KYTY,		//面积
 		CORRECT_COF_ROUND_KYTY,		//修正系数
 		SAMPLE_NUM_ROUND_KYTY,		//试件块数
 	}KYTY_SHAPE_ROUND;
@@ -948,7 +950,7 @@ const char * const pSampleNumRangeCue[] =
 	"试件面积不能为0！",					//10
 	"试件高度不能为0！",					//11
 	"试件跨距不能为0！",					//12
-	"管壁厚度不能为0！",					//13
+	"管段厚度不能为0！",					//13
 	"管段外径不能为0！",					//14
 };
 
@@ -986,7 +988,7 @@ static void TestParameterShortcutCycleTask( void );
 static void TestParameterPopWindowsProcess( void );
 static void TestParameterLeavePageCheckCycle( void );
 static void TestParameterExchangeSampleShape( uint8_t nowIndex );
-
+static void TestParameterGetConvertArea( uint8_t nowIndex );
 
 /* Private functions ---------------------------------------------------------*/
 /*------------------------------------------------------------
@@ -1517,21 +1519,23 @@ static void TestParameterConfig( void )
 			{
 				case TYKY_SHAPE_RECTANGLE:
 					/* 试块个数 */
-					g_testParameter.curParameterNum = 6;
+					g_testParameter.curParameterNum = 7;
 					
 					/* 索引值 */
 					g_testParameter.indexArray[TEST_SERIAL_RECTANGLE_KYTY] 	= OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
 					g_testParameter.indexArray[SAMPLE_SHAPE_RECTANGLE_KYTY] = OBJECT_SHAPE;					/* 试件形状 */
 					g_testParameter.indexArray[SAMPLE_LENTH_RECTANGLE_KYTY] = OBJECT_SPECIMEN_LENTH;		/* 长度	    */
 					g_testParameter.indexArray[SAMPLE_WIDTH_RECTANGLE_KYTY] = OBJECT_SPECIMEN_WIDTH;		/* 宽度 	*/
+					g_testParameter.indexArray[SAMPLE_AREA_RECTANGLE_KYTY] 	= OBJECT_AREA;					/* 面积 	*/
 					g_testParameter.indexArray[CORRECT_COF_RECTANGLE_KYTY] 	= OBJECT_CORRECTION_FACTOR;		/* 修正系数 */
-					g_testParameter.indexArray[SAMPLE_NUM_RECTANGLE_KYTY] 	= OBJECT_SPECIMEN_NUMS;			/* 试件块数 */			/* 延时时间 */
+					g_testParameter.indexArray[SAMPLE_NUM_RECTANGLE_KYTY] 	= OBJECT_SPECIMEN_NUMS;			/* 试件块数 */		
 				
 					/* 参数名称 */
 					g_testParameter.pParameterNameArray[TEST_SERIAL_RECTANGLE_KYTY] 	= pValue_KYTY[1];
 					g_testParameter.pParameterNameArray[SAMPLE_SHAPE_RECTANGLE_KYTY] 	= pValue_KYTY[3];
 					g_testParameter.pParameterNameArray[SAMPLE_LENTH_RECTANGLE_KYTY] 	= pValue_KYTY[10];
 					g_testParameter.pParameterNameArray[SAMPLE_WIDTH_RECTANGLE_KYTY] 	= pValue_KYTY[11];
+					g_testParameter.pParameterNameArray[SAMPLE_AREA_RECTANGLE_KYTY] 	= pValue_KYTY[4];
 					g_testParameter.pParameterNameArray[CORRECT_COF_RECTANGLE_KYTY] 	= pValue_KYTY[9];
 					g_testParameter.pParameterNameArray[SAMPLE_NUM_RECTANGLE_KYTY] 		= pValue_KYTY[6];		
 				
@@ -1540,6 +1544,7 @@ static void TestParameterConfig( void )
 					g_testParameter.pParameterUnitArray[SAMPLE_SHAPE_RECTANGLE_KYTY] 	= "NULL";
 					g_testParameter.pParameterUnitArray[SAMPLE_LENTH_RECTANGLE_KYTY]	= pUnitType[4];
 					g_testParameter.pParameterUnitArray[SAMPLE_WIDTH_RECTANGLE_KYTY] 	= pUnitType[4];
+					g_testParameter.pParameterUnitArray[SAMPLE_AREA_RECTANGLE_KYTY]		= pUnitType[5];
 					g_testParameter.pParameterUnitArray[CORRECT_COF_RECTANGLE_KYTY] 	= "NULL";
 					g_testParameter.pParameterUnitArray[SAMPLE_NUM_RECTANGLE_KYTY] 		= "NULL";
 					
@@ -1548,6 +1553,7 @@ static void TestParameterConfig( void )
 					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RECTANGLE_KYTY].parameterCnt		= 3;
 					g_testParameter.twoLevelMenu[SAMPLE_LENTH_RECTANGLE_KYTY].parameterCnt 		= 0;
 					g_testParameter.twoLevelMenu[SAMPLE_WIDTH_RECTANGLE_KYTY].parameterCnt 		= 0;
+					g_testParameter.twoLevelMenu[SAMPLE_AREA_RECTANGLE_KYTY].parameterCnt 		= 0;
 					g_testParameter.twoLevelMenu[CORRECT_COF_RECTANGLE_KYTY].parameterCnt 		= 2;
 					g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KYTY].parameterCnt 		= 7;
 					
@@ -1556,6 +1562,7 @@ static void TestParameterConfig( void )
 					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RECTANGLE_KYTY].parameterType 	= NONE_USE_USER_DEFINE;
 					g_testParameter.twoLevelMenu[SAMPLE_LENTH_RECTANGLE_KYTY].parameterType 	= IMMEDIATELY_PUTIN_NONE;
 					g_testParameter.twoLevelMenu[SAMPLE_WIDTH_RECTANGLE_KYTY].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+					g_testParameter.twoLevelMenu[SAMPLE_AREA_RECTANGLE_KYTY].parameterType		= NONE_PARAMETER;
 					g_testParameter.twoLevelMenu[CORRECT_COF_RECTANGLE_KYTY].parameterType 		= USE_USER_DEFINE;
 					g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KYTY].parameterType 		= USE_USER_DEFINE;
 					
@@ -1564,6 +1571,7 @@ static void TestParameterConfig( void )
 					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_RECTANGLE_KYTY].pParameterNameArray 	= pSpecimen_sharp;
 					g_testParameter.twoLevelMenu[SAMPLE_LENTH_RECTANGLE_KYTY].pParameterNameArray 	= NULL;
 					g_testParameter.twoLevelMenu[SAMPLE_WIDTH_RECTANGLE_KYTY].pParameterNameArray 	= NULL;
+					g_testParameter.twoLevelMenu[SAMPLE_AREA_RECTANGLE_KYTY].pParameterNameArray	= NULL;
 					g_testParameter.twoLevelMenu[CORRECT_COF_RECTANGLE_KYTY].pParameterNameArray 	= pSpecimen_cof;
 					g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KYTY].pParameterNameArray 	= pSample_num;
 					
@@ -1572,6 +1580,7 @@ static void TestParameterConfig( void )
 					g_testParameter.oneLevelMenu[SAMPLE_SHAPE_RECTANGLE_KYTY].saveType 		= TYPE_INT;
 					g_testParameter.oneLevelMenu[SAMPLE_LENTH_RECTANGLE_KYTY].saveType 		= TYPE_FLOAT;
 					g_testParameter.oneLevelMenu[SAMPLE_WIDTH_RECTANGLE_KYTY].saveType 		= TYPE_FLOAT;
+					g_testParameter.oneLevelMenu[SAMPLE_AREA_RECTANGLE_KYTY].saveType		= TYPE_FLOAT;
 					g_testParameter.oneLevelMenu[CORRECT_COF_RECTANGLE_KYTY].saveType 		= TYPE_FLOAT;
 					g_testParameter.oneLevelMenu[SAMPLE_NUM_RECTANGLE_KYTY].saveType 		= TYPE_INT;	
 
@@ -1580,17 +1589,19 @@ static void TestParameterConfig( void )
 					g_testParameter.oneLevelMenu[SAMPLE_SHAPE_RECTANGLE_KYTY].pointBit 		= 0;
 					g_testParameter.oneLevelMenu[SAMPLE_LENTH_RECTANGLE_KYTY].pointBit 		= 2;
 					g_testParameter.oneLevelMenu[SAMPLE_WIDTH_RECTANGLE_KYTY].pointBit 		= 2;
+					g_testParameter.oneLevelMenu[SAMPLE_AREA_RECTANGLE_KYTY].pointBit		= 2;
 					g_testParameter.oneLevelMenu[CORRECT_COF_RECTANGLE_KYTY].pointBit 		= 2;
 					g_testParameter.oneLevelMenu[SAMPLE_NUM_RECTANGLE_KYTY].pointBit 		= 0;
 					break;
 				case TYKY_SHAPE_ROUND:
 					/* 试块个数 */
-					g_testParameter.curParameterNum = 5;
+					g_testParameter.curParameterNum = 6;
 					
 					/* 索引值 */
 					g_testParameter.indexArray[TEST_SERIAL_ROUND_KYTY] 		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
 					g_testParameter.indexArray[SAMPLE_SHAPE_ROUND_KYTY] 	= OBJECT_SHAPE;					/* 试件形状 */
-					g_testParameter.indexArray[SAMPLE_DIAMETER_ROUND_KYTY] 	= OBJECT_ROUND_DIAMETER;				/* 直径	    */
+					g_testParameter.indexArray[SAMPLE_DIAMETER_ROUND_KYTY] 	= OBJECT_ROUND_DIAMETER;		/* 直径	    */
+					g_testParameter.indexArray[SAMPLE_AREA_ROUND_KYTY] 		= OBJECT_AREA;					/* 面积 	*/
 					g_testParameter.indexArray[CORRECT_COF_ROUND_KYTY] 		= OBJECT_CORRECTION_FACTOR;		/* 修正系数 */
 					g_testParameter.indexArray[SAMPLE_NUM_ROUND_KYTY] 		= OBJECT_SPECIMEN_NUMS;			/* 试件块数 */			/* 延时时间 */
 				
@@ -1598,6 +1609,7 @@ static void TestParameterConfig( void )
 					g_testParameter.pParameterNameArray[TEST_SERIAL_ROUND_KYTY] 	= pValue_KYTY[1];
 					g_testParameter.pParameterNameArray[SAMPLE_SHAPE_ROUND_KYTY] 	= pValue_KYTY[3];
 					g_testParameter.pParameterNameArray[SAMPLE_DIAMETER_ROUND_KYTY] = pValue_KYTY[12];
+					g_testParameter.pParameterNameArray[SAMPLE_AREA_ROUND_KYTY] 	= pValue_KYTY[4];
 					g_testParameter.pParameterNameArray[CORRECT_COF_ROUND_KYTY] 	= pValue_KYTY[9];
 					g_testParameter.pParameterNameArray[SAMPLE_NUM_ROUND_KYTY] 		= pValue_KYTY[6];		
 				
@@ -1605,6 +1617,7 @@ static void TestParameterConfig( void )
 					g_testParameter.pParameterUnitArray[TEST_SERIAL_ROUND_KYTY] 	= "NULL";
 					g_testParameter.pParameterUnitArray[SAMPLE_SHAPE_ROUND_KYTY] 	= "NULL";
 					g_testParameter.pParameterUnitArray[SAMPLE_DIAMETER_ROUND_KYTY]	= pUnitType[4];
+					g_testParameter.pParameterUnitArray[SAMPLE_AREA_ROUND_KYTY]		= pUnitType[5];
 					g_testParameter.pParameterUnitArray[CORRECT_COF_ROUND_KYTY] 	= "NULL";
 					g_testParameter.pParameterUnitArray[SAMPLE_NUM_ROUND_KYTY] 		= "NULL";
 					
@@ -1612,6 +1625,7 @@ static void TestParameterConfig( void )
 					g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KYTY].parameterCnt 		= 0;
 					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_ROUND_KYTY].parameterCnt		= 3;
 					g_testParameter.twoLevelMenu[SAMPLE_DIAMETER_ROUND_KYTY].parameterCnt 	= 0;
+					g_testParameter.twoLevelMenu[SAMPLE_AREA_ROUND_KYTY].parameterCnt 		= 0;
 					g_testParameter.twoLevelMenu[CORRECT_COF_ROUND_KYTY].parameterCnt 		= 2;
 					g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KYTY].parameterCnt 		= 7;
 					
@@ -1619,6 +1633,7 @@ static void TestParameterConfig( void )
 					g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KYTY].parameterType 		= IMMEDIATELY_PUTIN_SHIFT;
 					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_ROUND_KYTY].parameterType 	= NONE_USE_USER_DEFINE;
 					g_testParameter.twoLevelMenu[SAMPLE_DIAMETER_ROUND_KYTY].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+					g_testParameter.twoLevelMenu[SAMPLE_AREA_ROUND_KYTY].parameterType		= NONE_PARAMETER;
 					g_testParameter.twoLevelMenu[CORRECT_COF_ROUND_KYTY].parameterType 		= USE_USER_DEFINE;
 					g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KYTY].parameterType 		= USE_USER_DEFINE;
 					
@@ -1626,6 +1641,7 @@ static void TestParameterConfig( void )
 					g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KYTY].pParameterNameArray 		= NULL;
 					g_testParameter.twoLevelMenu[SAMPLE_SHAPE_ROUND_KYTY].pParameterNameArray 		= pSpecimen_sharp;
 					g_testParameter.twoLevelMenu[SAMPLE_DIAMETER_ROUND_KYTY].pParameterNameArray 	= NULL;
+					g_testParameter.twoLevelMenu[SAMPLE_AREA_ROUND_KYTY].pParameterNameArray		= NULL;
 					g_testParameter.twoLevelMenu[CORRECT_COF_ROUND_KYTY].pParameterNameArray 		= pSpecimen_cof;
 					g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KYTY].pParameterNameArray 		= pSample_num;
 					
@@ -1633,6 +1649,7 @@ static void TestParameterConfig( void )
 					g_testParameter.oneLevelMenu[TEST_SERIAL_ROUND_KYTY].saveType 		= TYPE_CHAR;
 					g_testParameter.oneLevelMenu[SAMPLE_SHAPE_ROUND_KYTY].saveType 		= TYPE_INT;
 					g_testParameter.oneLevelMenu[SAMPLE_DIAMETER_ROUND_KYTY].saveType 	= TYPE_FLOAT;
+					g_testParameter.oneLevelMenu[SAMPLE_AREA_ROUND_KYTY].saveType		= TYPE_FLOAT;
 					g_testParameter.oneLevelMenu[CORRECT_COF_ROUND_KYTY].saveType 		= TYPE_FLOAT;
 					g_testParameter.oneLevelMenu[SAMPLE_NUM_ROUND_KYTY].saveType 		= TYPE_INT;	
 
@@ -1640,6 +1657,7 @@ static void TestParameterConfig( void )
 					g_testParameter.oneLevelMenu[TEST_SERIAL_ROUND_KYTY].pointBit 		= 0;
 					g_testParameter.oneLevelMenu[SAMPLE_SHAPE_ROUND_KYTY].pointBit 		= 0;
 					g_testParameter.oneLevelMenu[SAMPLE_DIAMETER_ROUND_KYTY].pointBit 	= 2;
+					g_testParameter.oneLevelMenu[SAMPLE_AREA_ROUND_KYTY].pointBit		= 2;
 					g_testParameter.oneLevelMenu[CORRECT_COF_ROUND_KYTY].pointBit 		= 2;
 					g_testParameter.oneLevelMenu[SAMPLE_NUM_ROUND_KYTY].pointBit 		= 0;
 					break;
@@ -2361,53 +2379,6 @@ static void TestParameterReadParameter( void )
 		g_testParameter.twoLevelMenu[index].index = pCurTest->sample_shape_index;
 	}
 	
-	index = GetTestParameterIndex(OBJECT_AREA);
-	if (index != 0xff)
-	{
-		switch ( g_testParameter.testType )
-		{
-			case KYTY:
-				switch (pCurTest->sample_shape_index)
-				{
-					case TYKY_SHAPE_RECTANGLE:
-						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
-						break;
-					case TYKY_SHAPE_ROUND:
-						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
-						break;
-					case TYKY_SHAPE_IRREGULAR:
-						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
-						break;
-					default:
-						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
-						break;
-				}
-				break;
-			case KLJSSW:
-				switch (pCurTest->sample_shape_index)
-				{
-					case JSSWKL_SHAPE_RECTANGLE:
-						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
-						break;
-					case JSSWKL_SHAPE_ROUND:
-						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
-						break;
-					case JSSWKL_SHAPE_TUBE:
-						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
-						break;
-					case JSSWKL_SHAPE_IRREGULAR:
-						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
-						break;
-					default:
-						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
-						break;
-				}
-				break;
-			default:
-				break;		
-		}	
-	}
-	
 	index = GetTestParameterIndex(OBJECT_ROUND_DIAMETER);
 	if (index != 0xff)
 	{
@@ -2443,6 +2414,58 @@ static void TestParameterReadParameter( void )
 	if (index != 0xff)
 	{
 		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->pipeOuterDiameter,g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_AREA);
+	if (index != 0xff)
+	{
+		switch ( g_testParameter.testType )
+		{
+			case KYTY:
+				switch (pCurTest->sample_shape_index)
+				{
+					case TYKY_SHAPE_RECTANGLE:
+						pCurTest->gz_area = pCurTest->zfx_length * pCurTest->zfx_width;
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+					case TYKY_SHAPE_ROUND:
+						pCurTest->gz_area = GetCircularArea(pCurTest->yx_diameter);
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+					case TYKY_SHAPE_IRREGULAR:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
+						break;
+					default:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
+						break;
+				}
+				break;
+			case KLJSSW:
+				switch (pCurTest->sample_shape_index)
+				{
+					case JSSWKL_SHAPE_RECTANGLE:
+						pCurTest->gz_area = pCurTest->zfx_length * pCurTest->zfx_width;
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_ROUND:
+						pCurTest->gz_area = GetCircularArea(pCurTest->yx_diameter);
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_TUBE:
+						pCurTest->gz_area = PI * pCurTest->pipeThickness * (pCurTest->pipeOuterDiameter - pCurTest->pipeThickness);
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->gz_area,g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_IRREGULAR:					
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
+						break;
+					default:
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->bgz_area,g_testParameter.parameterData[index]);
+						break;
+				}
+				break;
+			default:
+				break;		
+		}	
 	}
 }
 
@@ -2549,67 +2572,6 @@ static void TestParameterWriteParameter( void )
 		pCurTest->sample_shape_index = g_testParameter.twoLevelMenu[index].index;
 	}
 	
-	index = GetTestParameterIndex(OBJECT_AREA);
-	if (index != 0xff)
-	{
-		switch ( g_testParameter.testType )
-		{
-			case KYTY:	
-				switch ( pCurTest->sample_shape_index )
-				{
-					case TYKY_SHAPE_RECTANGLE:
-					case TYKY_SHAPE_ROUND:
-						break;
-					case TYKY_SHAPE_IRREGULAR:
-						pCurTest->bgz_area = str2float(g_testParameter.parameterData[index]);
-						break;
-				}
-				break;
-			case KLJSSW:
-				switch ( pCurTest->sample_shape_index )
-				{
-					case JSSWKL_SHAPE_RECTANGLE:
-						pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
-						break;
-					case JSSWKL_SHAPE_ROUND:
-						pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
-						break;
-					case JSSWKL_SHAPE_TUBE:
-						pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
-						break;
-					case JSSWKL_SHAPE_IRREGULAR:
-						pCurTest->bgz_area = str2float(g_testParameter.parameterData[index]);
-						break;
-				}			
-				break;
-			default:
-				break;
-		}
-	}
-	else
-	{
-		switch ( g_testParameter.testType )
-		{
-			case KYTY:	
-				switch ( pCurTest->sample_shape_index )
-				{
-					case TYKY_SHAPE_RECTANGLE:
-						pCurTest->gz_area = pCurTest->zfx_length * pCurTest->zfx_width;
-						break;					
-					case TYKY_SHAPE_ROUND:
-						pCurTest->gz_area = GetCircularArea(pCurTest->yx_diameter);
-						break;					
-					case TYKY_SHAPE_IRREGULAR:
-						break;
-				}
-				break;
-			case KLJSSW:			
-				break;
-			default:
-				break;
-		}
-	}
-	
 	index = GetTestParameterIndex(OBJECT_EXTERNSOMETER_GAUGE);
 	if (index != 0xff)
 	{
@@ -2638,6 +2600,47 @@ static void TestParameterWriteParameter( void )
 	if (index != 0xff)
 	{
 		pCurTest->pipeOuterDiameter = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_AREA);
+	if (index != 0xff)
+	{
+		switch ( g_testParameter.testType )
+		{
+			case KYTY:	
+				switch ( pCurTest->sample_shape_index )
+				{
+					case TYKY_SHAPE_RECTANGLE:
+						pCurTest->gz_area = pCurTest->zfx_length * pCurTest->zfx_width;
+						break;
+					case TYKY_SHAPE_ROUND:
+						pCurTest->gz_area = GetCircularArea(pCurTest->yx_diameter);
+						break;
+					case TYKY_SHAPE_IRREGULAR:
+						pCurTest->bgz_area = str2float(g_testParameter.parameterData[index]);
+						break;
+				}
+				break;
+			case KLJSSW:
+				switch ( pCurTest->sample_shape_index )
+				{
+					case JSSWKL_SHAPE_RECTANGLE:
+						pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_ROUND:
+						pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_TUBE:
+						pCurTest->gz_area = str2float(g_testParameter.parameterData[index]);
+						break;
+					case JSSWKL_SHAPE_IRREGULAR:
+						pCurTest->bgz_area = str2float(g_testParameter.parameterData[index]);
+						break;
+				}			
+				break;
+			default:
+				break;
+		}
 	}
 	
 	pcm_save();
@@ -3444,6 +3447,8 @@ static void TestParameterTwoLevelMenuKeyProcess( void )
 				}
 				
 				TestParameterPullData();
+				
+				TestParameterGetConvertArea(index);
 				return;
 				
 			case STATUS_CANCEL_PUTIN:
@@ -3797,6 +3802,8 @@ static void TestParameterKeyProcess( void )
 							}
 							
 							TestParameterPullData();		
+							
+							TestParameterGetConvertArea(index);
 							break;						
 						
 						default:
@@ -3907,8 +3914,6 @@ static void GUI_MainPageTestInfomation( void )
  *------------------------------------------------------------*/
 void LoadMainPageGetTestInfomationPage( void )
 {
-//	uint8_t indexTarget,indexSource;
-	
 	/* 参数初始化 */
 	TestParameterInit();
 	
@@ -3929,19 +3934,6 @@ void LoadMainPageGetTestInfomationPage( void )
 	
 	/* 遍历 */
 	Traverse_TestParameter();
-	
-//	for (indexTarget=0; indexTarget<pTestInfo->testInfomationNum; ++indexTarget)
-//	{
-//		for (indexSource=0; indexSource<g_testParameter.curParameterNum; ++indexSource)
-//		{
-//			if (pTestInfo->testHandle[indexTarget] == g_testParameter.indexArray[indexSource])
-//			{
-//				strcpy(pTestInfo->pParameterContent[indexTarget],g_testParameter.parameterData[indexSource]);
-//				
-//				continue;
-//			}
-//		}
-//	}
 }
 
 /*------------------------------------------------------------
@@ -3981,10 +3973,163 @@ static void TestParameterExchangeSampleShape( uint8_t nowIndex )
 	if (index != 0xff)
 	{
 		pTest->sample_shape_index = g_testParameter.twoLevelMenu[index].index;
+		pcm_save();
 	}
 	
 	g_testParameter.leavePage.flagLeavePage = SET;
 	g_testParameter.leavePage.flagSaveData = RESET;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : TestParameterGetConvertArea
+ * Description    : 获取转换的面积
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void TestParameterGetConvertArea( uint8_t nowIndex )
+{
+	float lenth = 0, width = 0,diameter = 0,pipeThickness = 0,pipeOuterDiameter = 0;
+	uint8_t index = 0;
+	uint8_t sampleShapeIndex = 0;
+	uint8_t sampleAreaIndex = 0;
+	
+	switch ( g_testParameter.testType )
+	{
+		case KYTY:
+		case KLJSSW:
+			break;
+		default:
+			return;
+	}
+	
+	index = GetTestParameterIndex(OBJECT_SPECIMEN_LENTH);
+	if (index != 0xff)
+	{
+		lenth = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_SPECIMEN_WIDTH);
+	if (index != 0xff)
+	{
+		width = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_ROUND_DIAMETER);
+	if (index != 0xff)
+	{
+		diameter = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_PIPE_THICKNESS);
+	if (index != 0xff)
+	{
+		pipeThickness = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_PIPE_OUTER_DIAMETER);
+	if (index != 0xff)
+	{
+		pipeOuterDiameter = str2float(g_testParameter.parameterData[index]);
+	}
+	
+	index = GetTestParameterIndex(OBJECT_AREA);
+	if (index != 0xff)
+	{
+		sampleAreaIndex = index;
+	}
+	else
+	{
+		return;
+	}
+	
+	index = GetTestParameterIndex(OBJECT_SHAPE);
+	if (index != 0xff)
+	{
+		sampleShapeIndex = g_testParameter.twoLevelMenu[index].index;
+	}
+	else
+	{
+		return;
+	}
+	
+	switch ( g_testParameter.testType )
+	{
+		case KYTY:
+			switch (sampleShapeIndex)
+			{
+				case TYKY_SHAPE_RECTANGLE:
+					if ( (nowIndex==GetTestParameterIndex(OBJECT_SPECIMEN_LENTH)) || \
+							(nowIndex == GetTestParameterIndex(OBJECT_SPECIMEN_WIDTH)) )
+					{
+						float area = lenth * width;
+						
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[sampleAreaIndex].pointBit,\
+								area,g_testParameter.parameterData[sampleAreaIndex]);
+						
+						TestParameterRestoreShowOneMenu(sampleAreaIndex);
+					}
+					break;
+				case TYKY_SHAPE_ROUND:
+					if (nowIndex == GetTestParameterIndex(OBJECT_ROUND_DIAMETER))
+					{
+						float area = GetCircularArea(diameter);
+						
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[sampleAreaIndex].pointBit,\
+								area,g_testParameter.parameterData[sampleAreaIndex]);
+						
+						TestParameterRestoreShowOneMenu(sampleAreaIndex);
+					}
+					break;
+				case TYKY_SHAPE_IRREGULAR:
+					break;
+			}
+			break;
+		case KLJSSW:	
+			switch (sampleShapeIndex)
+			{
+				case JSSWKL_SHAPE_RECTANGLE:
+					if ( (nowIndex==GetTestParameterIndex(OBJECT_SPECIMEN_LENTH)) || \
+							(nowIndex == GetTestParameterIndex(OBJECT_SPECIMEN_WIDTH)) )
+					{
+						float area = lenth * width;
+						
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[sampleAreaIndex].pointBit,\
+								area,g_testParameter.parameterData[sampleAreaIndex]);
+						
+						TestParameterRestoreShowOneMenu(sampleAreaIndex);
+					}
+					break;
+				case JSSWKL_SHAPE_ROUND:
+					if (nowIndex == GetTestParameterIndex(OBJECT_ROUND_DIAMETER))
+					{
+						float area = GetCircularArea(diameter);
+						
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[sampleAreaIndex].pointBit,\
+								area,g_testParameter.parameterData[sampleAreaIndex]);
+						
+						TestParameterRestoreShowOneMenu(sampleAreaIndex);
+					}
+					break;
+				case JSSWKL_SHAPE_TUBE:
+					if ( (nowIndex==GetTestParameterIndex(OBJECT_PIPE_THICKNESS)) || \
+							(nowIndex == GetTestParameterIndex(OBJECT_PIPE_OUTER_DIAMETER)) )
+					{
+						float area = PI * pipeThickness * (pipeOuterDiameter - pipeThickness);
+						
+						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[sampleAreaIndex].pointBit,\
+								area,g_testParameter.parameterData[sampleAreaIndex]);
+						
+						TestParameterRestoreShowOneMenu(sampleAreaIndex);
+					}
+					break;
+				case JSSWKL_SHAPE_IRREGULAR:
+					break;
+			}
+			break;
+		default:
+			break;
+	}
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

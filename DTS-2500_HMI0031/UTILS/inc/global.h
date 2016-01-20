@@ -411,6 +411,7 @@ float GetParallelLenth( void );
 float GetOriginalGauge( void );
 
 COORDINATE_POINT_TypeDef *GetCoordinatePointAddr( void );
+void PrintfTypeDefSize( uint32_t len );
 
 #endif
 

@@ -632,6 +632,11 @@ FRESULT report_save_usb_set_time (uint8_t type, const char *file)
 	FILINFO file_info;
 	FRESULT result;
 	
+	#if _USE_LFN
+         file_info.lfname = Lfname;
+         file_info.lfsize = sizeof(Lfname);
+    #endif
+	
 	usprintf(path_sd,"%s/%s.bin",test_path[type].path,file);	
 	result = f_stat(path_sd,&file_info);
 	if (result != FR_OK)

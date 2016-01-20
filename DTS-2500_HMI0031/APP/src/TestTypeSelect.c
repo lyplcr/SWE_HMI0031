@@ -459,17 +459,17 @@ static void TestTypeSelectLeavePageCheckCycle( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : GetCurTestAttribute
- * Description    : 获取当前试验的属性
+ * Function Name  : GetTestAttribute
+ * Description    : 获取试验的属性
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-TEST_ATTRIBUTE_TypeDef GetCurTestAttribute( void )
+TEST_ATTRIBUTE_TypeDef GetTestAttribute( uint8_t testIndex )
 {
 	TEST_ATTRIBUTE_TypeDef testAttribute;
 	
-	switch (pHmi->test_standard_index)
+	switch (testIndex)
 	{
 		case KYSNJS:
 		case KYJZSJ:
@@ -487,6 +487,9 @@ TEST_ATTRIBUTE_TypeDef GetCurTestAttribute( void )
 			break;
 		case KLJSSW:
 			testAttribute = STRETCH_TEST;
+			break;
+		default:
+			testAttribute = COMPRESSION_TEST;
 			break;
 	}
 	

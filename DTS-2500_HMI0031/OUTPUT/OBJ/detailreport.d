@@ -83,3 +83,4 @@
 ..\output\obj\detailreport.o: ..\UTILS\inc\printer.h
 ..\output\obj\detailreport.o: ..\APP\inc\DetailReport.h
 ..\output\obj\detailreport.o: ..\APP\inc\TestReport.h
+..\output\obj\detailreport.o: ..\APP\inc\TestTypeSelect.h

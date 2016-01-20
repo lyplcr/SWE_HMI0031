@@ -20,7 +20,7 @@ void LoadTestTypeSelectPage( void );
 void SetTestTypeSelectSourcePage( PAGE_NAME_TypeDef sourcePage );
 void SetTestTypeSelectTargetPage( PAGE_NAME_TypeDef targetPage );
 TEST_ATTRIBUTE_TypeDef GetSelectTestAttribute( void );
-TEST_ATTRIBUTE_TypeDef GetCurTestAttribute( void );
+TEST_ATTRIBUTE_TypeDef GetTestAttribute( uint8_t testIndex );
 
 
 #endif

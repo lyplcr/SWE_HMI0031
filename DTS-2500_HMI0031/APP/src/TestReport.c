@@ -1048,7 +1048,7 @@ static EXPORT_STATUS_TypeDef ExportCurrentReport( uint8_t reportIndex )
 	{
 		return EXPORT_ERROR;
 	}
-	
+
 	result = report_save_usb_set_time(testType,g_testReport.pSearchResult->testReportData[reportIndex].fname);	
 	if (result != FR_OK)
 	{

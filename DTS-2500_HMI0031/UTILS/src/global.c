@@ -2966,4 +2966,16 @@ COORDINATE_POINT_TypeDef *GetCoordinatePointAddr( void )
 	return &g_coordinatePoint;
 }
 
+/*------------------------------------------------------------
+ * Function Name  : PrintfTypeDefSize
+ * Description    : 打印结构体类型大小
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void PrintfTypeDefSize( uint32_t len )
+{
+	printf("结构体占内存大小：%d\r\n",len);
+}
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

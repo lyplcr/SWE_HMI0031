@@ -548,7 +548,7 @@ static void MainPageInit( void )
 	g_mainPage.sumPage = 0;
 	
 	g_mainPage.testType = (TEST_TYPE_TypeDef)pHmi->test_standard_index;
-	g_mainPage.testAttribute = GetCurTestAttribute();
+	g_mainPage.testAttribute = GetTestAttribute(pHmi->test_standard_index);
 	
 	SetTestStatus(TEST_IDLE);
 	g_testBody.peakStatus = STATUS_PEAK_IDLE;
@@ -957,6 +957,9 @@ static void FromTestParameterCopyToReport( REPORT_TypeDef *pReport )
 	pReport->parallelLenth = pCurTest->parallelLenth;
 	pReport->extensometerGauge = pCurTest->extensometerGauge;
 	pReport->originalGauge = pCurTest->originalGauge;
+	pReport->pipeThickness = pCurTest->pipeThickness;
+	pReport->pipeOuterDiameter = pCurTest->pipeOuterDiameter;
+	
 	{
 		uint8_t i;
 		
@@ -4403,78 +4406,6 @@ static void MainPageJudgeBreakCoreCycle( void )
 }	
 
 /*------------------------------------------------------------
- * Function Name  : KL_TestLoadCoreCycle
- * Description    : 抗拉试验加载循环体
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void KL_TestLoadCoreCycle( void )
-{
-	float force = get_smpl_value(SMPL_FH_NUM);
-	float peak = GetPeakValue(SMPL_FH_NUM);
-	
-	/* 首次力值下降点 */
-	if (force < peak)
-	{
-		g_klTestBody.upYieldForceIndex = GetDrawLineNowTimePoint();
-		g_klTestBody.upYieldForce = GetDrawLineSomeTimePointForce( g_klTestBody.upYieldForceIndex );	
-		g_klTestBody.upYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.upYieldForce);
-		
-		SetTestStatus(TEST_DEFORM);
-		
-		#ifdef DEBUG_TEST_LOAD
-			printf("到达上屈服点！\r\n");
-			printf("上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
-		#endif
-	}
-}
-#if 0
-/*------------------------------------------------------------
- * Function Name  : KL_TestYieldCoreCycle
- * Description    : 抗拉试验屈服段循环体
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void KL_TestYieldCoreCycle( void )
-{
-	float force = get_smpl_value(SMPL_FH_NUM);
-	float startLoadForce = smpl_ctrl_entry_get(SMPL_FH_NUM);
-	
-	/* 记录屈服阶段最低力值点 */
-	if (force < g_klTestBody.downYieldForce)
-	{
-		g_klTestBody.downYieldForce = force;
-	}
-	
-	/* 离开屈服段 */
-	if (force > g_klTestBody.upYieldForce)
-	{
-		g_klTestBody.downYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.downYieldForce);
-		
-		SetTestStatus(TEST_DEFORM);
-		
-		#ifdef DEBUG_TEST_LOAD
-			printf("离开屈服段！\r\n");
-			printf("下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);
-		#endif
-	}
-	
-	if (force < startLoadForce)
-	{
-		g_mainPage.refreshShortcut = ENABLE;
-		
-		SetTestStatus(TEST_IDLE);
-		
-		#ifdef DEBUG_TEST_LOAD
-			printf("试验停止！\r\n");
-		#endif
-	}
-}
-#endif
-
-/*------------------------------------------------------------
  * Function Name  : AccordDispalcementGetDeformIncrement
  * Description    : 获取变形增量
  * Input          : None
@@ -4534,6 +4465,103 @@ static float MainPageGetDeform( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : KL_TestCheckPeakCycle
+ * Description    : 抗拉试验检测峰值循环
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void KL_TestCheckPeakCycle( void )
+{
+	static float s_recordPeak = 0;
+
+	float peak = GetPeakValue(SMPL_FH_NUM);		
+	float deform = MainPageGetDeform();
+	
+	if ( fabs(peak-s_recordPeak) > MIN_FLOAT_PRECISION_DIFF_VALUE)
+	{
+		g_klTestBody.maxForceIndex = GetDrawLineNowTimePoint();		
+		g_klTestBody.maxForce = GetDrawLineSomeTimePointForce( g_klTestBody.maxForceIndex );
+		
+		g_klTestBody.maxForceSumExtend = deform;
+		
+		s_recordPeak = peak;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : KL_TestLoadCoreCycle
+ * Description    : 抗拉试验加载循环体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void KL_TestLoadCoreCycle( void )
+{
+	float force = get_smpl_value(SMPL_FH_NUM);
+	float peak = GetPeakValue(SMPL_FH_NUM);
+	
+	/* 首次力值下降点 */
+	if (force < peak)
+	{
+		g_klTestBody.upYieldForceIndex = GetDrawLineNowTimePoint();
+		g_klTestBody.upYieldForce = GetDrawLineSomeTimePointForce( g_klTestBody.upYieldForceIndex );	
+		g_klTestBody.upYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.upYieldForce);
+		
+		SetTestStatus(TEST_DEFORM);
+		
+		#ifdef DEBUG_TEST_LOAD
+			printf("到达上屈服点！\r\n");
+			printf("上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
+		#endif
+	}
+}
+#if 0
+	/*------------------------------------------------------------
+	 * Function Name  : KL_TestYieldCoreCycle
+	 * Description    : 抗拉试验屈服段循环体
+	 * Input          : None
+	 * Output         : None
+	 * Return         : None
+	 *------------------------------------------------------------*/
+	static void KL_TestYieldCoreCycle( void )
+	{
+		float force = get_smpl_value(SMPL_FH_NUM);
+		float startLoadForce = smpl_ctrl_entry_get(SMPL_FH_NUM);
+		
+		/* 记录屈服阶段最低力值点 */
+		if (force < g_klTestBody.downYieldForce)
+		{
+			g_klTestBody.downYieldForce = force;
+		}
+		
+		/* 离开屈服段 */
+		if (force > g_klTestBody.upYieldForce)
+		{
+			g_klTestBody.downYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.downYieldForce);
+			
+			SetTestStatus(TEST_DEFORM);
+			
+			#ifdef DEBUG_TEST_LOAD
+				printf("离开屈服段！\r\n");
+				printf("下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);
+			#endif
+		}
+		
+		if (force < startLoadForce)
+		{
+			g_mainPage.refreshShortcut = ENABLE;
+			
+			SetTestStatus(TEST_IDLE);
+			
+			#ifdef DEBUG_TEST_LOAD
+				printf("试验停止！\r\n");
+			#endif
+		}
+	}
+#endif
+
+/*------------------------------------------------------------
  * Function Name  : KL_TestDeformCoreCycle
  * Description    : 抗拉试验塑性变形段循环体
  * Input          : None
@@ -4545,31 +4573,10 @@ static void KL_TestDeformCoreCycle( void )
 	float force = get_smpl_value(SMPL_FH_NUM);
 	float startLoadForce = smpl_ctrl_entry_get(SMPL_FH_NUM);
 	
-	/* 检测峰值变化，获取峰值变化时的索引 */
-	{
-		static float s_recordPeak = 0;
-		
-		float peak = GetPeakValue(SMPL_FH_NUM);		
-		float deform = MainPageGetDeform();
-		
-		if ( fabs(peak-s_recordPeak) > MIN_FLOAT_PRECISION_DIFF_VALUE)
-		{
-			g_klTestBody.maxForceIndex = GetDrawLineNowTimePoint();		
-			g_klTestBody.maxForce = GetDrawLineSomeTimePointForce( g_klTestBody.maxForceIndex );
-			
-			g_klTestBody.maxForceSumExtend = deform;
-			
-			s_recordPeak = peak;
-		}
-	}
-	
 	if (force < startLoadForce)
 	{
 		g_klTestBody.maxStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.maxForce);
 		
-		SetTestStatus(TEST_SAVE);
-		
-		g_testBody.startTest = RESET;
 		g_testBody.flagOnePieceSampleComplete = SET;
 		
 		g_testBody.curCompletePieceSerial++;
@@ -4578,6 +4585,10 @@ static void KL_TestDeformCoreCycle( void )
 		{
 			g_testBody.flagOneGroupSampleComplete = SET;
 		}
+		
+		MainPageExecuteTestEndBody();
+		
+		SetTestStatus(TEST_SAVE);
 		
 		#ifdef DEBUG_TEST_LOAD
 			printf("试验后处理！\r\n");
@@ -5717,6 +5728,16 @@ static void MainPageTestExecuteCoreCycle( void )
 		
 		default:
 			SetTestStatus(TEST_IDLE);	
+			break;
+	}
+	
+	switch ( g_mainPage.testAttribute )
+	{
+		case COMPRESSION_TEST:
+		case BENDING_TEST:	
+			break;
+		case STRETCH_TEST:	
+			KL_TestCheckPeakCycle();
 			break;
 	}
 }
