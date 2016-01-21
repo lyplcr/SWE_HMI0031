@@ -1,5 +1,6 @@
 --cpu Cortex-M4.fp
 "..\output\obj\main.o"
+"..\output\obj\pagemanage.o"
 "..\output\obj\initial.o"
 "..\output\obj\mainpage.o"
 "..\output\obj\testparameter.o"
@@ -9,7 +10,6 @@
 "..\output\obj\detailreport.o"
 "..\output\obj\systemset.o"
 "..\output\obj\controlparameter.o"
-"..\output\obj\pagemanage.o"
 "..\output\obj\calibrationtable.o"
 "..\output\obj\timedate.o"
 "..\output\obj\onlineparameter.o"
@@ -29,6 +29,7 @@
 "..\output\obj\userlogin.o"
 "..\output\obj\channelselect.o"
 "..\output\obj\testtypeselect.o"
+"..\output\obj\curveshow.o"
 "..\output\obj\bsp.o"
 "..\output\obj\bsp_assert.o"
 "..\output\obj\bsp_timer.o"

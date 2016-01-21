@@ -109,3 +109,4 @@
 ..\output\obj\pagemanage.o: ..\APP\inc\CalibrationParameter.h
 ..\output\obj\pagemanage.o: ..\APP\inc\ForceCalibration.h
 ..\output\obj\pagemanage.o: ..\APP\inc\TestTypeSelect.h
+..\output\obj\pagemanage.o: ..\APP\inc\CurveShow.h

@@ -1043,16 +1043,47 @@ static EXPORT_STATUS_TypeDef ExportCurrentReport( uint8_t reportIndex )
 		return EXPORT_ERROR;
 	}
 	
-	result = report_save_usb(testType,g_testReport.pSearchResult->testReportData[reportIndex].fname,&readReport);
+	result = report_save(USB,testType,g_testReport.pSearchResult->testReportData[reportIndex].fname,&readReport);
 	if (result != FR_OK)
 	{
 		return EXPORT_ERROR;
 	}
 
-	result = report_save_usb_set_time(testType,g_testReport.pSearchResult->testReportData[reportIndex].fname);	
+	result = SetReportSaveTime(MMC,USB,testType,g_testReport.pSearchResult->testReportData[reportIndex].fname);	
 	if (result != FR_OK)
 	{
 		return EXPORT_ERROR;
+	}
+	
+	{
+		uint8_t sampleNum = readReport.sample_serial;
+		uint8_t i;
+		COORDINATE_POINT_TypeDef *pCoordinatePoint = GetCoordinatePointAddr();
+		FRESULT fresult;
+		
+		for (i=1; i<=sampleNum; ++i)
+		{
+			fresult = ReadCoordinatePoint(MMC,testType,i,g_testReport.pSearchResult->testReportData[reportIndex].fname,pCoordinatePoint);
+			
+			if (fresult != FR_OK)
+			{
+				return EXPORT_ERROR;
+			}
+			
+			fresult = SaveCoordinatePoint(USB,testType,i,g_testReport.pSearchResult->testReportData[reportIndex].fname,pCoordinatePoint);
+			
+			if (fresult != FR_OK)
+			{
+				return EXPORT_ERROR;
+			}
+			
+			fresult = SetCurveSaveTime(MMC,USB,testType,i,g_testReport.pSearchResult->testReportData[reportIndex].fname);
+			
+			if (fresult != FR_OK)
+			{
+				return EXPORT_ERROR;
+			}
+		}
 	}
 	
 	return EXPORT_SUCCESS;
@@ -1201,7 +1232,10 @@ static ErrorStatus DeleteCurrentReport( void )
 	
 	if (FR_OK == report_delete( g_testReport.pSearchResult->recordTestType[index],g_testReport.oneLevelMenu[index].parameterData[indexBuff] ) )
 	{	
-		return SUCCESS;
+		if (FR_OK == DeleteCoordinateFolder(MMC,g_testReport.pSearchResult->recordTestType[index],g_testReport.oneLevelMenu[index].parameterData[indexBuff]))
+		{
+			return SUCCESS;
+		}
 	}
 	
 	return ERROR;
@@ -1285,8 +1319,17 @@ static ErrorStatus DeletePageReport( uint32_t deletePage, uint32_t sumPage )
 	GUI_ProgressBar(&progressBar);
 	
 	for (index=0; index<g_testReport.curReportNum; ++index)
-	{
-		if (FR_OK == report_delete( g_testReport.pSearchResult->recordTestType[index],g_testReport.oneLevelMenu[index].parameterData[indexBuff] ) )
+	{		
+		FRESULT result;
+		
+		result = report_delete( g_testReport.pSearchResult->recordTestType[index],g_testReport.oneLevelMenu[index].parameterData[indexBuff] );
+		
+		if (result == FR_OK)
+		{
+			result = DeleteCoordinateFolder(MMC,g_testReport.pSearchResult->recordTestType[index],g_testReport.oneLevelMenu[index].parameterData[indexBuff]);
+		}
+		
+		if (result == FR_OK)
 		{
 			progressBar.curProgress = index + 1;
 			DrawProcessBody(&progressBar);
@@ -1294,11 +1337,11 @@ static ErrorStatus DeletePageReport( uint32_t deletePage, uint32_t sumPage )
 		else
 		{
 			SetPopWindowsInfomation(POP_PCM_CUE,1,&pReportDeleteCue[1]);
-		
+	
 			PopWindowsProcessCycle();
 	
 			return ERROR;
-		}
+		}	
 	}
 			
 	return SUCCESS;

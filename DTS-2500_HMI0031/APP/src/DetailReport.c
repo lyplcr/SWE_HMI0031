@@ -2425,7 +2425,7 @@ static void DetailReportShortcutCycleTask( void )
 		pShortCut->status = SHOW_F1 | SHOW_F2 | SHOW_F3 | SHOW_F4;
 		
 		pShortCut->pContent[0] = pTwoLevelMenu[15];
-		pShortCut->pContent[1] = pTwoLevelMenu[78];
+		pShortCut->pContent[1] = pTwoLevelMenu[86];
 		pShortCut->pContent[2] = pTwoLevelMenu[50];
 		pShortCut->pContent[3] = pTwoLevelMenu[66];
 		
@@ -2499,9 +2499,13 @@ static void DetailReportKeyProcess( void )
 				break;
 			case KEY_F2:
 //			case KEY_EXPORT:
-				TestReportExportReport();
-				g_detailReport.leavePage.flagLeavePage = SET;
-				g_detailReport.leavePage.flagSaveData = RESET;
+//				TestReportExportReport();
+				if ( g_detailReport.curPageSampleNum )
+				{
+					SetPage(CURVE_SHOW_PAGE);
+					g_detailReport.leavePage.flagLeavePage = SET;
+					g_detailReport.leavePage.flagSaveData = RESET;
+				}
 				break;	
 //			case KEY_PRINT:
 //				DetailReportPrintReport();

@@ -437,6 +437,11 @@
               <FilePath>..\UTILS\inc\tools.h</FilePath>
             </File>
             <File>
+              <FileName>pcm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\UTILS\inc\pcm.h</FilePath>
+            </File>
+            <File>
               <FileName>gui.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\UTILS\inc\gui.h</FilePath>
@@ -445,11 +450,6 @@
               <FileName>bsp_lcd.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\BSP\inc\bsp_lcd.h</FilePath>
-            </File>
-            <File>
-              <FileName>pcm.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\UTILS\inc\pcm.h</FilePath>
             </File>
             <File>
               <FileName>report.h</FileName>
@@ -461,6 +461,11 @@
         <Group>
           <GroupName>APP</GroupName>
           <Files>
+            <File>
+              <FileName>PageManage.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\src\PageManage.c</FilePath>
+            </File>
             <File>
               <FileName>initial.c</FileName>
               <FileType>1</FileType>
@@ -505,11 +510,6 @@
               <FileName>ControlParameter.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\APP\src\ControlParameter.c</FilePath>
-            </File>
-            <File>
-              <FileName>PageManage.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\APP\src\PageManage.c</FilePath>
             </File>
             <File>
               <FileName>CalibrationTable.c</FileName>
@@ -605,6 +605,11 @@
               <FileName>TestTypeSelect.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\APP\src\TestTypeSelect.c</FilePath>
+            </File>
+            <File>
+              <FileName>CurveShow.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\src\CurveShow.c</FilePath>
             </File>
           </Files>
         </Group>

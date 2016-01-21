@@ -188,7 +188,9 @@ typedef struct
 	uint32_t maxTime;				//单位：ms
 	uint32_t nowTimePoint;			//当前画线的时间点
 	uint16_t lineColor;
+	float timeScalingCoefficient;	//缩放系数（将当前值按照缩放系数修饰）
 	float forceScalingCoefficient;	//缩放系数（将当前值按照缩放系数修饰）
+	uint16_t recordPointFreq;		//记录每个点频率
 	void (*pDrawCoordinate)( uint32_t maxForce, uint32_t maxTime );	//画坐标系
 	float force[DECORD_COORDINATE_FORCE_NUM];
 }COORDINATE_DRAW_LINE_TypeDef;
@@ -355,6 +357,7 @@ void RelinkPRM( uint16_t backColor );
 float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, float CurForce );
 void CheckOfflineCycle( void );
 TestStatus CheckSystemWarning( SMPL_NAME_TypeDef2 tureChannel );
+
 void InitCoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 void CoordinateDrawLineBodyCycle( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 COORDINATE_DRAW_LINE_TypeDef *GetDrawLineAddr( void );
@@ -362,6 +365,8 @@ uint32_t GetDrawLineNowTimePoint( void );
 float GetDrawLineSomeTimePointForce( uint32_t nowTimePoint );
 BoolStatus IsCoordinateRecordPointOverflow( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 void ReloadCoordinate( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
+void CoordinateRedrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
+
 void GUI_DrawTestSaveProgressBar( uint16_t backColor );
 ErrorStatus SendChannelTareCmd( SMPL_NAME_TypeDef channel );
 void ExecuteTask( void );

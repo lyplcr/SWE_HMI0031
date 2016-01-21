@@ -15,9 +15,7 @@
 
 **********************************************************************************************************/
 #include "bsp.h"
-#include "report.h"
-  
-    
+#include "report.h" 
 
 #define 	PATH_BUF_SIZE   50 	  
   
@@ -30,7 +28,7 @@ typedef struct
 TEST_PATH_TypeDef; 
 
 //±¨¸æ´æ·ÅµÄÂ·¾¶
-TEST_PATH_TypeDef test_path[] =
+TEST_PATH_TypeDef testPathSD[] =
 {
     {NONE_TEST, "0:/"				},
     {KYSNJS,	"0:test/KYSNJS"		},
@@ -47,7 +45,7 @@ TEST_PATH_TypeDef test_path[] =
 };
 
 /* ±£´æÖÁUSBµÄÂ·¾¶ */
-TEST_PATH_TypeDef test_path_usb[] =
+TEST_PATH_TypeDef testPathUSB[] =
 {
     {NONE_TEST, "1:/"				},
     {KYSNJS,  	"1:/test/KYSNJS"	},
@@ -64,7 +62,7 @@ TEST_PATH_TypeDef test_path_usb[] =
 };
 
 /* ±£´æÖÁSD¿¨µÄ×ø±êµãÂ·¾¶ */
-TEST_PATH_TypeDef g_coordinatePointPath[] =
+TEST_PATH_TypeDef g_coordinatePointPath_SD[] =
 {
     {NONE_TEST, "0:/"				},
     {KYSNJS,	"0:curve/KYSNJS"	},
@@ -78,6 +76,23 @@ TEST_PATH_TypeDef g_coordinatePointPath[] =
     {KZYJSNJ, 	"0:curve/KZYJSNJ"	}, 
     {KZTY, 		"0:curve/KZTY"		},
 	{KLJSSW,	"0:curve/KLJSSW"	},
+};
+
+/* ±£´æÖÁSD¿¨µÄ×ø±êµãÂ·¾¶ */
+TEST_PATH_TypeDef g_coordinatePointPath_USB[] =
+{
+    {NONE_TEST, "1:/"				},
+    {KYSNJS,	"1:curve/KYSNJS"	},
+    {KYJZSJ, 	"1:curve/KYJZSJ"	},
+    {KYHNT, 	"1:curve/KYHNT"		},
+    {KZHNT, 	"1:curve/KZHNT"		}, 
+    {KYQQZ, 	"1:curve/KYQQZ"		},
+	{KYZJDH, 	"1:curve/KYZJDH"	},
+    {KYTY, 		"1:curve/KYTY"		},
+    {KZSNJS, 	"1:curve/KZSNJS"	}, 
+    {KZYJSNJ, 	"1:curve/KZYJSNJ"	}, 
+    {KZTY, 		"1:curve/KZTY"		},
+	{KLJSSW,	"1:curve/KLJSSW"	},
 };
 
 
@@ -111,7 +126,7 @@ description:»ñÈ¡Ö¸¶¨ÊÔÑéµÄ¾ø¶ÔÂ·¾¶ £¬type£ºÊÔÑéÖÖÀà *pathÒªµÃµ½µÄÂ·¾¶
 **********************************************************************/ 
 void report_get_path(uint8_t type,char *path)
 {
-	strcpy(path,test_path[type].path);
+	strcpy(path,testPathSD[type].path);
 }
 
 
@@ -119,79 +134,63 @@ void report_get_path(uint8_t type,char *path)
 /**********************************************************************
 functionName:FRESULT report_save(char *type,char *file,REPORT_TypeDef *report)
 description:±£´æ½á¹û,type£ºÊÔÑéÀàÐÍ file:ÎÄ¼þÃû report:ÊµÑé±¨¸æ
-typedef struct
-{
-	uint8_t index;		 
-	uint8_t type[10];
-	char fname[10][9];
-	tTime time[10];
-}
-REPORT_LOG_TypeDef; 
 **********************************************************************/ 
-FRESULT report_save(uint8_t type,const char *file,const REPORT_TypeDef *report)
+FRESULT report_save(uint8_t pdrv, uint8_t type, const char * const file, const REPORT_TypeDef *report)
 {
 	FRESULT fresult;
 	FIL file_obj;  
 	uint32_t br;  
 	char path[PATH_BUF_SIZE];  	
-//	REPORT_LOG_TypeDef xlog;
-//	uint8_t i=0;
-	  
-	usprintf(path,"%s/%s.bin",test_path[type].path,file);  
-//	fresult=f_open(&file_obj,path,FA_CREATE_NEW|FA_WRITE); 
-	fresult=f_open(&file_obj,path,FA_CREATE_ALWAYS|FA_WRITE); 	//By.SY 
-	if(fresult==FR_NO_PATH)
-	{	 
-		fresult=f_mkdir("/test"); 
-		fresult=f_mkdir(test_path[type].path); 	  
-		fresult=f_open(&file_obj,path,FA_CREATE_NEW|FA_WRITE);  
-		if(fresult!=FR_OK)
-		return fresult; 
-	}
-	else if(fresult!=FR_OK)
-	return 	fresult;
-	fresult=f_write(&file_obj,report,sizeof(REPORT_TypeDef),&br);   
-	f_close(&file_obj);
 	
-// 	fresult=f_open(&file_obj,"test/log.bin",FA_CREATE_NEW|FA_READ); 
-// 	
-// 	if (FR_OK == fresult)	//SD¿¨Ã»ÓÐ¶ÔÓ¦µÄÎÄ¼þ	By:SY
-// 	{
-// 		xlog.index=0;
-// 		xlog.type[0]=type;
-// 		strcpy(xlog.fname[0],file);
-// 		//date_get(&(xlog.time[0]));	       
-// 		xlog.time[0]=get_time();
-// 		for(i=1;i<10;i++)
-// 		xlog.fname[i][0]=0; 
-// 	}
-// 	else
-// 	{
-// 		fresult=f_open(&file_obj,"test/log.bin",FA_OPEN_ALWAYS|FA_READ); 
-// 		if(fresult==FR_OK)
-// 		{
-// 			f_read(&file_obj,&xlog,sizeof(REPORT_LOG_TypeDef),&br); 
-// 			xlog.index++;
-// 			if(xlog.index>=10)
-// 			xlog.index=0; 	  
-// 			xlog.type[xlog.index]=type;
-// 			strcpy(xlog.fname[xlog.index],file);
-// 			 
-// 			//date_get(&(xlog.time[xlog.index]));  
-// 			//time_get(&(xlog.time[xlog.index]));
-// 			xlog.time[xlog.index]=get_time();
-// 		}
-// 	}
-// 		
-// 	f_close(&file_obj);		
-// 	fresult=f_open(&file_obj,"test/log.bin",FA_CREATE_ALWAYS|FA_WRITE);
-// 	f_write(&file_obj,&xlog,sizeof(REPORT_LOG_TypeDef),&br);  
-// 	f_close(&file_obj);	 
+	switch ( pdrv )
+	{
+		case MMC:
+			usprintf(path,"%s/%s.bin",testPathSD[type].path,file); 
+			break;
+		case USB:
+			usprintf(path,"%s/%s.bin",testPathUSB[type].path,file);
+			break;
+		default:
+			return FR_INVALID_DRIVE;
+	}
+	
+	fresult = f_open(&file_obj,path,FA_CREATE_ALWAYS|FA_WRITE); 
+	
+	if (fresult == FR_NO_PATH)
+	{	 
+		switch ( pdrv )
+		{
+			case MMC:
+				fresult = f_mkdir("0:/test"); 
+				fresult = f_mkdir(testPathSD[type].path); 
+				break;
+			case USB:
+				fresult = f_mkdir("1:/test"); 
+				fresult = f_mkdir(testPathUSB[type].path);
+				break;
+			default:
+				return FR_INVALID_DRIVE;
+		}		 	  
+		fresult = f_open(&file_obj,path,FA_CREATE_NEW|FA_WRITE);  
+		
+		if (fresult != FR_OK)
+		{
+			return fresult; 
+		}
+	}
+	else if(fresult != FR_OK)
+	{
+		return fresult;
+	}
+	
+	fresult = f_write(&file_obj,report,sizeof(REPORT_TypeDef),&br);   
+	
+	f_close(&file_obj);
+
 	return fresult; 
 }
  
- 
- 
+
 /**********************************************************************
 functionName:FRESULT report_lately_10(REPORT_LOG_TypeDef rlog)
 description: ¶ÁÈ¡×î½ü10¸öÊµÑéµÄÐÅÏ¢
@@ -216,7 +215,7 @@ FRESULT report_lately_10(REPORT_LOG_TypeDef *rlog)
 functionName:FRESULT report_read(uint8_t type,char *file,REPORT_TypeDef *report)
 description:¶ÁÈ¡½á¹û,type£ºÊÔÑéÀàÐÍ file:ÎÄ¼þÃû report:ÊµÑé±¨¸æ
 **********************************************************************/ 
-FRESULT report_read(uint8_t type,const char *file,REPORT_TypeDef *report)
+FRESULT report_read(uint8_t type,const char * const file,REPORT_TypeDef *report)
 {
 	FRESULT fresult;
 	FIL file_obj;  
@@ -226,7 +225,7 @@ FRESULT report_read(uint8_t type,const char *file,REPORT_TypeDef *report)
 	if(type>=SUPPORT_TEST_NUM)
 	return FR_INVALID_OBJECT;			//chengs120717
 		
-	usprintf(path,"%s/%s.bin",test_path[type].path,file); 
+	usprintf(path,"%s/%s.bin",testPathSD[type].path,file); 
 	fresult=f_open(&file_obj,path,FA_OPEN_EXISTING|FA_READ); 
 	if(fresult!=FR_OK)
 	return fresult;  
@@ -241,67 +240,27 @@ FRESULT report_read(uint8_t type,const char *file,REPORT_TypeDef *report)
 functionName:FRESULT report_delete(uint8_t type,char *file)
 description:É¾³ýÖ¸¶¨ÊÔÑéÖÖÀàÖ¸¶¨ÎÄ¼þÃûµÄÎÄ¼þ£¬Èç¹ûtype=0xFF£¬É¾³ýÈ«²¿ÎÄ¼þ
 **********************************************************************/ 
-FRESULT report_delete(uint8_t type,const char *file)
+FRESULT report_delete(uint8_t type,const char * const file)
 {
 	FRESULT fresult=FR_OK;
-//	FIL file_obj;  
-//	uint32_t br; 
 	char path[PATH_BUF_SIZE];   
 	uint8_t i=0; 
-//	uint8_t j=0; 
-//	uint8_t f=0;
-// 	REPORT_LOG_TypeDef xlog;
-// 	report_lately_10(&xlog);
+
 	if(type==0xFF)
 	{
 		for(i=KYSNJS;i<=SUPPORT_TEST_NUM-1;i++)
 		{
-			usprintf(path,"%s/%s.bin",test_path[i].path,file);
-			fresult=f_unlink(path); 
-// 			if((fresult==FR_OK)||(fresult==FR_NO_FILE)||(fresult==FR_NO_PATH))
-// 			{
-// 				for(j=0;j<10;j++)
-// 				{ 
-// 					if((!strcmp(file,xlog.fname[j]))&&(i==xlog.type[j]))
-// 					{
-// 						xlog.fname[j][0]=0;
-// 						if(!j)
-// 						xlog.index=9;
-// 						else
-// 						xlog.index=j-1;	
-// 						f=1;
-// 					}
-// 				} 
-// 			}	
+			usprintf(path,"%s/%s.bin",testPathSD[i].path,file);
+			fresult=f_unlink(path); 	
 		} 
 		fresult=FR_OK;
 	}	
 	else if(type<=SUPPORT_TEST_NUM-1)
 	{
-		usprintf(path,"%s/%s.bin",test_path[type].path,file);
+		usprintf(path,"%s/%s.bin",testPathSD[type].path,file);
 		fresult=f_unlink(path);
-// 		if((fresult==FR_OK)||(fresult==FR_NO_FILE)||(fresult==FR_NO_PATH))
-// 		{
-// 			for(j=0;j<10;j++)
-// 			{
-// 				if((!strcmp(file,xlog.fname[j]))&&(type==xlog.type[j]))
-// 				{
-// 					xlog.fname[j][0]=0; 
-// 					if(!j)
-// 					xlog.index=9;
-// 					else
-// 					xlog.index=j-1;
-// 					f=1;
-// 				}
-// 			}	 
-// 		}
 	}	
-// 	if(f)
-// 	{
-// 		fresult=f_open(&file_obj,"test/log.bin",FA_CREATE_ALWAYS|FA_WRITE);
-// 		f_write(&file_obj,&xlog,sizeof(REPORT_LOG_TypeDef),&br);  
-// 		f_close(&file_obj);	  
-// 	}	 
+ 
 	return fresult;  
 }
  
@@ -309,12 +268,12 @@ FRESULT report_delete(uint8_t type,const char *file)
 functionName:FRESULT report_exist(uint8_t type,char *file)
 description:²éÑ¯Ö¸¶¨ÊÔÑéÖÖÀàÖ¸¶¨ÎÄ¼þÃûµÄÎÄ¼þÊÇ·ñ´æÔÚ
 **********************************************************************/  
-FRESULT report_exist(uint8_t type,const char *file)
+FRESULT report_exist(uint8_t type,const char * const file)
 {
 	FRESULT fresult=FR_OK;
 	FIL file_obj;  
 	char path[PATH_BUF_SIZE];   
-	usprintf(path,"%s/%s.bin",test_path[type].path,file); 
+	usprintf(path,"%s/%s.bin",testPathSD[type].path,file); 
 	fresult=f_open(&file_obj,path,FA_OPEN_EXISTING|FA_READ); 
 	f_close(&file_obj);	 
 	return fresult;
@@ -355,7 +314,7 @@ FRESULT report_search_date(uint8_t type,tTime date_start,tTime date_end,uint16_t
 	if((type>SUPPORT_TEST_NUM-1)||(!type))
 	return 	FR_NO_FILE;
 		 
-	fresult = f_opendir(&dir_object,test_path[type].path); 	
+	fresult = f_opendir(&dir_object,testPathSD[type].path); 	
 	if(fresult != FR_OK)
 	return fresult; 
 	
@@ -451,7 +410,7 @@ offset Æ«ÒÆÁ¿£¬Ò»´ÎÖ»ÄÜËÑË÷10¸öÎÄ¼þÃû£¬ËÑË÷ºóÃæµÄÊÔÑé£¬ÐèÒªÊ¹ÓÃ´Ë±äÁ¿£¬Ìá¹ýÇ°Ãæµ
 test:×î¶à·µ»ØÆ«ÒÆºóµÄ10×éÊÔÑéÐÅÏ¢,test¶¨Ê±µÄÊ±ºò±ØÐëÊÇ11¸öÊý×é£¬×îºóÒ»¸öÊý×éÎÄ¼þÃûÈ«²¿Îª0±íÊ¾½áÊø¡£
 fnumb:·µ»Ø²éÕÒµ½µÄÎÄ¼þÊýÁ¿ 
 **********************************************************************/ 
-FRESULT report_search_sn(uint8_t type,const char *subsn,uint16_t offset,TEST_INFO_TypeDef *test,uint32_t *fnumb)
+FRESULT report_search_sn(uint8_t type,const char * const subsn,uint16_t offset,TEST_INFO_TypeDef *test,uint32_t *fnumb)
 {
 	DIR dir_object;  
 	FILINFO file_info; 
@@ -471,7 +430,7 @@ FRESULT report_search_sn(uint8_t type,const char *subsn,uint16_t offset,TEST_INF
 	return 	FR_NO_FILE;
 	else
 	{
-		fresult = f_opendir(&dir_object,test_path[type].path);
+		fresult = f_opendir(&dir_object,testPathSD[type].path);
 		if(fresult != FR_OK)
 		return fresult; 
 		for(;;)
@@ -589,75 +548,146 @@ uint8_t GetDotNum( const char *p )
 	return num;
 }
 
-
-/**********************************************************************
-functionName:FRESULT report_save(char *type,char *file,REPORT_TypeDef *report)
-description:±£´æ½á¹û,type£ºÊÔÑéÀàÐÍ file:ÎÄ¼þÃû report:ÊµÑé±¨¸æ
-**********************************************************************/ 
-FRESULT report_save_usb(uint8_t type,const char *file,REPORT_TypeDef *report)
-{
-	FRESULT fresult;
-	FIL file_obj;  
-	uint32_t br;  
-	char path[PATH_BUF_SIZE];  	
-	  
-	usprintf(path,"%s/%s.bin",test_path_usb[type].path,file);  
-	fresult=f_open(&file_obj,path,FA_CREATE_ALWAYS|FA_WRITE); 
-	if(fresult==FR_NO_PATH)
-	{	 
-		fresult=f_mkdir("1:/test"); 
-		fresult=f_mkdir(test_path_usb[type].path); 	  
-		fresult=f_open(&file_obj,path,FA_CREATE_NEW|FA_WRITE);  
-		if(fresult!=FR_OK)
-		return fresult; 
-	}
-	else if(fresult!=FR_OK)
-	return 	fresult;
-	
-	fresult=f_write(&file_obj,report,sizeof(REPORT_TypeDef),&br);   
-	f_close(&file_obj);
-
-	return fresult; 
-}
-
-
-/**********************************************************************
-functionName:FRESULT report_save_usb_set_time (uint8_t type, char *file)
-description:ÉèÖÃµ¼³ö±¨¸æµÄÎÄ¼þÊ±¼ä
-**********************************************************************/ 
-FRESULT report_save_usb_set_time (uint8_t type, const char *file)
+/*------------------------------------------------------------
+ * Function Name  : SetReportSaveTime
+ * Description    : ÉèÖÃ±¨¸æ±£´æÊ±¼ä
+ * Input          : sourcePdrv£ºÔ´Éè±¸ºÅ£¬targetPdrv£ºÄ¿±êÉè±¸ºÅ£¬testType£ºÊÔÑéÀàÐÍ£¬file£ºÎÄ¼þÃû
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+FRESULT SetReportSaveTime(uint8_t sourcePdrv, uint8_t targetPdrv, uint8_t testType, \
+			const char * const file)
 {
 	char path_sd[PATH_BUF_SIZE]; 
 	char path_usb[PATH_BUF_SIZE]; 
 	FILINFO file_info;
 	FRESULT result;
 	
+	if (testType >= SUPPORT_TEST_NUM)
+	{
+		return FR_INVALID_NAME;
+	}
+	
 	#if _USE_LFN
          file_info.lfname = Lfname;
          file_info.lfsize = sizeof(Lfname);
     #endif
 	
-	usprintf(path_sd,"%s/%s.bin",test_path[type].path,file);	
-	result = f_stat(path_sd,&file_info);
+	switch ( sourcePdrv )
+	{
+		case MMC:
+			usprintf(path_sd,"%s/%s.bin",testPathSD[testType].path,file);
+			result = f_stat(path_sd,&file_info);
+			break;
+		case USB:
+			usprintf(path_usb,"%s/%s.bin",testPathUSB[testType].path,file);	
+			result = f_stat(path_usb,&file_info);
+			break;
+		default:
+			return FR_INVALID_DRIVE;
+	}
+
 	if (result != FR_OK)
 	{
 		return result;
 	}
 	
-	usprintf(path_usb,"%s/%s.bin",test_path_usb[type].path,file);	
-	result = f_utime(path_usb,&file_info);
+	switch ( targetPdrv )
+	{
+		case MMC:
+			usprintf(path_sd,"%s/%s.bin",testPathSD[testType].path,file); 
+			result = f_utime(path_sd,&file_info);
+			break;
+		case USB:
+			usprintf(path_usb,"%s/%s.bin",testPathUSB[testType].path,file);	
+			result = f_utime(path_usb,&file_info);
+			break;
+		default:
+			return FR_INVALID_DRIVE;
+	}
 	
 	return result;
 }
 
 /*------------------------------------------------------------
- * Function Name  : SaveCoordinatePointToSD
- * Description    : ±£´æ×ø±êµãÐÅÏ¢µ½SD¿¨
- * Input          : testType£ºÊÔÑéÀàÐÍ£¬sampleNum£ºÊÔ¿éÐòºÅ£¬pSerial£ºÊÔ¼þ±àºÅ£¬pCoordinate£º×ø±êµãÐÅÏ¢
+ * Function Name  : SetCurveSaveTime
+ * Description    : ÉèÖÃÇúÏß±£´æÊ±¼ä
+ * Input          : sourcePdrv£ºÔ´Éè±¸ºÅ£¬targetPdrv£ºÄ¿±êÉè±¸ºÅ£¬testType£ºÊÔÑéÀàÐÍ£¬file£ºÎÄ¼þÃû
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-FRESULT SaveCoordinatePointToSD( uint8_t testType, uint8_t sampleNum, \
+FRESULT SetCurveSaveTime(uint8_t sourcePdrv, uint8_t targetPdrv, uint8_t testType, uint8_t sampleNum, \
+			const char * const pSerial)
+{
+	FILINFO file_info;
+	FRESULT fresult;
+	char pathFile[PATH_BUF_SIZE];  
+	const uint8_t MAX_TEST_SERIAL_LEN = 16;		//Ò»×éÊÔÑù±àºÅ³¤¶È
+	const uint8_t MAX_SAMPLE_NUM = 20;			//×î´óÊÔ¿é¸öÊý
+	const uint8_t MAX_CURVE_SERIAL_LEN = 20;	
+	char fileSerialBuff[MAX_CURVE_SERIAL_LEN];	
+	char tempBuff[5];
+	
+	if ( (strlen(pSerial) > MAX_TEST_SERIAL_LEN) 	||\
+		(sampleNum > MAX_SAMPLE_NUM) 				||\
+		(testType >= SUPPORT_TEST_NUM)	)
+	{
+		return FR_INVALID_NAME;
+	}
+	
+	#if _USE_LFN
+         file_info.lfname = Lfname;
+         file_info.lfsize = sizeof(Lfname);
+    #endif
+	
+	usprintf(tempBuff,"_%02d",sampleNum);	
+	strcpy(fileSerialBuff,pSerial);
+	strcat(fileSerialBuff,tempBuff);
+	
+	switch ( sourcePdrv )
+	{
+		case MMC:
+			usprintf(pathFile,"%s/%s/%s.bin",g_coordinatePointPath_SD[testType].path,pSerial,fileSerialBuff);   
+			fresult = f_stat(pathFile,&file_info);
+			break;
+		case USB:
+			usprintf(pathFile,"%s/%s/%s.bin",g_coordinatePointPath_USB[testType].path,pSerial,fileSerialBuff);  
+			fresult = f_stat(pathFile,&file_info);
+			break;
+		default:
+			return FR_INVALID_DRIVE;
+	}
+
+	if (fresult != FR_OK)
+	{
+		return fresult;
+	}
+	
+	switch ( targetPdrv )
+	{
+		case MMC:
+			usprintf(pathFile,"%s/%s/%s.bin",g_coordinatePointPath_SD[testType].path,pSerial,fileSerialBuff);   
+			fresult = f_utime(pathFile,&file_info);
+			break;
+		case USB:
+			usprintf(pathFile,"%s/%s/%s.bin",g_coordinatePointPath_USB[testType].path,pSerial,fileSerialBuff);
+			fresult = f_utime(pathFile,&file_info);
+			break;
+		default:
+			return FR_INVALID_DRIVE;
+	}
+	
+	return fresult;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SaveCoordinatePointToSD
+ * Description    : ±£´æ×ø±êµãÐÅÏ¢µ½SD¿¨
+ * Input          : pdrv£ºÉè±¸ºÅ£¬testType£ºÊÔÑéÀàÐÍ£¬sampleNum£ºÊÔ¿éÐòºÅ£¬pSerial£ºÊÔ¼þ±àºÅ£¬pCoordinate£º×ø±êµãÐÅÏ¢
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+FRESULT SaveCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, \
 			const char * const pSerial, const COORDINATE_POINT_TypeDef * const pCoordinate )
 {
 	FRESULT fresult;
@@ -682,15 +712,38 @@ FRESULT SaveCoordinatePointToSD( uint8_t testType, uint8_t sampleNum, \
 	strcpy(fileSerialBuff,pSerial);
 	strcat(fileSerialBuff,tempBuff);
 	
-	usprintf(pathFile,"%s/%s/%s.bin",g_coordinatePointPath[testType].path,pSerial,fileSerialBuff);  
+	switch ( pdrv )
+	{
+		case MMC:
+			usprintf(pathFile,"%s/%s/%s.bin",g_coordinatePointPath_SD[testType].path,pSerial,fileSerialBuff);   
+			break;
+		case USB:
+			usprintf(pathFile,"%s/%s/%s.bin",g_coordinatePointPath_USB[testType].path,pSerial,fileSerialBuff);   
+			break;
+		default:
+			return FR_INVALID_DRIVE;
+	}
 	
 	fresult = f_open(&file_obj,pathFile,FA_CREATE_ALWAYS|FA_WRITE); 
 	
 	if (fresult == FR_NO_PATH)
-	{	 
-		fresult = f_mkdir("0:/curve"); 
-		fresult = f_mkdir(g_coordinatePointPath[testType].path); 	
-		usprintf(pathSerial,"%s/%s",g_coordinatePointPath[testType].path,pSerial);  	
+	{	
+		switch ( pdrv )
+		{
+			case MMC:
+				fresult = f_mkdir("0:/curve"); 
+				fresult = f_mkdir(g_coordinatePointPath_SD[testType].path); 	
+				usprintf(pathSerial,"%s/%s",g_coordinatePointPath_SD[testType].path,pSerial);  
+				break;
+			case USB:
+				fresult = f_mkdir("1:/curve"); 
+				fresult = f_mkdir(g_coordinatePointPath_USB[testType].path); 	
+				usprintf(pathSerial,"%s/%s",g_coordinatePointPath_USB[testType].path,pSerial); 
+				break;
+			default:
+				return FR_INVALID_DRIVE;
+		}
+		 	
 		fresult = f_mkdir(pathSerial); 	
 		
 		fresult = f_open(&file_obj,pathFile,FA_CREATE_NEW|FA_WRITE);  		
@@ -705,6 +758,153 @@ FRESULT SaveCoordinatePointToSD( uint8_t testType, uint8_t sampleNum, \
 	
 	f_close(&file_obj);
 
+	return fresult; 
+}
+
+/*------------------------------------------------------------
+ * Function Name  : ReadCoordinatePointFromSD
+ * Description    : ´ÓSD¿¨¶ÁÈ¡×ø±êµãÐÅÏ¢
+ * Input          : pdrv£ºÉè±¸ºÅ£¬testType£ºÊÔÑéÀàÐÍ£¬sampleNum£ºÊÔ¿éÐòºÅ£¬pSerial£ºÊÔ¼þ±àºÅ£¬pCoordinate£º×ø±êµãÐÅÏ¢
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+FRESULT ReadCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, \
+			const char * const pSerial, COORDINATE_POINT_TypeDef * const pCoordinate )
+{
+	FRESULT fresult;
+	FIL file_obj;  
+	uint32_t br;  
+	char pathFile[PATH_BUF_SIZE];  
+	const uint8_t MAX_TEST_SERIAL_LEN = 16;		//Ò»×éÊÔÑù±àºÅ³¤¶È
+	const uint8_t MAX_SAMPLE_NUM = 20;			//×î´óÊÔ¿é¸öÊý
+	const uint8_t MAX_CURVE_SERIAL_LEN = 20;	
+	char fileSerialBuff[MAX_CURVE_SERIAL_LEN];	
+	char tempBuff[5];
+	
+	if ( (strlen(pSerial) > MAX_TEST_SERIAL_LEN) 	||\
+		(sampleNum > MAX_SAMPLE_NUM) 				||\
+		(testType >= SUPPORT_TEST_NUM)	)
+	{
+		return FR_INVALID_NAME;
+	}
+	
+	usprintf(tempBuff,"_%02d",sampleNum);	
+	strcpy(fileSerialBuff,pSerial);
+	strcat(fileSerialBuff,tempBuff);
+	
+	switch ( pdrv )
+	{
+		case MMC:
+			usprintf(pathFile,"%s/%s/%s.bin",g_coordinatePointPath_SD[testType].path,pSerial,fileSerialBuff);  
+			break;
+		case USB:
+			usprintf(pathFile,"%s/%s/%s.bin",g_coordinatePointPath_USB[testType].path,pSerial,fileSerialBuff); 
+			break;
+		default:
+			return FR_INVALID_DRIVE;
+	}
+	 
+	fresult = f_open(&file_obj,pathFile,FA_OPEN_EXISTING|FA_READ); 
+	
+	if (fresult != FR_OK)
+	{	 
+		return fresult;	
+	}
+	
+	fresult = f_read(&file_obj,pCoordinate,sizeof(COORDINATE_POINT_TypeDef),&br);   
+	
+	f_close(&file_obj);
+
+	return fresult; 
+}
+
+/*------------------------------------------------------------
+ * Function Name  : DeleteCoordinateFolder
+ * Description    : É¾³ý×ø±êµãÎÄ¼þ¼Ð£¨¼°ÎÄ¼þ¼Ð°üº¬µÄÎÄ¼þ£©
+ * Input          : pdrv£ºÉè±¸ºÅ£¬testType£ºÊÔÑéÀàÐÍ£¬pSerial£ºÊÔ¼þ±àºÅ
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+FRESULT DeleteCoordinateFolder( uint8_t pdrv, uint8_t testType, const char * const pSerial )
+{
+	DIR dir_object;  
+	FILINFO file_info;
+	FRESULT fresult;
+	char pathFile[PATH_BUF_SIZE];  
+	const uint8_t MAX_TEST_SERIAL_LEN = 16;		//Ò»×éÊÔÑù±àºÅ³¤¶È
+	FlagStatus flagLongFileName = RESET;
+	
+	#if _USE_LFN								
+         file_info.lfname = Lfname;
+         file_info.lfsize = sizeof(Lfname);
+     #endif
+	
+	if ( (strlen(pSerial) > MAX_TEST_SERIAL_LEN) 	||\
+		(testType >= SUPPORT_TEST_NUM)	)
+	{
+		return FR_INVALID_NAME;
+	}
+	
+	switch ( pdrv )
+	{
+		case MMC:
+			usprintf(pathFile,"%s/%s",g_coordinatePointPath_SD[testType].path,pSerial);  
+			break;
+		case USB:
+			usprintf(pathFile,"%s/%s",g_coordinatePointPath_USB[testType].path,pSerial);
+			break;
+		default:
+			return FR_INVALID_DRIVE;
+	}
+	
+	fresult = f_opendir(&dir_object,pathFile); 	
+	if (fresult != FR_OK)
+	{
+		return fresult; 
+	}
+	
+	for (;;)
+	{
+		fresult = f_readdir(&dir_object, &file_info);
+		
+		if (fresult != FR_OK)
+		{
+			return fresult; 
+		}
+		
+		/* ÎÄ¼þ¼ÐÄÚ²»´æÔÚÎÄ¼þ */
+		if ( !file_info.fname[0] )	
+		{			
+			break;	
+		}
+		
+		flagLongFileName = (file_info.lfname[0] == 0) ? RESET : SET;	//ÅÐ¶ÏÊÇ·ñÊÇ³¤ÎÄ¼þÃû
+		
+		if (file_info.fattrib & AM_ARC)		//ÊÇ¸öÎÄ¼þ
+		{
+			if (flagLongFileName == SET)
+			{
+				usprintf(pathFile,"%s/%s/%s",g_coordinatePointPath_SD[testType].path,pSerial,file_info.lfname);
+				fresult = f_unlink(pathFile); 
+			}
+			else
+			{
+				usprintf(pathFile,"%s/%s/%s",g_coordinatePointPath_SD[testType].path,pSerial,file_info.fname);
+				fresult = f_unlink(pathFile); 
+			}
+			
+			if (fresult != FR_OK)
+			{
+				return fresult; 
+			}
+		}
+	}
+	
+	/* ±ØÐëÉ¾³ýÎÄ¼þºó£¬²ÅÄÜÉ¾³ýÎÄ¼þ¼Ð */
+	usprintf(pathFile,"%s/%s",g_coordinatePointPath_SD[testType].path,pSerial);
+	
+	fresult = f_unlink(pathFile); 	
+	
 	return fresult; 
 }
 

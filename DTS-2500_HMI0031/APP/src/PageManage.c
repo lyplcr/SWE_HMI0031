@@ -44,6 +44,7 @@
 #include "CalibrationParameter.h"
 #include "ForceCalibration.h"
 #include "TestTypeSelect.h"
+#include "CurveShow.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
@@ -99,6 +100,8 @@ void InitPage( void )
 	g_pageTCB.pageArray[HARD_TEST_PAGE] 			= LoadHardTestPage;
 	g_pageTCB.pageArray[LINK_PAGE] 					= LoadLinkModePage;
 	g_pageTCB.pageArray[TEST_TYPE_SELECT_PAGE] 		= LoadTestTypeSelectPage;
+	g_pageTCB.pageArray[CURVE_SHOW_PAGE] 			= LoadCurveShowPage;
+	
 	
 	g_pageTCB.curPage = g_pageTCB.pageArray[SYS_SETUP];
 	g_pageTCB.pageName = SYS_SETUP;

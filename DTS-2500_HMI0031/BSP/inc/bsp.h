@@ -42,6 +42,10 @@
 #define BEEP_TEST_START()				SetBeep(10,10,1)	//倒计时试验开始提示声
 #define BEEP_COUNT_DOWN()				SetBeep(5,5,1)		//倒计时倒数提示声
 
+/* FATFS设备 */
+#define MMC		0
+#define USB		1
+
 //#define ENABLE_BEEP
 
 /* Exported types ------------------------------------------------------------*/

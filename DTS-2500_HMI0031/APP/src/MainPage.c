@@ -232,6 +232,8 @@ typedef struct
 	BX_UINT_TypeDef	bxChannelUnit;					//变形通道单位
 	FunctionalState refreshShortcut;				//刷新快捷菜单
 	LEAVE_PAGE_TypeDef leavePage;					//离开页
+	
+	REPORT_TypeDef *pReadReport;
 }MAIN_PAGE_TypeDef;
 
 typedef struct
@@ -437,7 +439,6 @@ const char * const pKLTestProgressName[] =
 	static KL_TEST_BODY_TypeDef	g_klTestBody;
 #pragma arm section
 
-/* 涉及到读取SD卡操作，不能放入ccm中 */
 static REPORT_TypeDef g_readReport;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -3570,7 +3571,7 @@ static void MainPageExportReport( void )
 		return;
 	}
 	
-	result = report_save_usb(g_mainPage.testType,pTest->test_serial,&readReport);
+	result = report_save(USB,g_mainPage.testType,pTest->test_serial,&readReport);
 	if (result != FR_OK)
 	{
 		SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[11]);
@@ -3581,7 +3582,7 @@ static void MainPageExportReport( void )
 		return;
 	}
 		
-	result = report_save_usb_set_time(g_mainPage.testType,pTest->test_serial);	
+	result = SetReportSaveTime(MMC,USB,g_mainPage.testType,pTest->test_serial);	
 	if (result != FR_OK)
 	{
 		SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[11]);
@@ -5223,7 +5224,16 @@ static void MainPageExecuteCancelLastPiece( void )
 		}
 		else 
 		{
-			if (FR_OK == report_delete(g_mainPage.testType,pTest->test_serial) )
+			FRESULT result;
+			
+			result = report_delete(g_mainPage.testType,pTest->test_serial);
+			
+			if (result == FR_OK)
+			{
+				result = DeleteCoordinateFolder(MMC,g_mainPage.testType,pTest->test_serial);
+			}
+			
+			if (result == FR_OK)
 			{
 				GUI_DrawTestSaveProgressBar(LIGHT_GRAY2);
 			}
@@ -5407,11 +5417,12 @@ static void MainPageSaveCoordinateCurveToSD( void )
 	pCoordinatePoint->recordPointFreq = RECORD_COORDINATE_FREQ;
 	pCoordinatePoint->nowUsePointNum = pDrawLine->nowTimePoint;
 	pCoordinatePoint->maxPointNum = DECORD_COORDINATE_FORCE_NUM;
+	pCoordinatePoint->xScalingCoefficient = pDrawLine->timeScalingCoefficient;
 	pCoordinatePoint->yScalingCoefficient = pDrawLine->forceScalingCoefficient;
 	memcpy(pCoordinatePoint->force,pDrawLine->force,sizeof(float) * DECORD_COORDINATE_FORCE_NUM);
 	
 	{
-		FRESULT result = SaveCoordinatePointToSD(g_mainPage.testType,g_testBody.curCompletePieceSerial,\
+		FRESULT result = SaveCoordinatePoint(MMC,g_mainPage.testType,g_testBody.curCompletePieceSerial,\
 							pTest->test_serial,pCoordinatePoint);
 		if (result != FR_OK)
 		{
@@ -5577,7 +5588,7 @@ static void MainPageExecuteWriteSDProcess( void )
 			printf("保存报告到SD卡！\r\n");
 		#endif
 		
-		if (FR_OK == report_save(g_mainPage.testType,pTest->test_serial,&g_readReport) )
+		if (FR_OK == report_save(MMC,g_mainPage.testType,pTest->test_serial,&g_readReport) )
 		{
 			GUI_DrawTestSaveProgressBar(LIGHT_GRAY2);	
 			
@@ -5791,6 +5802,7 @@ static void InitMainPageCoordinateDrawLine( void )
 	pDrawLine->maxTime = pCoordinate->maxTime * 1000;
 	pDrawLine->nowTimePoint = 0;
 	pDrawLine->lineColor = RED;
+	pDrawLine->timeScalingCoefficient = 0.001;
 	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 	{
 		pDrawLine->forceScalingCoefficient = 0.001;
@@ -5799,6 +5811,7 @@ static void InitMainPageCoordinateDrawLine( void )
 	{
 		pDrawLine->forceScalingCoefficient = 1;
 	}
+	pDrawLine->recordPointFreq = RECORD_COORDINATE_FREQ;
 	pDrawLine->pDrawCoordinate = GUI_MainPageDrawCoordinate;
 				
 	InitCoordinateDrawLine(pDrawLine);

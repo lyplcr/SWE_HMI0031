@@ -155,6 +155,7 @@ const char * const pTwoLevelMenu[] =
 	"还原(U 盘)",		//83
 	" 进入标定 ",		//84
 	"写入标定表",		//85
+	" 查看曲线 ",		//86
 };
 
 const char * const pUnitType[] = 
@@ -217,7 +218,7 @@ TEST_TypeDef *pTest = NULL;			//试验参数
 	static JUDGE_BREAK_TypeDef g_judgeBreak;	//判破点
 #pragma arm section
 
-static COORDINATE_POINT_TypeDef g_coordinatePoint;
+COORDINATE_POINT_TypeDef g_coordinatePoint;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -1887,7 +1888,9 @@ void InitCoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 	g_coordinateDrawLine.nowTimePoint = pDrawLine->nowTimePoint;
 	g_coordinateDrawLine.pDrawCoordinate = pDrawLine->pDrawCoordinate;
 	g_coordinateDrawLine.lineColor = pDrawLine->lineColor;
+	g_coordinateDrawLine.timeScalingCoefficient = pDrawLine->timeScalingCoefficient;
 	g_coordinateDrawLine.forceScalingCoefficient = pDrawLine->forceScalingCoefficient;
+	g_coordinateDrawLine.recordPointFreq = pDrawLine->recordPointFreq;
 	memset(g_coordinateDrawLine.force,0x00,sizeof(float)*DECORD_COORDINATE_FORCE_NUM);
 }	
 
@@ -1934,7 +1937,7 @@ static void CoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
  *------------------------------------------------------------*/
 void ReloadCoordinate( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
-	pDrawLine->pDrawCoordinate(pDrawLine->maxForce * pDrawLine->forceScalingCoefficient,pDrawLine->maxTime / 1000);
+	pDrawLine->pDrawCoordinate(pDrawLine->maxForce * pDrawLine->forceScalingCoefficient,pDrawLine->maxTime * pDrawLine->timeScalingCoefficient);
 }	
 
 /*------------------------------------------------------------
@@ -1944,7 +1947,7 @@ void ReloadCoordinate( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void CoordinateRedrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
+void CoordinateRedrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
 	uint32_t lastTime = 0,nowTime = 0;
 	float lastForce = 0,nowForce = 0;
@@ -1952,12 +1955,10 @@ static void CoordinateRedrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 	uint16_t lastForceCoordinate = 0,nowForceCoordinate = 0;
 	uint32_t timeIndex = 0;
 	
-	ReloadCoordinate(pDrawLine);
-	
 	for (timeIndex=0; timeIndex<=pDrawLine->nowTimePoint; ++timeIndex)
 	{	
 		lastTime = nowTime;
-		nowTime += RECORD_COORDINATE_PERIOD;
+		nowTime += 1000 / pDrawLine->recordPointFreq;
 		
 		lastTimeCoordinate = pDrawLine->originX + (float)lastTime / pDrawLine->maxTime * pDrawLine->lenthX;
 		nowTimeCoordinate = pDrawLine->originX + (float)nowTime / pDrawLine->maxTime * pDrawLine->lenthX;
@@ -2008,6 +2009,8 @@ void CoordinateDrawLineBodyCycle( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 	if (pDrawLine->enableRedraw == ENABLE)
 	{
 		pDrawLine->enableRedraw = DISABLE;
+		
+		ReloadCoordinate(pDrawLine);
 		
 		CoordinateRedrawLine(pDrawLine);
 	}

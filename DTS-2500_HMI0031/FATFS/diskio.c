@@ -10,9 +10,6 @@
 #include "diskio.h"
 #include "usbh_bsp_msc.h"	
 
-#define MMC		0
-#define USB		1
-
 #define SECTOR_SIZE 		512U /* Block Size in Bytes */
 
 /*-----------------------------------------------------------------------*/

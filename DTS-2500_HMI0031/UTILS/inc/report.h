@@ -113,18 +113,19 @@ typedef struct
 	uint16_t recordPointFreq;			//记录每个点频率
 	uint32_t nowUsePointNum;			//已使用的点数
 	uint32_t maxPointNum;				//支持的最大点数
-	float yScalingCoefficient;			//缩放系数（将Y轴当前值按照缩放系数修饰）
+	float xScalingCoefficient;			//缩放系数（将X轴当前值按照缩放系数修饰）
+	float yScalingCoefficient;			//缩放系数（将Y轴当前值按照缩放系数修饰）	
 	float force[DECORD_COORDINATE_FORCE_NUM];
 }COORDINATE_POINT_TypeDef;
     
 #pragma pack()     
 
 FRESULT get_free_space(float *space);												//获取SD卡剩余空间，单位是Mb    								
-FRESULT report_save(uint8_t type,const char *file,const REPORT_TypeDef *report);    //保存结果,type：试验类型 file:文件名 report:实验报告
-FRESULT report_read(uint8_t type,const char *file,REPORT_TypeDef *report);			//读取结果,type：试验类型 file:文件名 report:实验报告   
-FRESULT report_delete(uint8_t type,const char *file);								//删除指定试验种类指定文件名的文件，如果type=0xFF，删除所有试验种类中该试验名的文件
+FRESULT report_save(uint8_t pdrv, uint8_t type, const char * const file, const REPORT_TypeDef *report);    //保存结果,type：试验类型 file:文件名 report:实验报告
+FRESULT report_read(uint8_t type,const char * const file,REPORT_TypeDef *report);			//读取结果,type：试验类型 file:文件名 report:实验报告   
+FRESULT report_delete(uint8_t type,const char * const file);						//删除指定试验种类指定文件名的文件，如果type=0xFF，删除所有试验种类中该试验名的文件
 FRESULT report_lately_10(REPORT_LOG_TypeDef *rlog);									//读取最近10个实验的信息
-FRESULT report_exist(uint8_t type,const char *file);								//查询指定试验种类指定文件名的文件是否存在
+FRESULT report_exist(uint8_t type,const char * const file);								//查询指定试验种类指定文件名的文件是否存在
 
 //functionName:FRESULT report_search_subsn(uint8_t type,char *subsn,uint16_t offset,TEST_INFO_TypeDef *test,uint32_t *fnumb)
 //description:通过试验编号查找结果,在指定试验类型中试验编号只要包含“subsn”中的字符，都搜索出来
@@ -133,7 +134,7 @@ FRESULT report_exist(uint8_t type,const char *file);								//查询指定试验种类指
 //offset 偏移量，一次只能搜索10个文件名，搜索后面的试验，需要使用此变量，提过前面的文件
 //test:最多返回偏移后的10组试验信息,test定时的时候必须是11个数组，最后一个数组文件名全部为0表示结束。
 //fnumb:返回查找到的文件数量 
-FRESULT report_search_sn(uint8_t type,const char *subsn,uint16_t offset,TEST_INFO_TypeDef *test,uint32_t *fnumb);
+FRESULT report_search_sn(uint8_t type,const char * const subsn,uint16_t offset,TEST_INFO_TypeDef *test,uint32_t *fnumb);
 //根据时间段查询试验
 //type:试验种类
 //date_start：起始日期  date_end：结束日期
@@ -142,12 +143,17 @@ FRESULT report_search_sn(uint8_t type,const char *subsn,uint16_t offset,TEST_INF
 //fnumb:返回查找到的文件数量 
 FRESULT report_search_date(uint8_t type,tTime date_start,tTime date_end,uint16_t offset,TEST_INFO_TypeDef *test,uint32_t *fnumb); 
   
-FRESULT report_save_usb(uint8_t type,const char *file,REPORT_TypeDef *report);
-FRESULT report_save_usb_set_time (uint8_t type,const char *file);
+FRESULT SetReportSaveTime(uint8_t sourcePdrv, uint8_t targetPdrv, uint8_t testType, \
+			const char * const file);
+FRESULT SetCurveSaveTime(uint8_t sourcePdrv, uint8_t targetPdrv, uint8_t testType, uint8_t sampleNum, \
+			const char * const pSerial);
 
-FRESULT SaveCoordinatePointToSD( uint8_t testType, uint8_t sampleNum, \
+FRESULT SaveCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, \
 			const char * const pSerial, const COORDINATE_POINT_TypeDef * const pCoordinate );
-
+FRESULT ReadCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, \
+			const char * const pSerial, COORDINATE_POINT_TypeDef * const pCoordinate );
+			
+FRESULT DeleteCoordinateFolder( uint8_t pdrv, uint8_t testType, const char * const pSerial );			
 #endif
 
 

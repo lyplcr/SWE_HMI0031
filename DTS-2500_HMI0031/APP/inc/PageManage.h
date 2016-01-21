@@ -46,6 +46,7 @@ typedef enum
 	ADVANCE_PARAMETER_SET_PAGE,		//高级参数设置	[31]
 	CHANNEL_SELECT_PAGE,			//通道选择		[32]
 	TEST_TYPE_SELECT_PAGE,			//试验类型选择	[33]
+	CURVE_SHOW_PAGE,				//曲线显示页		[34]
 }PAGE_NAME_TypeDef;
 
 
