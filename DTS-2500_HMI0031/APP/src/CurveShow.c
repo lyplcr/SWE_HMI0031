@@ -48,6 +48,8 @@ static void CurveShowReadParameter( void );
 static void GUI_CurveShow( void );
 static void CurveShowConfig( void );
 static void CurveShowKeyProcess( void );
+static void CurveShowShortcutCycleTask( void );
+static void CurveShowLeavePageCheckCycle( void );
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -75,9 +77,6 @@ void LoadCurveShowPage( void )
 	/* 画GUI框架 */
 	GUI_CurveShow();
 	
-	/* 遍历 */
-
-	
 	/* 打开屏幕 */
 	SetBackLightEffectOpen();
 	
@@ -86,14 +85,8 @@ void LoadCurveShowPage( void )
 		/* 输入处理 */
 		PutinProcessCycle();
 		
-		/* 移动索引值 */
-		
-		
-		/* 移动光标 */
-		
-		
 		/* 快捷菜单 */
-		
+		CurveShowShortcutCycleTask();
 		
 		/* 按键处理 */
 		CurveShowKeyProcess();
@@ -102,7 +95,7 @@ void LoadCurveShowPage( void )
 		PopWindowsProcessCycle();
 		
 		/* 离开页 */
-		
+		CurveShowLeavePageCheckCycle();
 	}
 }
 
@@ -196,16 +189,16 @@ static void GUI_CurveShowDrawCoordinate( void )
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
 	pCoordinate->x = 120;
-	pCoordinate->y = 94;
+	pCoordinate->y = 70;
 	pCoordinate->rowSpace = 50;
-	pCoordinate->columnSpace = 50;
+	pCoordinate->columnSpace = 60;
 	pCoordinate->xLenth = 600;
 	pCoordinate->yLenth = 300;
 	pCoordinate->fillFieldLenth = 5;
 	pCoordinate->emptyFieldLenth = 5;
 	pCoordinate->lineWidth = 1;
 	pCoordinate->rowFieldNum = 6;
-	pCoordinate->columnFieldNum = 12;
+	pCoordinate->columnFieldNum = 10;
 	pCoordinate->mainBackColor = COLOR_BACK;
 	pCoordinate->windowsBackColor = COLOR_BACK;
 	pCoordinate->rowLineColor = FOREST_GREEN;
@@ -280,6 +273,73 @@ static void InitCurveShowCoordinateDrawLine( void )
 		}
 	}
 }
+#if 0
+	/*------------------------------------------------------------
+	 * Function Name  : CurveShowShowCircleMarkInfomation
+	 * Description    : 显示圆形标记信息
+	 * Input          : None
+	 * Output         : None
+	 * Return         : None
+	 *------------------------------------------------------------*/
+	static void CurveShowShowCircleMarkInfomation( void )
+	{
+		DRAW_CIRCLE_MARK_TypeDef circleMark;
+		const uint16_t RADIUS = 3;		/* 半径 */
+		const uint16_t DISTANCE = 12;	/* 圆与圆之间的距离 */
+		uint32_t curNum = g_curveShow.curPage;
+		uint32_t sumNum = g_curveShow.sumPage;
+		uint32_t lenth = 0;
+		
+		/* 圆形标记区域长度 */
+		lenth = (2 * RADIUS + DISTANCE) *  sumNum - DISTANCE;
+		
+		circleMark.x = ((LCD_LENTH_X - lenth) >> 1);
+		circleMark.y = PAGE_DI_POS_Y + 45;
+		circleMark.distance = DISTANCE;
+		circleMark.curSerial = curNum;
+		circleMark.sumSerial = sumNum;
+		circleMark.pointColor = CL_BLUE3;
+		circleMark.backColor = COLOR_BACK;
+		circleMark.radius = RADIUS;
+		
+		DrawCircleMark(&circleMark);
+	}
+#endif
+/*------------------------------------------------------------
+ * Function Name  : CurveShowShowCurPageInfomation
+ * Description    : 显示当前页信息
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void CurveShowShowCurPageInfomation( void )
+{
+	char buff[10];
+	uint32_t pageNum = 0;
+	const uint16_t back_color = COLOR_BACK;
+	const uint16_t point_color = MIDDLEBLUE;
+	const uint16_t posFirstX = PAGE_DI_POS_X + 60;
+	const uint16_t posFirstY = PAGE_DI_POS_Y + 25;
+	const uint16_t posSecondX = PAGE_GONG_POS_X - 54;
+	const uint16_t posSecondY = PAGE_GONG_POS_Y + 25;
+	
+	if ( g_curveShow.sumPage )
+	{	
+		pageNum = g_curveShow.curPage;
+		usprintf(buff,"%02d",pageNum);		
+		GUI_DispStr24At(posFirstX,posFirstY,point_color,back_color,buff);
+		
+		GUI_DispStr24At(posSecondX-20,posSecondY,COLOR_POINT,back_color,"/");
+		
+		pageNum = g_curveShow.sumPage;
+		usprintf(buff,"%02d",pageNum);		
+		GUI_DispStr24At(posSecondX,posSecondY,point_color,back_color,buff);
+	}
+	else
+	{
+		GUI_DispStr24At(posSecondX,posSecondY,COLOR_POINT,back_color,"未找到曲线！");	
+	}
+}
 
 /*------------------------------------------------------------
  * Function Name  : GUI_CurveShow
@@ -301,6 +361,10 @@ static void GUI_CurveShow( void )
 		
 		CoordinateRedrawLine(pDrawLine);
 	}
+	
+	CurveShowShowCurPageInfomation();
+	
+//	CurveShowShowCircleMarkInfomation();
 }
 
 /*------------------------------------------------------------
@@ -316,14 +380,91 @@ static void CurveShowKeyProcess( void )
 	{
 		switch ( GetKeyVal() )
 		{
+			case KEY_F3:
+			case KEY_LEFT:
+				if (g_curveShow.sumPage > 1)
+				{
+					if (g_curveShow.curPage)
+					{
+						g_curveShow.curPage--;
+					}
+					
+					if (!g_curveShow.curPage)
+					{
+						g_curveShow.curPage = g_curveShow.sumPage;
+					}
+					
+					g_curveShow.leavePage.flagLeavePage = SET;
+					g_curveShow.leavePage.flagSaveData = RESET;
+				}
+				break;
+			case KEY_F4:
+			case KEY_RIGHT:
+				if (g_curveShow.sumPage > 1)
+				{
+					g_curveShow.curPage++;
+					
+					if (g_curveShow.curPage > g_curveShow.sumPage)
+					{
+						g_curveShow.curPage = 1;
+					}
+					
+					g_curveShow.leavePage.flagLeavePage = SET;
+					g_curveShow.leavePage.flagSaveData = RESET;
+				}
+				break;			
 			case KEY_ESC:
 				SetPage(DETAIL_REPORT_PAGE);
 				g_curveShow.leavePage.flagLeavePage = SET;
-				g_curveShow.leavePage.flagSaveData = RESET;
+				g_curveShow.leavePage.flagSaveData = SET;
 				break;
 		}
 	}
 }
 
+/*------------------------------------------------------------
+ * Function Name  : CurveShowShortcutCycleTask
+ * Description    : 快捷菜单任务
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void CurveShowShortcutCycleTask( void )
+{
+	SHORTCUT_TypeDef *pShortCut = GetShortcutMenuAddr();
+	
+	if (g_curveShow.refreshShortcut == ENABLE)
+	{
+		g_curveShow.refreshShortcut = DISABLE;
+		
+		pShortCut->status = SHOW_F3 | SHOW_F4;
+		
+		pShortCut->pContent[2] = pTwoLevelMenu[50];
+		pShortCut->pContent[3] = pTwoLevelMenu[66];
+		
+		pShortCut->pointColor = COLOR_SHORTCUT_POINT;
+		pShortCut->backColor = COLOR_SHORTCUT_BACK;
+		
+		ShortcutMenuTask(pShortCut);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : CurveShowLeavePageCheckCycle
+ * Description    : 离开页检测
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void CurveShowLeavePageCheckCycle( void )
+{
+	if (g_curveShow.leavePage.flagLeavePage == SET)
+	{
+		if (g_curveShow.leavePage.flagSaveData == SET)
+		{
+			g_curveShow.curPage = 1;
+		}
+	}
+}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

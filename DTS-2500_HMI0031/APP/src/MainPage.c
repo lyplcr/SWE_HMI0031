@@ -439,7 +439,7 @@ const char * const pKLTestProgressName[] =
 	static KL_TEST_BODY_TypeDef	g_klTestBody;
 #pragma arm section
 
-static REPORT_TypeDef g_readReport;
+extern REPORT_TypeDef g_readReport;
 
 /* Private function prototypes -----------------------------------------------*/
 static void MainPageKeyProcess( void );
@@ -5838,8 +5838,7 @@ static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeD
 		case STATUS_DRAW_LINE_IDLE:
 			if ((GetTestStatus()==TEST_LOAD) && (force>curveShowStartForce))
 			{
-				InitMainPageCoordinateDrawLine();
-				ReloadCoordinate(pDrawLine);
+				LoadDefaultCoordinate();
 			
 				pDrawLine->start = SET;
 				pDrawLine->status = STATUS_DRAW_LINE_LOAD;					
@@ -5953,13 +5952,13 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : MainPageJudgeBreakCycle
- * Description    : 判破循环体
+ * Function Name  : MainPageSamplePointCycle
+ * Description    : 采样点循环体
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void MainPageJudgeBreakCycle( void )
+static void MainPageSamplePointCycle( void )
 {
 	JudgeBreakCalculateCycle(SMPL_FH_NUM);
 }
@@ -6206,8 +6205,8 @@ static void MainPageCtrlCoreCycle( void )
 	/* 上位机下发命令(包含采样) */
 	PCM_CmdSendCycle();
 	
-	/* 判破循环体 */
-	MainPageJudgeBreakCycle();
+	/* 采样点循环体 */
+	MainPageSamplePointCycle();
 	
 	/* 画坐标系 */
 	MainPageCoordinateDrawLineBodyCycle();

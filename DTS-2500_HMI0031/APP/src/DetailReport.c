@@ -317,7 +317,7 @@ const char * const pDetailReportFieldName[] =
 	"宽度",					//20
 	"厚度",					//21
 	"外径",					//22
-	"强度",					//23
+	"抗拉强度",				//23
 	"上屈服",				//24
 	"下屈服",				//25
 	"总伸长率",				//26
@@ -332,7 +332,7 @@ extern const char * const pSpecimenSharp_KLJSSW[];
 	static DETAIL_REPORT_TypeDef g_detailReport;
 #pragma arm section
 
-static REPORT_TypeDef g_readReport;
+extern REPORT_TypeDef g_readReport;
 
 /* Private function prototypes -----------------------------------------------*/
 static void DetailReportInit( void );
@@ -1783,13 +1783,13 @@ static void ConfigDetailReportOneFieldRectangleFrameCoordinate( uint8_t rowIndex
 			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 133;
 			break;
 		case OBJECT_KL_STRENGTH:
-			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 76;
+			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 101;
 			break;
 		case OBJECT_UP_YIELD_STRENGTH:
-			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 114;
+			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 101;
 			break;
 		case OBJECT_DOWN_YIELD_STRENGTH:
-			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 114;
+			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 101;
 			break;
 		case OBJECT_MAX_FORCE_TOTAL_ELONGATION:
 			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 114;
@@ -2498,6 +2498,7 @@ static void DetailReportKeyProcess( void )
 				DetailReportDeleteReport();
 				break;
 			case KEY_F2:
+			case KEY_ENTER:
 //			case KEY_EXPORT:
 //				TestReportExportReport();
 				if ( g_detailReport.curPageSampleNum )
@@ -2553,11 +2554,7 @@ static void DetailReportKeyProcess( void )
 				g_detailReport.isPageTurning = YES;
 				g_detailReport.leavePage.flagLeavePage = SET;
 				g_detailReport.leavePage.flagSaveData = RESET;
-				break;
-				
-			case KEY_ENTER:
-				break;
-			
+				break;			
 			case KEY_ESC:
 				SetPage(TEST_REPORT_PAGE);
 				g_detailReport.leavePage.flagLeavePage = SET;

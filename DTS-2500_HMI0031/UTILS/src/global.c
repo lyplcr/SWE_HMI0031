@@ -218,7 +218,8 @@ TEST_TypeDef *pTest = NULL;			//试验参数
 	static JUDGE_BREAK_TypeDef g_judgeBreak;	//判破点
 #pragma arm section
 
-COORDINATE_POINT_TypeDef g_coordinatePoint;
+__ALIGN_RAM COORDINATE_POINT_TypeDef g_coordinatePoint;
+__ALIGN_RAM REPORT_TypeDef g_readReport;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -668,6 +669,73 @@ void RefreshDynamicCommunicationStatus( uint16_t x, uint16_t y, uint16_t pointCo
 }
 
 /*------------------------------------------------------------
+ * Function Name  : FefreshFlickerStatus
+ * Description    : 刷新跳动状态
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void FefreshFlickerStatus( uint16_t x, uint16_t y, uint16_t pointColor, \
+				uint16_t backColor, const char * const pChar, uint8_t fontSize)
+{
+	static uint8_t s_loadCount = 0;
+	const uint8_t MAX_SHOW_LOAD_COUNT = 5;
+	static BOUND_TEXT_STATUS_TypeDef s_boundTextStatus = STATUS_BOUND_SHOW;
+	
+	switch ( s_boundTextStatus )
+	{
+		case STATUS_BOUND_SHOW:
+			switch ( fontSize )
+			{
+				case 16:
+					GUI_DispStr16At(x,y,pointColor,backColor,pChar);
+					break;
+				default:
+					GUI_DispStr24At(x,y,pointColor,backColor,pChar);
+					break;
+			}
+			s_boundTextStatus = STATUS_BOUND_SHOW_KEEP;
+			s_loadCount = 0;
+			break;
+		case STATUS_BOUND_SHOW_KEEP:
+			s_loadCount++;
+			if (s_loadCount >= MAX_SHOW_LOAD_COUNT)
+			{
+				s_boundTextStatus = STATUS_BOUND_ERASE;
+			}
+			break;
+		case STATUS_BOUND_ERASE:
+			{
+				char showBuff[20];
+				uint8_t len = strlen(pChar);
+				
+				memset(showBuff,' ',len);
+				showBuff[len] = NULL;
+				
+				switch ( fontSize )
+				{
+					case 16:
+						GUI_DispStr16At(x,y,pointColor,backColor,"    ");
+						break;
+					default:
+						GUI_DispStr24At(x,y,pointColor,backColor,"    ");
+						break;
+				}
+				s_boundTextStatus = STATUS_BOUND_ERASE_KEEP;
+				s_loadCount = 0;				
+			}
+			break;
+		case STATUS_BOUND_ERASE_KEEP:
+			s_loadCount++;
+			if (s_loadCount >= MAX_SHOW_LOAD_COUNT)
+			{
+				s_boundTextStatus = STATUS_BOUND_SHOW;
+			}
+			break;
+	}
+}
+
+/*------------------------------------------------------------
  * Function Name  : RefreshDynamicTestStatus
  * Description    : 刷新试验状态
  * Input          : None
@@ -676,43 +744,13 @@ void RefreshDynamicCommunicationStatus( uint16_t x, uint16_t y, uint16_t pointCo
  *------------------------------------------------------------*/
 void RefreshDynamicTestStatus( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, TEST_STATUS_TypeDef testStatus )
 {
-	static uint8_t s_loadCount = 0;
-	const uint8_t MAX_SHOW_LOAD_COUNT = 5;
-	static BOUND_TEXT_STATUS_TypeDef s_boundTextStatus = STATUS_BOUND_SHOW;
-	
 	switch ( testStatus )
 	{
 		case TEST_IDLE:
 			GUI_DispStr16At(x,y,pointColor,backColor,"空闲");
 			break;
 		case TEST_LOAD:
-			switch ( s_boundTextStatus )
-			{
-				case STATUS_BOUND_SHOW:
-					GUI_DispStr16At(x,y,pointColor,backColor,"加载");
-					s_boundTextStatus = STATUS_BOUND_SHOW_KEEP;
-					s_loadCount = 0;
-					break;
-				case STATUS_BOUND_SHOW_KEEP:
-					s_loadCount++;
-					if (s_loadCount >= MAX_SHOW_LOAD_COUNT)
-					{
-						s_boundTextStatus = STATUS_BOUND_ERASE;
-					}
-					break;
-				case STATUS_BOUND_ERASE:
-					GUI_DispStr16At(x,y,pointColor,backColor,"    ");
-					s_boundTextStatus = STATUS_BOUND_ERASE_KEEP;
-					s_loadCount = 0;
-					break;
-				case STATUS_BOUND_ERASE_KEEP:
-					s_loadCount++;
-					if (s_loadCount >= MAX_SHOW_LOAD_COUNT)
-					{
-						s_boundTextStatus = STATUS_BOUND_SHOW;
-					}
-					break;
-			}
+			FefreshFlickerStatus(x,y,pointColor,backColor,"加载",16);
 			break;				
 		case TEST_KEEP:
 			GUI_DispStr16At(x,y,pointColor,backColor,"保持");
@@ -721,7 +759,7 @@ void RefreshDynamicTestStatus( uint16_t x, uint16_t y, uint16_t pointColor, uint
 			GUI_DispStr16At(x,y,pointColor,backColor,"屈服");
 			break;
 		case TEST_DEFORM:
-			GUI_DispStr16At(x,y,pointColor,backColor,"加载");
+			FefreshFlickerStatus(x,y,pointColor,backColor,"加载",16);
 			break;
 		case TEST_BREAK:
 			GUI_DispStr16At(x,y,pointColor,backColor,"判破");

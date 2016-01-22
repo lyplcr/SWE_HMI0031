@@ -15,8 +15,27 @@
 		
 ====================================================
 固件版本：	V1.0.0.0
-记录时间：	2016-1-21 14:40:27
+记录时间：	2016-1-22 10:58:51
 记录人：		孙宇
 记录内容：
 ----------------------------------------------------		
+1、	问题：主界面从SD卡读取数据乱码。
+	原因：变量g_readReport分配的内存是 0x20007ace，通过fread读取数据后，数据从起始地址 0x20007acc 开始放置,也就是4字节对齐。
+			fread函数传参没有问题，地址未发生变动，可能是DMA传输时自动进行4字节对齐，改变数据存放地址，导致数据乱码。
+	解决：在申请的非4字节对齐的变量前面加上 __align(4), 包括 
+			__align(4) COORDINATE_POINT_TypeDef g_coordinatePoint;
+			__align(4) REPORT_TypeDef g_readReport;
+			static __align(4) uint8_t pcm_ram[PCM_MEM_SIZE] = {0};
+			static __align(4) uint8_t prm_ram[PRM_MEM_SIZE] = {0};	
+			static __align(4) uint8_t prv_ram[PRV_MEM_SIZE] = {0};
+			
+	总结：所有需要保存到SD卡的变量，必须保证4字节对齐。（地址末字节为0、4、8、C）	
+
+2、	问题：主界面做一个试验，时间加载到40秒。结束试验后，立即开始下一次试验，时间没有恢复为默认值20秒
+	原因：坐标系的时间、力值在试验时已被修改，重新试验时未初始化时间、力值
+	解决：将语句： 
+			InitMainPageCoordinateDrawLine();
+			ReloadCoordinate(pDrawLine);
+		  改为：
+			LoadDefaultCoordinate();
 

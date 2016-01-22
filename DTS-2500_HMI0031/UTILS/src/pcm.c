@@ -23,7 +23,7 @@
 
 #define		PCM_DATA_BASE			(4<<10)
 
-static uint8_t pcm_ram[PCM_MEM_SIZE] = {0};				//上位机参数  
+static __ALIGN_RAM uint8_t pcm_ram[PCM_MEM_SIZE] = {0};				//上位机参数  
 
 
 PCM_TypeDef *const pcm_str=(PCM_TypeDef *)(void *)pcm_ram; 

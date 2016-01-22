@@ -30,6 +30,15 @@
 #define 	CLI()     			 	__disable_irq()
 #define 	SEI()      				__enable_irq()
 
+/* 访问SD卡，使用DMA传输，要求4字节对齐 */
+#if defined   (__CC_ARM)      /* ARM Compiler */
+  #define __ALIGN_RAM    __align(4)  
+#elif defined (__ICCARM__)    /* IAR Compiler */
+  #define __ALIGN_RAM 
+#elif defined  (__TASKING__)  /* TASKING Compiler */
+  #define __ALIGN_RAM    __align(4) 
+#endif /* __CC_ARM */ 
+
 /*
 	软件版本规则：
 	（1）主版本号：当功能模块有较大的变动，比如增加模块或是整体架构发生变化。

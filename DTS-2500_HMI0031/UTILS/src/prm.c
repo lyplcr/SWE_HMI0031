@@ -27,8 +27,8 @@
 
 #define		PRV_DATA_BASE			(10<<10)
 
-uint8_t prm_ram[PRM_MEM_SIZE] = {0};	
-uint8_t prv_ram[PRV_MEM_SIZE] = {0};
+static __ALIGN_RAM uint8_t prm_ram[PRM_MEM_SIZE] = {0};	
+static __ALIGN_RAM uint8_t prv_ram[PRV_MEM_SIZE] = {0};
 					
 SYS_PRM_TypeDef *const prm_str=(SYS_PRM_TypeDef *)(void *)prm_ram; 						
 SYS_PRV_TypeDef *const prv_str=(SYS_PRV_TypeDef *)(void *)prv_ram;
