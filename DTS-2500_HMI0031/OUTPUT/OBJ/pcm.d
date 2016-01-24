@@ -43,6 +43,7 @@
 ..\output\obj\pcm.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\pcm.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\pcm.o: ..\UTILS\inc\ustring.h
+..\output\obj\pcm.o: ..\USER\MY_DEBUG.H
 ..\output\obj\pcm.o: ..\UTILS\inc\config.h
 ..\output\obj\pcm.o: ..\FATFS\diskio.h
 ..\output\obj\pcm.o: ..\FATFS\integer.h

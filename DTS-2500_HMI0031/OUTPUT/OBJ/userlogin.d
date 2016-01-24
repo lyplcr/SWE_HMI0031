@@ -1,6 +1,5 @@
 ..\output\obj\userlogin.o: ..\APP\src\UserLogin.c
 ..\output\obj\userlogin.o: ..\UTILS\inc\global.h
-..\output\obj\userlogin.o: ..\USER\MY_DEBUG.H
 ..\output\obj\userlogin.o: ..\BSP\inc\bsp.h
 ..\output\obj\userlogin.o: ..\USER\stm32f4xx.h
 ..\output\obj\userlogin.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\userlogin.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\userlogin.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\userlogin.o: ..\UTILS\inc\ustring.h
+..\output\obj\userlogin.o: ..\USER\MY_DEBUG.H
 ..\output\obj\userlogin.o: ..\UTILS\inc\config.h
 ..\output\obj\userlogin.o: ..\FATFS\diskio.h
 ..\output\obj\userlogin.o: ..\FATFS\integer.h

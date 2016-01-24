@@ -1,6 +1,5 @@
 ..\output\obj\systeminfomation.o: ..\APP\src\SystemInfomation.c
 ..\output\obj\systeminfomation.o: ..\UTILS\inc\global.h
-..\output\obj\systeminfomation.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systeminfomation.o: ..\BSP\inc\bsp.h
 ..\output\obj\systeminfomation.o: ..\USER\stm32f4xx.h
 ..\output\obj\systeminfomation.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\systeminfomation.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\systeminfomation.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\systeminfomation.o: ..\UTILS\inc\ustring.h
+..\output\obj\systeminfomation.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systeminfomation.o: ..\UTILS\inc\config.h
 ..\output\obj\systeminfomation.o: ..\FATFS\diskio.h
 ..\output\obj\systeminfomation.o: ..\FATFS\integer.h

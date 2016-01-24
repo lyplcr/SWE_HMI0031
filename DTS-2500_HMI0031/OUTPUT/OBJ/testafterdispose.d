@@ -1,6 +1,5 @@
 ..\output\obj\testafterdispose.o: ..\APP\src\TestAfterDispose.c
 ..\output\obj\testafterdispose.o: ..\UTILS\inc\global.h
-..\output\obj\testafterdispose.o: ..\USER\MY_DEBUG.H
 ..\output\obj\testafterdispose.o: ..\BSP\inc\bsp.h
 ..\output\obj\testafterdispose.o: ..\USER\stm32f4xx.h
 ..\output\obj\testafterdispose.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\testafterdispose.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\testafterdispose.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\testafterdispose.o: ..\UTILS\inc\ustring.h
+..\output\obj\testafterdispose.o: ..\USER\MY_DEBUG.H
 ..\output\obj\testafterdispose.o: ..\UTILS\inc\config.h
 ..\output\obj\testafterdispose.o: ..\FATFS\diskio.h
 ..\output\obj\testafterdispose.o: ..\FATFS\integer.h

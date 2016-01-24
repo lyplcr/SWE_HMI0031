@@ -13,6 +13,8 @@
 #include "isqrt.h"
 #include "ustring.h"
 
+#include "MY_DEBUG.H"
+
 #include "config.h"
 #include "diskio.h"
 #include "ff.h"

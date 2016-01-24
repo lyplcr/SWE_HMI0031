@@ -1903,33 +1903,6 @@ float GetDrawLineSomeTimePointForce( uint32_t nowTimePoint )
 	{
 		return g_coordinateDrawLine.force[nowTimePoint];
 	}
-}
-
-/*------------------------------------------------------------
- * Function Name  : InitCoordinateDrawLine
- * Description    : 初始化坐标系画线
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-void InitCoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
-{
-	g_coordinateDrawLine.status = pDrawLine->status;
-	g_coordinateDrawLine.start = pDrawLine->start;
-	g_coordinateDrawLine.enableRedraw = pDrawLine->enableRedraw;
-	g_coordinateDrawLine.originX = pDrawLine->originX;
-	g_coordinateDrawLine.originY = pDrawLine->originY;
-	g_coordinateDrawLine.lenthX = pDrawLine->lenthX;
-	g_coordinateDrawLine.lenthY = pDrawLine->lenthY;
-	g_coordinateDrawLine.maxForce = pDrawLine->maxForce;
-	g_coordinateDrawLine.maxTime = pDrawLine->maxTime;
-	g_coordinateDrawLine.nowTimePoint = pDrawLine->nowTimePoint;
-	g_coordinateDrawLine.pDrawCoordinate = pDrawLine->pDrawCoordinate;
-	g_coordinateDrawLine.lineColor = pDrawLine->lineColor;
-	g_coordinateDrawLine.timeScalingCoefficient = pDrawLine->timeScalingCoefficient;
-	g_coordinateDrawLine.forceScalingCoefficient = pDrawLine->forceScalingCoefficient;
-	g_coordinateDrawLine.recordPointFreq = pDrawLine->recordPointFreq;
-	memset(g_coordinateDrawLine.force,0x00,sizeof(float)*DECORD_COORDINATE_FORCE_NUM);
 }	
 
 /*------------------------------------------------------------
@@ -2628,23 +2601,14 @@ void JudgeBreakCalculateCycle( uint8_t chn )
 			g_judgeBreak.attenuationRate[chn] = 0;
 		}
 		
-		#ifdef DEBUG_SAMPLE_KY
-			if (chn == SMPL_KY_NUM)
+		#ifdef DEBUG_SAMPLE_FH
+			if (chn == SMPL_FH_NUM)
 			{
-				printf("下降点：    %d\r\n",g_judgeBreak.downPoint[SMPL_KY_NUM]);
-				printf("最大力差值：%f\r\n",g_judgeBreak.maxForceDiff[SMPL_KY_NUM]);
-				printf("相邻点差值：%f\r\n",g_judgeBreak.adjoinPointDiff[SMPL_KY_NUM]);
+				printf("下降点：    %d\r\n",g_judgeBreak.downPoint[SMPL_FH_NUM]);
+				printf("最大力差值：%f\r\n",g_judgeBreak.maxForceDiff[SMPL_FH_NUM]);
+				printf("相邻点差值：%f\r\n",g_judgeBreak.adjoinPointDiff[SMPL_FH_NUM]);
 			}
 		#endif	
-			
-		#ifdef DEBUG_SAMPLE_KZ	
-			if (chn == SMPL_KZ_NUM)
-			{
-				printf("下降点：    %d\r\n",g_judgeBreak.downPoint[SMPL_KZ_NUM]);
-				printf("最大力差值：%f\r\n",g_judgeBreak.maxForceDiff[SMPL_KZ_NUM]);
-				printf("相邻点差值：%f\r\n",g_judgeBreak.adjoinPointDiff[SMPL_KZ_NUM]);
-			}	
-		#endif
 	}
 }
 

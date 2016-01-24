@@ -4073,9 +4073,8 @@ static TestStatus MainPageCheckSerialRepeat( void )
 			g_mainPage.curPage = 1;
 			ReloadTestResultArea();
 		
-			#ifdef DEBUG_TEST_LOAD
-				printf("自动编号加1！\r\n");
-			#endif
+			ECHO(DEBUG_TEST_LOAD,"自动编号加1！\r\n");
+
 			return PASSED;
 		
 		case SERIAL_NO_CHG:
@@ -4144,9 +4143,7 @@ static FunctionalState MainPageAllowRunTest( void )
 			return DISABLE;
 	}
 	
-	#ifdef DEBUG_TEST_LOAD
-		printf("允许试验！\r\n");
-	#endif
+	ECHO(DEBUG_TEST_LOAD,"允许试验！\r\n");
 	
 	return ENABLE;
 }	
@@ -4168,9 +4165,7 @@ static void KZKY_TestJumpTestResultPage( void )
 		
 		ReloadTestResultArea();
 		
-		#ifdef DEBUG_TEST_LOAD
-			printf("跳转到已做试块页面！\r\n");
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"跳转到已做试块页面！\r\n");
 	}
 	
 	if (IsCurrentSampleReachToPageTail() == YES)
@@ -4179,9 +4174,7 @@ static void KZKY_TestJumpTestResultPage( void )
 		
 		ReloadTestResultArea();
 		
-		#ifdef DEBUG_TEST_LOAD
-			printf("当前页试块已做完！\r\n");
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"当前页试块已做完！\r\n");
 	}
 	else
 	{
@@ -4210,9 +4203,7 @@ static void KL_TestJumpTestResultPage( void )
 		
 		ReloadTestResultArea();
 		
-		#ifdef DEBUG_TEST_LOAD
-			printf("跳转到已做试块页面！\r\n");
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"跳转到已做试块页面！\r\n");
 	}
 }
 
@@ -4258,6 +4249,8 @@ static void MainPageExecuteTestStartBody( void )
 			break;
 	}
 
+	LoadDefaultCoordinate();
+	
 	g_testBody.startTest = SET;
 	g_testBody.endTest = RESET;
 	
@@ -4324,9 +4317,7 @@ static void MainPageJudgeBreakCoreCycle( void )
 		{
 			g_testBody.flagStartJudgeBreak = SET;
 			
-			#ifdef DEBUG_TEST_LOAD
-				printf("到达起判力值！\r\n");
-			#endif
+			ECHO(DEBUG_TEST_LOAD,"到达起判力值！\r\n");
 		}
 	}
 	
@@ -4345,9 +4336,7 @@ static void MainPageJudgeBreakCoreCycle( void )
 			
 			if (nowAttenuationRate > targetAttenuationRate)
 			{
-				#ifdef DEBUG_TEST_LOAD
-					printf("衰减率判破！\r\n");
-				#endif
+				ECHO(DEBUG_TEST_LOAD,"衰减率判破！\r\n");
 				
 				isBreak = YES;
 			}
@@ -4360,9 +4349,7 @@ static void MainPageJudgeBreakCoreCycle( void )
 		
 			if ((nowWithMaxForceDiff>targetWithMaxForceDiff) && (nowDownPoint>targetDownPoint))
 			{
-				#ifdef DEBUG_TEST_LOAD
-					printf("与最大力差值判破！\r\n");
-				#endif
+				ECHO(DEBUG_TEST_LOAD,"与最大力差值判破！\r\n");
 				
 				isBreak = YES;
 			}
@@ -4375,9 +4362,7 @@ static void MainPageJudgeBreakCoreCycle( void )
 		
 			if ((nowAdjoinTwoPointDiff>targetAdjoinTwoPointDiff) && (nowDownPoint>targetDownPoint))
 			{
-				#ifdef DEBUG_TEST_LOAD
-					printf("相邻两点差值判破！\r\n");
-				#endif
+				ECHO(DEBUG_TEST_LOAD,"相邻两点差值判破！\r\n");
 				
 				isBreak = YES;
 			}
@@ -4422,9 +4407,8 @@ static float AccordDispalcementGetDeformIncrement( float dispalcement )
 	
 	if (fabs(originalGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
-		#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-			printf("除零错误！\r\n");
-		#endif
+		ECHO(DEBUG_EXCEPTION_DIVISION_ZERO,"除零错误！\r\n");
+
 		originalGauge = 1;
 	}
 	
@@ -4458,9 +4442,7 @@ static float MainPageGetDeform( void )
 		deform = get_smpl_value(SMPL_BX_NUM);
 	}
 	
-	#ifdef DEBUG_DEFORM_SHOW
-		printf("deform： %f \r\n",deform);
-	#endif
+	ECHO(DEBUG_DEFORM_SHOW,"deform： %f \r\n",deform);
 	
 	return deform;
 }
@@ -4511,10 +4493,8 @@ static void KL_TestLoadCoreCycle( void )
 		
 		SetTestStatus(TEST_DEFORM);
 		
-		#ifdef DEBUG_TEST_LOAD
-			printf("到达上屈服点！\r\n");
-			printf("上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"到达上屈服点！\r\n");
+		ECHO(DEBUG_TEST_LOAD,"上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
 	}
 }
 #if 0
@@ -4543,10 +4523,8 @@ static void KL_TestLoadCoreCycle( void )
 			
 			SetTestStatus(TEST_DEFORM);
 			
-			#ifdef DEBUG_TEST_LOAD
-				printf("离开屈服段！\r\n");
-				printf("下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);
-			#endif
+			ECHO(DEBUG_TEST_LOAD,"离开屈服段！\r\n");
+			ECHO(DEBUG_TEST_LOAD,"下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);		
 		}
 		
 		if (force < startLoadForce)
@@ -4555,9 +4533,7 @@ static void KL_TestLoadCoreCycle( void )
 			
 			SetTestStatus(TEST_IDLE);
 			
-			#ifdef DEBUG_TEST_LOAD
-				printf("试验停止！\r\n");
-			#endif
+			ECHO(DEBUG_TEST_LOAD,"试验停止！\r\n");
 		}
 	}
 #endif
@@ -4591,10 +4567,8 @@ static void KL_TestDeformCoreCycle( void )
 		
 		SetTestStatus(TEST_SAVE);
 		
-		#ifdef DEBUG_TEST_LOAD
-			printf("试验后处理！\r\n");
-			printf("最大力：%f, 抗拉强度：%f\r\n",g_klTestBody.maxForce,g_klTestBody.maxStrength);
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"试验后处理！\r\n");
+		ECHO(DEBUG_TEST_LOAD,"最大力：%f, 抗拉强度：%f\r\n",g_klTestBody.maxForce,g_klTestBody.maxStrength);
 	}
 }
 
@@ -5032,9 +5006,7 @@ static void MainPageGetAvailForce( void )
 	
 	g_readReport.force_valid[0] = availForce;
 	
-	#ifdef DEBUG_TEST_LOAD
-		printf("获取有效力值！\r\n");
-	#endif
+	ECHO(DEBUG_TEST_LOAD,"获取有效力值！\r\n");
 }	
 
 /*------------------------------------------------------------
@@ -5062,10 +5034,8 @@ static void MainPageGetAvailStrength( void )
 	{
 		g_readReport.result_valid = 0;
 	}
-	
-	#ifdef DEBUG_TEST_LOAD
-		printf("获取有效强度！\r\n");
-	#endif
+
+	ECHO(DEBUG_TEST_LOAD,"获取有效强度！\r\n");
 }
 
 /*------------------------------------------------------------
@@ -5087,9 +5057,7 @@ static void MainPageAskSampleFractureSurfaceProcess( void )
 		return;
 	}
 	
-	#ifdef DEBUG_TEST_LOAD
-		printf("询问折断面信息！\r\n");
-	#endif
+	ECHO(DEBUG_TEST_LOAD,"询问折断面信息！\r\n");
 	
 	SetSelectPopWindowsInfomation(POP_PCM_ASKING,1,&pMainPageWarning[9],pSelectMenuConfirmCue);
 	
@@ -5131,9 +5099,7 @@ static void MainPageAutoPrintReportProcess( void )
 	{
 		MainPagePrintReport();
 		
-		#ifdef DEBUG_TEST_LOAD
-			printf("自动打印报告！\r\n");
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"自动打印报告！\r\n");
 	}
 }	
 
@@ -5150,9 +5116,7 @@ static void MainPageExecuteCancelLastPiece( void )
 	{
 		g_testBody.flagCancelLastPiece = RESET;
 		
-		#ifdef DEBUG_TEST_LOAD
-			printf("撤销上一块！\r\n");
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"撤销上一块！\r\n");
 		
 		switch ( g_mainPage.testAttribute )
 		{
@@ -5265,9 +5229,7 @@ static void MainPageExecuteHandEndGroup( void )
 		
 		g_testBody.isExecuteEndGroup = YES;
 		
-		#ifdef DEBUG_TEST_LOAD
-			printf("执行手动结束一组！\r\n");
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"执行手动结束一组！\r\n");
 	}
 }
 
@@ -5298,9 +5260,8 @@ static float GetMaxForceSumElongation( void )
 	
 	if (fabs(parallelLenth) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
-		#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-			printf("除零错误！\r\n");
-		#endif
+		ECHO(DEBUG_EXCEPTION_DIVISION_ZERO,"除零错误！\r\n");
+
 		parallelLenth = 1;
 	}
 	
@@ -5355,18 +5316,18 @@ void PrintfUpYieldToMaxForceData( void )
 	{
 		uint32_t i;
 			
-		printf("------------\r\n");
+		ECHO(DEBUG_TEST_LOAD,"------------\r\n");
 		
 		if (g_klTestBody.upYieldForceIndex > g_klTestBody.maxForceIndex)
 		{
-			printf("上屈服点就是最大力！\r\n");
+			ECHO(DEBUG_TEST_LOAD,"上屈服点就是最大力！\r\n");
 			
 			return;
 		}
 		
 		for (i=g_klTestBody.upYieldForceIndex; i<=g_klTestBody.maxForceIndex; ++i)
 		{
-			printf("%f\r\n",GetDrawLineSomeTimePointForce(i));
+			ECHO(DEBUG_TEST_LOAD,"%f\r\n",GetDrawLineSomeTimePointForce(i));
 			bsp_DelayMS(100);
 		}
 	}
@@ -5377,12 +5338,12 @@ void PrintfUpYieldToMaxForceData( void )
 		uint32_t diff = g_klTestBody.maxForceIndex - g_klTestBody.upYieldForceIndex + 1;
 		uint32_t i;
 		
-		printf("------------\r\n");
+		ECHO(DEBUG_TEST_LOAD,"------------\r\n");
 		
 		SortBubble((void *)&(pDrawLine->force[g_klTestBody.upYieldForceIndex]),diff,&tempf,compFloatData);
 		for (i=g_klTestBody.upYieldForceIndex; i<=g_klTestBody.maxForceIndex; ++i)
 		{
-			printf("%f\r\n",GetDrawLineSomeTimePointForce(i));
+			ECHO(DEBUG_TEST_LOAD,"%f\r\n",GetDrawLineSomeTimePointForce(i));
 			bsp_DelayMS(100);
 		}
 	}
@@ -5428,9 +5389,7 @@ static void MainPageSaveCoordinateCurveToSD( void )
 		{
 			SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[19]);
 			
-			#ifdef DEBUG_TEST_LOAD
-				printf("保存曲线失败！\r\n");
-			#endif
+			ECHO(DEBUG_TEST_LOAD,"保存曲线失败！\r\n");
 		}
 	}
 }	
@@ -5448,13 +5407,9 @@ static void MainPageExecuteEndOnePieceProcess( void )
 	{
 		g_testBody.flagOnePieceSampleComplete = RESET;
 		
-		#ifdef DEBUG_TEST_LOAD
-			printf("一块试块结束！\r\n");
-		#endif
-		
-		#ifdef DEBUG_TEST_LOAD
-			printf("保存曲线...\r\n");
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"一块试块结束！\r\n");	
+		ECHO(DEBUG_TEST_LOAD,"保存曲线...\r\n");
+
 //		SetTime(0);
 		MainPageSaveCoordinateCurveToSD();
 //		GetTime(0);
@@ -5500,10 +5455,8 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					g_readReport.maxForceSumExtend[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForceSumExtend;
 					g_readReport.maxForceSumElongation[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForceSumElongation;
 					
-					#ifdef DEBUG_TEST_LOAD
-						printf("下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);
-						printf("最大力总延伸：%f, 最大力总伸长率：%f\r\n",g_klTestBody.maxForceSumExtend,g_klTestBody.maxForceSumElongation);
-					#endif
+					ECHO(DEBUG_TEST_LOAD,"下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);
+					ECHO(DEBUG_TEST_LOAD,"最大力总延伸：%f, 最大力总伸长率：%f\r\n",g_klTestBody.maxForceSumExtend,g_klTestBody.maxForceSumElongation);
 				}
 				
 				if (g_mainPage.curPage)
@@ -5541,9 +5494,7 @@ static void MainPageExecuteEndOneGroupProcess( void )
 {
 	if ((g_testBody.isExecuteEndGroup==YES) && (g_testBody.flagOneGroupSampleComplete==SET))
 	{			
-		#ifdef DEBUG_TEST_LOAD
-			printf("一组试样结束！\r\n");
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"一组试样结束！\r\n");
 		
 		g_readReport.test_is_complete = 1;
 		
@@ -5584,9 +5535,7 @@ static void MainPageExecuteWriteSDProcess( void )
 {
 	if (g_testBody.isWriteToSD == YES)
 	{
-		#ifdef DEBUG_TEST_LOAD
-			printf("保存报告到SD卡！\r\n");
-		#endif
+		ECHO(DEBUG_TEST_LOAD,"保存报告到SD卡！\r\n");
 		
 		if (FR_OK == report_save(MMC,g_mainPage.testType,pTest->test_serial,&g_readReport) )
 		{
@@ -5660,9 +5609,7 @@ static void MainPageTestExecuteCoreCycle( void )
 				{
 					MainPageExecuteTestStartBody();
 					
-					#ifdef DEBUG_TEST_LOAD
-						printf("试验加载！\r\n");
-					#endif
+					ECHO(DEBUG_TEST_LOAD,"试验加载！\r\n");
 				}
 				else
 				{
@@ -5678,9 +5625,7 @@ static void MainPageTestExecuteCoreCycle( void )
 				
 				SetTestStatus(TEST_IDLE);
 				
-				#ifdef DEBUG_TEST_LOAD
-					printf("试验停止！\r\n");
-				#endif
+				ECHO(DEBUG_TEST_LOAD,"试验停止！\r\n");
 			}
 			
 			switch ( g_mainPage.testAttribute )
@@ -5707,9 +5652,7 @@ static void MainPageTestExecuteCoreCycle( void )
 		
 			SetTestStatus(TEST_UNLOAD);
 		
-			#ifdef DEBUG_TEST_LOAD
-				printf("判破提示！\r\n");
-			#endif
+			ECHO(DEBUG_TEST_LOAD,"判破提示！\r\n");
 			break;
 		case TEST_UNLOAD:
 			if (force < startLoadForce)
@@ -5720,9 +5663,7 @@ static void MainPageTestExecuteCoreCycle( void )
 				
 				SetTestStatus(TEST_SAVE);
 				
-				#ifdef DEBUG_TEST_LOAD
-					printf("试验后处理！\r\n");
-				#endif
+				ECHO(DEBUG_TEST_LOAD,"试验后处理！\r\n");
 			}
 			break;
 		case TEST_SAVE:
@@ -5732,9 +5673,7 @@ static void MainPageTestExecuteCoreCycle( void )
 
 			g_mainPage.refreshShortcut = ENABLE;
 
-			#ifdef DEBUG_TEST_LOAD
-				printf("试验结束！\r\n");
-			#endif
+			ECHO(DEBUG_TEST_LOAD,"试验结束！\r\n");
 			break;
 		
 		default:
@@ -5791,6 +5730,7 @@ static void InitMainPageCoordinateDrawLine( void )
 	
 	maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
 	
+	pDrawLine->baseIndex = 0;
 	pDrawLine->status = STATUS_DRAW_LINE_IDLE;
 	pDrawLine->start = RESET;
 	pDrawLine->enableRedraw = DISABLE;
@@ -5813,8 +5753,8 @@ static void InitMainPageCoordinateDrawLine( void )
 	}
 	pDrawLine->recordPointFreq = RECORD_COORDINATE_FREQ;
 	pDrawLine->pDrawCoordinate = GUI_MainPageDrawCoordinate;
-				
-	InitCoordinateDrawLine(pDrawLine);
+		
+	memset(pDrawLine->force,0x00,sizeof(float)*DECORD_COORDINATE_FORCE_NUM);	
 }
 
 /*------------------------------------------------------------
@@ -5826,20 +5766,17 @@ static void InitMainPageCoordinateDrawLine( void )
  *------------------------------------------------------------*/
 static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
-	float force = 0;
-	float curveShowStartForce = 0; 
-	
-	force = get_smpl_value(SMPL_FH_NUM);
-	
-	curveShowStartForce = GetCurveShowStartValue(SMPL_FH_NUM);
+//	float force = 0;
+//	float curveShowStartForce = 0; 
+//	
+//	curveShowStartForce = GetCurveShowStartValue(SMPL_FH_NUM);
+//	force = get_smpl_value(SMPL_FH_NUM);
 	
 	switch ( pDrawLine->status )
 	{
 		case STATUS_DRAW_LINE_IDLE:
-			if ((GetTestStatus()==TEST_LOAD) && (force>curveShowStartForce))
-			{
-				LoadDefaultCoordinate();
-			
+			if (GetTestStatus() == TEST_LOAD)
+			{			
 				pDrawLine->start = SET;
 				pDrawLine->status = STATUS_DRAW_LINE_LOAD;					
 			}
@@ -5907,7 +5844,6 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 {
 	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 	float force = 0;
-	static uint8_t s_ctrlCoordinateDrawLineCount = 0;
 
 	/* 画线判断条件 */
 	MainPageCoordinateDrawLineJudgeCondition(pDrawLine);
@@ -5918,12 +5854,12 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 	}
 	
 	/* 画线周期 */
-	s_ctrlCoordinateDrawLineCount++;
-	if (s_ctrlCoordinateDrawLineCount < (uint16_t)(CTRL_FREQ/RECORD_COORDINATE_FREQ))
+	pDrawLine->baseIndex++;
+	if (pDrawLine->baseIndex < (uint16_t)(CTRL_FREQ/RECORD_COORDINATE_FREQ))
 	{
 		return;
 	}	
-	s_ctrlCoordinateDrawLineCount = 0;
+	pDrawLine->baseIndex = 0;
 //	GetTime(0);
 //	SetTime(0);
 	/* 记录力值信息 */
@@ -5939,10 +5875,8 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 	
 	pDrawLine->force[pDrawLine->nowTimePoint] = force;
 	
-	#ifdef DEBUG_COORDINATE_DRAW_LINE
-		printf("time ：%d\r\n",pDrawLine->nowTimePoint);
-		printf("force：%f\r\n",force);
-	#endif
+	ECHO(DEBUG_COORDINATE_DRAW_LINE,"time ：%d\r\n",pDrawLine->nowTimePoint);
+	ECHO(DEBUG_COORDINATE_DRAW_LINE,"force：%f\r\n",force);
 	
 	/* 重新画线判断条件 */
 	MainPageCoordinateDrawLineRedrawJudgeCondition(pDrawLine);

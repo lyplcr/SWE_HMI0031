@@ -1,6 +1,5 @@
 ..\output\obj\controlparameter.o: ..\APP\src\ControlParameter.c
 ..\output\obj\controlparameter.o: ..\UTILS\inc\global.h
-..\output\obj\controlparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\controlparameter.o: ..\BSP\inc\bsp.h
 ..\output\obj\controlparameter.o: ..\USER\stm32f4xx.h
 ..\output\obj\controlparameter.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\controlparameter.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\controlparameter.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\controlparameter.o: ..\UTILS\inc\ustring.h
+..\output\obj\controlparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\controlparameter.o: ..\UTILS\inc\config.h
 ..\output\obj\controlparameter.o: ..\FATFS\diskio.h
 ..\output\obj\controlparameter.o: ..\FATFS\integer.h

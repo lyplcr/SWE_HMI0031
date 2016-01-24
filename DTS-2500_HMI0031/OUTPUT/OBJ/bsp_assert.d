@@ -1,6 +1,5 @@
 ..\output\obj\bsp_assert.o: ..\BSP\src\bsp_assert.c
 ..\output\obj\bsp_assert.o: ..\UTILS\inc\global.h
-..\output\obj\bsp_assert.o: ..\USER\MY_DEBUG.H
 ..\output\obj\bsp_assert.o: ..\BSP\inc\bsp.h
 ..\output\obj\bsp_assert.o: ..\USER\stm32f4xx.h
 ..\output\obj\bsp_assert.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\bsp_assert.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\bsp_assert.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\bsp_assert.o: ..\UTILS\inc\ustring.h
+..\output\obj\bsp_assert.o: ..\USER\MY_DEBUG.H
 ..\output\obj\bsp_assert.o: ..\UTILS\inc\config.h
 ..\output\obj\bsp_assert.o: ..\FATFS\diskio.h
 ..\output\obj\bsp_assert.o: ..\FATFS\integer.h

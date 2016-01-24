@@ -1,6 +1,5 @@
 ..\output\obj\systembackup.o: ..\APP\src\SystemBackup.c
 ..\output\obj\systembackup.o: ..\UTILS\inc\global.h
-..\output\obj\systembackup.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systembackup.o: ..\BSP\inc\bsp.h
 ..\output\obj\systembackup.o: ..\USER\stm32f4xx.h
 ..\output\obj\systembackup.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\systembackup.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\systembackup.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\systembackup.o: ..\UTILS\inc\ustring.h
+..\output\obj\systembackup.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systembackup.o: ..\UTILS\inc\config.h
 ..\output\obj\systembackup.o: ..\FATFS\diskio.h
 ..\output\obj\systembackup.o: ..\FATFS\integer.h

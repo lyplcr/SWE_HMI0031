@@ -43,6 +43,7 @@
 ..\output\obj\usb_bsp.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\usb_bsp.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\usb_bsp.o: ..\UTILS\inc\ustring.h
+..\output\obj\usb_bsp.o: ..\USER\MY_DEBUG.H
 ..\output\obj\usb_bsp.o: ..\UTILS\inc\config.h
 ..\output\obj\usb_bsp.o: ..\FATFS\diskio.h
 ..\output\obj\usb_bsp.o: ..\FATFS\integer.h

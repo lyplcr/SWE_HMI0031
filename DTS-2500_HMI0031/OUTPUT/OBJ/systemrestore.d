@@ -1,6 +1,5 @@
 ..\output\obj\systemrestore.o: ..\APP\src\SystemRestore.c
 ..\output\obj\systemrestore.o: ..\UTILS\inc\global.h
-..\output\obj\systemrestore.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systemrestore.o: ..\BSP\inc\bsp.h
 ..\output\obj\systemrestore.o: ..\USER\stm32f4xx.h
 ..\output\obj\systemrestore.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\systemrestore.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\systemrestore.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\systemrestore.o: ..\UTILS\inc\ustring.h
+..\output\obj\systemrestore.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systemrestore.o: ..\UTILS\inc\config.h
 ..\output\obj\systemrestore.o: ..\FATFS\diskio.h
 ..\output\obj\systemrestore.o: ..\FATFS\integer.h

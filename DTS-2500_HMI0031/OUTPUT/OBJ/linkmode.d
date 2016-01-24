@@ -1,6 +1,5 @@
 ..\output\obj\linkmode.o: ..\APP\src\LinkMode.c
 ..\output\obj\linkmode.o: ..\UTILS\inc\global.h
-..\output\obj\linkmode.o: ..\USER\MY_DEBUG.H
 ..\output\obj\linkmode.o: ..\BSP\inc\bsp.h
 ..\output\obj\linkmode.o: ..\USER\stm32f4xx.h
 ..\output\obj\linkmode.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\linkmode.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\linkmode.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\linkmode.o: ..\UTILS\inc\ustring.h
+..\output\obj\linkmode.o: ..\USER\MY_DEBUG.H
 ..\output\obj\linkmode.o: ..\UTILS\inc\config.h
 ..\output\obj\linkmode.o: ..\FATFS\diskio.h
 ..\output\obj\linkmode.o: ..\FATFS\integer.h

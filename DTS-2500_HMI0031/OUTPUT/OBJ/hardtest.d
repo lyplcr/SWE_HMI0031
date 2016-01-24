@@ -1,6 +1,5 @@
 ..\output\obj\hardtest.o: ..\APP\src\HardTest.c
 ..\output\obj\hardtest.o: ..\UTILS\inc\global.h
-..\output\obj\hardtest.o: ..\USER\MY_DEBUG.H
 ..\output\obj\hardtest.o: ..\BSP\inc\bsp.h
 ..\output\obj\hardtest.o: ..\USER\stm32f4xx.h
 ..\output\obj\hardtest.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\hardtest.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\hardtest.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\hardtest.o: ..\UTILS\inc\ustring.h
+..\output\obj\hardtest.o: ..\USER\MY_DEBUG.H
 ..\output\obj\hardtest.o: ..\UTILS\inc\config.h
 ..\output\obj\hardtest.o: ..\FATFS\diskio.h
 ..\output\obj\hardtest.o: ..\FATFS\integer.h

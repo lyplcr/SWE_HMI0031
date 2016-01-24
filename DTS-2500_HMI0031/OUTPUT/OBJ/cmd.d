@@ -1,6 +1,5 @@
 ..\output\obj\cmd.o: ..\UTILS\src\cmd.c
 ..\output\obj\cmd.o: ..\UTILS\inc\global.h
-..\output\obj\cmd.o: ..\USER\MY_DEBUG.H
 ..\output\obj\cmd.o: ..\BSP\inc\bsp.h
 ..\output\obj\cmd.o: ..\USER\stm32f4xx.h
 ..\output\obj\cmd.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\cmd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\cmd.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\cmd.o: ..\UTILS\inc\ustring.h
+..\output\obj\cmd.o: ..\USER\MY_DEBUG.H
 ..\output\obj\cmd.o: ..\UTILS\inc\config.h
 ..\output\obj\cmd.o: ..\FATFS\diskio.h
 ..\output\obj\cmd.o: ..\FATFS\integer.h

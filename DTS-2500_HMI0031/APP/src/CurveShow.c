@@ -246,6 +246,7 @@ static void InitCurveShowCoordinateDrawLine( void )
 	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
+	pDrawLine->baseIndex = 0;
 	pDrawLine->status = STATUS_DRAW_LINE_IDLE;
 	pDrawLine->start = RESET;
 	pDrawLine->enableRedraw = DISABLE;
@@ -260,9 +261,8 @@ static void InitCurveShowCoordinateDrawLine( void )
 	pDrawLine->timeScalingCoefficient = pCurve->xScalingCoefficient;
 	pDrawLine->forceScalingCoefficient = pCurve->yScalingCoefficient;
 	pDrawLine->recordPointFreq = pCurve->recordPointFreq;
-	pDrawLine->pDrawCoordinate = NULL;
-				
-	InitCoordinateDrawLine(pDrawLine);
+	pDrawLine->pDrawCoordinate = NULL;	
+	memset(pDrawLine->force,0x00,sizeof(float)*pCurve->maxPointNum);
 	
 	{
 		uint32_t i;

@@ -1,6 +1,5 @@
 ..\output\obj\mainpage.o: ..\APP\src\MainPage.c
 ..\output\obj\mainpage.o: ..\UTILS\inc\global.h
-..\output\obj\mainpage.o: ..\USER\MY_DEBUG.H
 ..\output\obj\mainpage.o: ..\BSP\inc\bsp.h
 ..\output\obj\mainpage.o: ..\USER\stm32f4xx.h
 ..\output\obj\mainpage.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\mainpage.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\mainpage.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\mainpage.o: ..\UTILS\inc\ustring.h
+..\output\obj\mainpage.o: ..\USER\MY_DEBUG.H
 ..\output\obj\mainpage.o: ..\UTILS\inc\config.h
 ..\output\obj\mainpage.o: ..\FATFS\diskio.h
 ..\output\obj\mainpage.o: ..\FATFS\integer.h

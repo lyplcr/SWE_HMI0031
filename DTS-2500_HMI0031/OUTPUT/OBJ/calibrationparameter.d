@@ -1,6 +1,5 @@
 ..\output\obj\calibrationparameter.o: ..\APP\src\CalibrationParameter.c
 ..\output\obj\calibrationparameter.o: ..\UTILS\inc\global.h
-..\output\obj\calibrationparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\calibrationparameter.o: ..\BSP\inc\bsp.h
 ..\output\obj\calibrationparameter.o: ..\USER\stm32f4xx.h
 ..\output\obj\calibrationparameter.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\calibrationparameter.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\calibrationparameter.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\calibrationparameter.o: ..\UTILS\inc\ustring.h
+..\output\obj\calibrationparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\calibrationparameter.o: ..\UTILS\inc\config.h
 ..\output\obj\calibrationparameter.o: ..\FATFS\diskio.h
 ..\output\obj\calibrationparameter.o: ..\FATFS\integer.h

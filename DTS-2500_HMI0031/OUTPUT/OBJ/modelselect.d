@@ -1,6 +1,5 @@
 ..\output\obj\modelselect.o: ..\APP\src\ModelSelect.c
 ..\output\obj\modelselect.o: ..\UTILS\inc\global.h
-..\output\obj\modelselect.o: ..\USER\MY_DEBUG.H
 ..\output\obj\modelselect.o: ..\BSP\inc\bsp.h
 ..\output\obj\modelselect.o: ..\USER\stm32f4xx.h
 ..\output\obj\modelselect.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\modelselect.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\modelselect.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\modelselect.o: ..\UTILS\inc\ustring.h
+..\output\obj\modelselect.o: ..\USER\MY_DEBUG.H
 ..\output\obj\modelselect.o: ..\UTILS\inc\config.h
 ..\output\obj\modelselect.o: ..\FATFS\diskio.h
 ..\output\obj\modelselect.o: ..\FATFS\integer.h

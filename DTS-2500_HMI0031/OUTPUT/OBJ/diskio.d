@@ -43,6 +43,7 @@
 ..\output\obj\diskio.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\diskio.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\diskio.o: ..\UTILS\inc\ustring.h
+..\output\obj\diskio.o: ..\USER\MY_DEBUG.H
 ..\output\obj\diskio.o: ..\UTILS\inc\config.h
 ..\output\obj\diskio.o: ..\FATFS\diskio.h
 ..\output\obj\diskio.o: ..\FATFS\integer.h

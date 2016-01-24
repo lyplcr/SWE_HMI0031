@@ -1,6 +1,5 @@
 ..\output\obj\curveshow.o: ..\APP\src\CurveShow.c
 ..\output\obj\curveshow.o: ..\UTILS\inc\global.h
-..\output\obj\curveshow.o: ..\USER\MY_DEBUG.H
 ..\output\obj\curveshow.o: ..\BSP\inc\bsp.h
 ..\output\obj\curveshow.o: ..\USER\stm32f4xx.h
 ..\output\obj\curveshow.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\curveshow.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\curveshow.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\curveshow.o: ..\UTILS\inc\ustring.h
+..\output\obj\curveshow.o: ..\USER\MY_DEBUG.H
 ..\output\obj\curveshow.o: ..\UTILS\inc\config.h
 ..\output\obj\curveshow.o: ..\FATFS\diskio.h
 ..\output\obj\curveshow.o: ..\FATFS\integer.h

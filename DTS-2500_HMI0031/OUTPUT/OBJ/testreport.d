@@ -1,6 +1,5 @@
 ..\output\obj\testreport.o: ..\APP\src\TestReport.c
 ..\output\obj\testreport.o: ..\UTILS\inc\global.h
-..\output\obj\testreport.o: ..\USER\MY_DEBUG.H
 ..\output\obj\testreport.o: ..\BSP\inc\bsp.h
 ..\output\obj\testreport.o: ..\USER\stm32f4xx.h
 ..\output\obj\testreport.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\testreport.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\testreport.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\testreport.o: ..\UTILS\inc\ustring.h
+..\output\obj\testreport.o: ..\USER\MY_DEBUG.H
 ..\output\obj\testreport.o: ..\UTILS\inc\config.h
 ..\output\obj\testreport.o: ..\FATFS\diskio.h
 ..\output\obj\testreport.o: ..\FATFS\integer.h

@@ -43,6 +43,7 @@
 ..\output\obj\usbh_usr.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\usbh_usr.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\usbh_usr.o: ..\UTILS\inc\ustring.h
+..\output\obj\usbh_usr.o: ..\USER\MY_DEBUG.H
 ..\output\obj\usbh_usr.o: ..\UTILS\inc\config.h
 ..\output\obj\usbh_usr.o: ..\FATFS\diskio.h
 ..\output\obj\usbh_usr.o: ..\FATFS\integer.h

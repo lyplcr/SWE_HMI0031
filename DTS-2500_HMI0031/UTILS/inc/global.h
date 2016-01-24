@@ -3,7 +3,6 @@
 #define __GLOBAL_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "MY_DEBUG.H"
 #include "bsp.h"
 #include "cmd.h"
 #include "typewrite.h"
@@ -177,6 +176,7 @@ typedef enum
 
 typedef struct
 {
+	uint8_t baseIndex;				//基准索引值
 	STATUS_COORDINATE_DRAW_LINE_TypeDef status;
 	FlagStatus start;
 	FunctionalState enableRedraw;	//使能重绘
@@ -358,7 +358,6 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 void CheckOfflineCycle( void );
 TestStatus CheckSystemWarning( SMPL_NAME_TypeDef2 tureChannel );
 
-void InitCoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 void CoordinateDrawLineBodyCycle( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 COORDINATE_DRAW_LINE_TypeDef *GetDrawLineAddr( void );
 uint32_t GetDrawLineNowTimePoint( void );

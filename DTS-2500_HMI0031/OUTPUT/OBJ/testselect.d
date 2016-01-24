@@ -1,6 +1,5 @@
 ..\output\obj\testselect.o: ..\APP\src\TestSelect.c
 ..\output\obj\testselect.o: ..\UTILS\inc\global.h
-..\output\obj\testselect.o: ..\USER\MY_DEBUG.H
 ..\output\obj\testselect.o: ..\BSP\inc\bsp.h
 ..\output\obj\testselect.o: ..\USER\stm32f4xx.h
 ..\output\obj\testselect.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\testselect.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\testselect.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\testselect.o: ..\UTILS\inc\ustring.h
+..\output\obj\testselect.o: ..\USER\MY_DEBUG.H
 ..\output\obj\testselect.o: ..\UTILS\inc\config.h
 ..\output\obj\testselect.o: ..\FATFS\diskio.h
 ..\output\obj\testselect.o: ..\FATFS\integer.h

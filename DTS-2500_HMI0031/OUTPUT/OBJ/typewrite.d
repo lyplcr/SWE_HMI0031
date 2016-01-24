@@ -1,6 +1,5 @@
 ..\output\obj\typewrite.o: ..\UTILS\src\typewrite.c
 ..\output\obj\typewrite.o: ..\UTILS\inc\global.h
-..\output\obj\typewrite.o: ..\USER\MY_DEBUG.H
 ..\output\obj\typewrite.o: ..\BSP\inc\bsp.h
 ..\output\obj\typewrite.o: ..\USER\stm32f4xx.h
 ..\output\obj\typewrite.o: ..\USER\core_cm4.h
@@ -45,6 +44,7 @@
 ..\output\obj\typewrite.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\typewrite.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\typewrite.o: ..\UTILS\inc\ustring.h
+..\output\obj\typewrite.o: ..\USER\MY_DEBUG.H
 ..\output\obj\typewrite.o: ..\UTILS\inc\config.h
 ..\output\obj\typewrite.o: ..\FATFS\diskio.h
 ..\output\obj\typewrite.o: ..\FATFS\integer.h
