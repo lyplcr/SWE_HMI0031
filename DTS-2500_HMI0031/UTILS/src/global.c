@@ -1575,26 +1575,25 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 	{
 		case KYSNJS:
 			area = GetSampleSpecificationArea(report->sample_spec,temp);
+		
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
-			{
-				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-					printf("除零错误！\r\n");
-				#endif
+			{												
 				area = 1;
 			}
 			MPa = CurForce / area;
+
+			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			break;
 			 
 		case KYJZSJ:
 			area = GetSampleSpecificationArea(report->sample_spec,temp);
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
-			{
-				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-					printf("除零错误！\r\n");
-				#endif
+			{											
 				area = 1;
 			}
 			MPa = report->correct_cof * CurForce / area;
+			
+			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			break;
 
 		case KYHNT:		//混凝土抗折/抗压需要手动设置修正系数，根据修正系数计算最终的强度值
@@ -1606,14 +1605,13 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			}
 			
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
-			{
-				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-					printf("除零错误！\r\n");
-				#endif
+			{											
 				area = 1;
 			}
 			
 			MPa = report->correct_cof * CurForce / area;
+			
+			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			break;
 
 		case KZHNT:
@@ -1622,28 +1620,28 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			width = temp[1];
 			span = high * 3;
 			if ((fabs(high) < MIN_FLOAT_PRECISION_DIFF_VALUE) || (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE))
-			{
-				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-					printf("除零错误！\r\n");
-				#endif
+			{												
 				high = 1;
 				width = 1;
 			}
 			MPa = (report->correct_cof * CurForce * span) / (width * high * high);
+			
+			ECHO_ASSERT(fabs(high)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件高度除零错误！\r\n");
+			ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
 			break;
 
 		case KYQQZ:			
 			lenth = report->length;
 			width = report->width;
 			if ((fabs(lenth) < MIN_FLOAT_PRECISION_DIFF_VALUE) || (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE))
-			{
-				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-					printf("除零错误！\r\n");
-				#endif
+			{							
 				lenth = 1;
 				width = 1;
 			}
 			MPa = CurForce / (lenth * width);
+			
+			ECHO_ASSERT(fabs(lenth)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件长度除零错误！\r\n");
+			ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
 			break;
 		
 		case KYZJDH:
@@ -1663,13 +1661,12 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			}
 			
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
-			{
-				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-					printf("除零错误！\r\n");
-				#endif
+			{									
 				area = 1;
 			}
 			MPa = report->correct_cof * CurForce / area;
+			
+			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			break;
 		}
 
@@ -1677,26 +1674,24 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			width = report->length;
 			span = report->sample_span;
 			if (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE)
-			{
-				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-					printf("除零错误！\r\n");
-				#endif
+			{												
 				width = 1;
 			}
 			MPa = 1.5f * CurForce * span / (width * width * width);
+			
+			ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
 			break;
 
 		case KZYJSNJ:
 			width = report->length;
 			span = report->sample_span;
 			if (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE)
-			{
-				#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-					printf("除零错误！\r\n");
-				#endif
+			{							
 				width = 1;
 			}
 			MPa = 1.5f * CurForce * span / (width * width * width);
+			
+			ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
 			break;
  
 		case KZTY:
@@ -1723,13 +1718,12 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 				}
 				
 				if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
-				{
-					#ifdef DEBUG_EXCEPTION_DIVISION_ZERO
-						printf("除零错误！\r\n");
-					#endif
+				{													
 					area = 1;
 				}
 				MPa = CurForce / area;
+				
+				ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			}
 			break;
 		
@@ -2601,14 +2595,12 @@ void JudgeBreakCalculateCycle( uint8_t chn )
 			g_judgeBreak.attenuationRate[chn] = 0;
 		}
 		
-		#ifdef DEBUG_SAMPLE_FH
-			if (chn == SMPL_FH_NUM)
-			{
-				printf("下降点：    %d\r\n",g_judgeBreak.downPoint[SMPL_FH_NUM]);
-				printf("最大力差值：%f\r\n",g_judgeBreak.maxForceDiff[SMPL_FH_NUM]);
-				printf("相邻点差值：%f\r\n",g_judgeBreak.adjoinPointDiff[SMPL_FH_NUM]);
-			}
-		#endif	
+		if (chn == SMPL_FH_NUM)
+		{
+			ECHO(DEBUG_SAMPLE_FH,"下降点：    %d\r\n",g_judgeBreak.downPoint[SMPL_FH_NUM]);
+			ECHO(DEBUG_SAMPLE_FH,"最大力差值：%f\r\n",g_judgeBreak.maxForceDiff[SMPL_FH_NUM]);
+			ECHO(DEBUG_SAMPLE_FH,"相邻点差值：%f\r\n",g_judgeBreak.adjoinPointDiff[SMPL_FH_NUM]);
+		}
 	}
 }
 

@@ -290,20 +290,17 @@ BoolStatus CheckLinkStatus( void )
 		pHead = GetEthernetRxDataAddr();
 		
 		if (UDP_Check(pHead) == FAILED)
-		{
-			#ifdef DEBUG_LINK_MODE
-				printf("UDP->UART：CRC校验失败！\r\n");
-			#endif
+		{			
+			ECHO(DEBUG_LINK_MODE,"UDP->UART：CRC校验失败！\r\n");
+			
 			return NO;
 		}
 		
 		cmd = UDP_GetCmd(pHead);
 		
 		if ((cmd == CMD_SIGN_ON) || (cmd == CMD_DEVICE_VERSION))
-		{
-			#ifdef DEBUG_LINK_MODE
-				printf("UDP->UART：握手验证成功！\r\n");
-			#endif
+		{			
+			ECHO(DEBUG_LINK_MODE,"UDP->UART：握手验证成功！\r\n");			
 			
 			SetBindingPort();
 			
@@ -437,10 +434,9 @@ static void UDP_GetPackageCycle( void )
 		while (1)
 		{
 			if (UDP_Check((UDP_HEAD_Typdef *)pHead) == FAILED)
-			{
-				#ifdef DEBUG_LINK_MODE
-					printf("UDP->UART：CRC校验失败！\r\n");
-				#endif
+			{				
+				ECHO(DEBUG_LINK_MODE,"UDP->UART：CRC校验失败！\r\n");
+				
 				break;
 			}
 			
@@ -448,27 +444,23 @@ static void UDP_GetPackageCycle( void )
 			{
 				g_linkMode.leavePage.flagLeavePage = SET;
 				g_linkMode.leavePage.flagSaveData = SET;
-				#ifdef DEBUG_LINK_MODE
-					printf("UDP->UART：退出联机模式！\r\n");
-				#endif
+				
+				ECHO(DEBUG_LINK_MODE,"UDP->UART：退出联机模式！\r\n");
+				
 				break;
 			}
 			
 			UDPConvUSARTFormate(pHead);
 			USART_SendPackage();
 			
-			#ifdef DEBUG_LINK_MODE
-				printf("UDP->UART：发送串口包！\r\n");
-			#endif
+			ECHO(DEBUG_LINK_MODE,"UDP->UART：发送串口包！\r\n");			
 			
 			pkg_len = GetUdpPackageSize((UDP_HEAD_Typdef *)pHead);
 			
 			sum += pkg_len;
 			if (sum == UDP_GetDataLen())
-			{	
-				#ifdef DEBUG_LINK_MODE
-					printf("UDP->UART：发送完毕！\r\n");
-				#endif
+			{					
+				ECHO(DEBUG_LINK_MODE,"UDP->UART：发送完毕！\r\n");				
 				break;
 			}
 			pHead += pkg_len;
@@ -510,10 +502,9 @@ void USART_GetPackageCycle( void )
 
 			
 		if (ERROR == uart_check() )	
-		{
-			#ifdef DEBUG_LINK_MODE 
-				printf("UDP<-UART：CRC校验失败！\r\n");
-			#endif
+		{			 
+			ECHO(DEBUG_LINK_MODE,"UDP<-UART：CRC校验失败！\r\n");
+			
 			continue;
 		}
 		
@@ -525,9 +516,8 @@ void USART_GetPackageCycle( void )
  		USARTConvUDPFormate(pHead);
  		
  		UDP_SendStr(pHead,GetUdpPackageSize((UDP_HEAD_Typdef *)pHead));
-		#ifdef DEBUG_LINK_MODE
-			printf("UDP<-UART：发送UDP包！\r\n");
-		#endif
+		
+		ECHO(DEBUG_LINK_MODE,"UDP<-UART：发送UDP包！\r\n");		
 	}
 }
 

@@ -720,7 +720,7 @@ void sf_ReadInfo(void)
 			
 			case W25Q80DV_ID:
 				strcpy(g_tSF.ChipName, "W25Q80DV");
-				g_tSF.TotalSize = 8 * 1024;			/* 总容量 = 1M */
+				g_tSF.TotalSize = 1 * 1024 * 1024;	/* 总容量 = 1M */
 				g_tSF.PageSize = 4 * 1024;			/* 页面大小 = 4K */
 				break;
 

@@ -133,16 +133,15 @@ void USBH_USR_Init(void)
 	if(startup == 0 )
 	{
 		startup = 1;
-		#ifdef DEBUG_USB
-			#ifdef USE_USB_OTG_HS
-				printf("> USB OTG HS MSC Host\r\n");
-			#else
-				printf("> USB OTG FS MSC Host\r\n");
-			#endif
-			printf("> USB Host library started\r\n");
-			printf("> USB Host Library v2.1.0\r\n" );
+		
+		#ifdef USE_USB_OTG_HS
+			ECHO(DEBUG_USB,"> USB OTG HS MSC Host\r\n");
+		#else
+			ECHO(DEBUG_USB,"> USB OTG FS MSC Host\r\n");
 		#endif
 		
+		ECHO(DEBUG_USB,"> USB Host library started\r\n");
+		ECHO(DEBUG_USB,"> USB Host Library v2.1.0\r\n" );	
 	}
 }
 
@@ -154,9 +153,7 @@ void USBH_USR_Init(void)
 */
 void USBH_USR_DeviceAttached(void)
 {
-	#ifdef DEBUG_USB
-		printf("> Device Attached\r\n");
-	#endif
+	ECHO(DEBUG_USB,"> Device Attached\r\n");	
 }
 
 
@@ -167,9 +164,7 @@ void USBH_USR_DeviceAttached(void)
 */
 void USBH_USR_UnrecoveredError (void)
 {
-	#ifdef DEBUG_USB
-		printf("> UNRECOVERED ERROR STATE\r\n");
-	#endif
+	ECHO(DEBUG_USB,"> UNRECOVERED ERROR STATE\r\n");	
 }
 
 
@@ -180,10 +175,9 @@ void USBH_USR_UnrecoveredError (void)
 * @retval Staus
 */
 void USBH_USR_DeviceDisconnected (void)
-{
-	#ifdef DEBUG_USB
-		printf("> Device Disconnected\r\n");
-	#endif
+{	
+	ECHO(DEBUG_USB,"> Device Disconnected\r\n");
+	
 	status_usb_insert = 0;
 }
 /**
@@ -194,9 +188,7 @@ void USBH_USR_DeviceDisconnected (void)
 void USBH_USR_ResetDevice(void)
 {
 	/* callback for USB-Reset */
-	#ifdef DEBUG_USB
-		printf("> USBH_USR_ResetDevice\r\n");
-	#endif
+	ECHO(DEBUG_USB,"> USBH_USR_ResetDevice\r\n");	
 }
 
 
@@ -209,29 +201,20 @@ void USBH_USR_ResetDevice(void)
 void USBH_USR_DeviceSpeedDetected(uint8_t DeviceSpeed)
 {
 	if (DeviceSpeed == HPRT0_PRTSPD_HIGH_SPEED)
-	{
-		#ifdef DEBUG_USB
-			printf("> High speed device detected\r\n");
-		#endif
+	{		
+		ECHO(DEBUG_USB,"> High speed device detected\r\n");		
 	}
 	else if(DeviceSpeed == HPRT0_PRTSPD_FULL_SPEED)
-	{
-		#ifdef DEBUG_USB
-			printf("> Full speed device detected\r\n");
-		#endif
+	{		
+		ECHO(DEBUG_USB,"> Full speed device detected\r\n");		
 	}
 	else if(DeviceSpeed == HPRT0_PRTSPD_LOW_SPEED)
-	{
-
-		#ifdef DEBUG_USB
-			printf("> Low speed device detected\r\n");
-		#endif
+	{	
+		ECHO(DEBUG_USB,"> Low speed device detected\r\n");	
 	}
 	else
-	{
-		#ifdef DEBUG_USB
-			printf("> Device fault\r\n");
-		#endif
+	{		
+		ECHO(DEBUG_USB,"> Device fault\r\n");	
 	}
 }
 
@@ -246,11 +229,9 @@ void USBH_USR_Device_DescAvailable(void *DeviceDesc)
 	USBH_DevDesc_TypeDef *hs = DeviceDesc;
 	
 	hs = hs;
-
-	#ifdef DEBUG_USB
-		printf("> VID : %04Xh\r\n" , (uint32_t)(*hs).idVendor);
-		printf("> PID : %04Xh\r\n" , (uint32_t)(*hs).idProduct);
-	#endif
+	
+	ECHO(DEBUG_USB,"> VID : %04Xh\r\n" , (uint32_t)(*hs).idVendor);
+	ECHO(DEBUG_USB,"> PID : %04Xh\r\n" , (uint32_t)(*hs).idProduct);	
 }
 
 /**
@@ -299,16 +280,12 @@ void USBH_USR_Configuration_DescAvailable(USBH_CfgDesc_TypeDef * cfgDesc,
 	id = itfDesc;
 
 	if((*id).bInterfaceClass  == 0x08)
-	{
-		#ifdef DEBUG_USB
-			printf("> Mass storage device connected\r\n");
-		#endif
+	{	
+		ECHO(DEBUG_USB,"> Mass storage device connected\r\n");		
 	}
 	else if((*id).bInterfaceClass  == 0x03)
-	{
-		#ifdef DEBUG_USB
-			printf("> HID device connected\r\n");
-		#endif
+	{	
+		ECHO(DEBUG_USB,"> HID device connected\r\n");		
 	}
 	
 	status_usb_insert = 1;
@@ -322,9 +299,7 @@ void USBH_USR_Configuration_DescAvailable(USBH_CfgDesc_TypeDef * cfgDesc,
 */
 void USBH_USR_Manufacturer_String(void *ManufacturerString)
 {
-	#ifdef DEBUG_USB
-		printf("> Manufacturer : %s\r\n", (char *)ManufacturerString);
-	#endif
+	ECHO(DEBUG_USB,"> Manufacturer : %s\r\n", (char *)ManufacturerString);	
 }
 
 /**
@@ -334,10 +309,8 @@ void USBH_USR_Manufacturer_String(void *ManufacturerString)
 * @retval None
 */
 void USBH_USR_Product_String(void *ProductString)
-{
-	#ifdef DEBUG_USB
-		printf("> Product : %s\r\n", (char *)ProductString);
-	#endif
+{	
+	ECHO(DEBUG_USB,"> Product : %s\r\n", (char *)ProductString);	
 }
 
 /**
@@ -347,10 +320,8 @@ void USBH_USR_Product_String(void *ProductString)
 * @retval None
 */
 void USBH_USR_SerialNum_String(void *SerialNumString)
-{
-	#ifdef DEBUG_USB
-		printf( "> Serial Number : %s\r\n", (char *)SerialNumString);
-	#endif
+{	
+	ECHO(DEBUG_USB, "> Serial Number : %s\r\n", (char *)SerialNumString);
 }
 
 /**
@@ -361,10 +332,8 @@ void USBH_USR_SerialNum_String(void *SerialNumString)
 */
 void USBH_USR_EnumerationDone(void)
 {
-	/* Enumeration complete */
-	#ifdef DEBUG_USB
-		printf ("> Enumeration completed\r\n");
-	#endif
+	/* Enumeration complete */	
+	ECHO(DEBUG_USB,"> Enumeration completed\r\n");	
 }
 
 
@@ -376,9 +345,7 @@ void USBH_USR_EnumerationDone(void)
 */
 void USBH_USR_DeviceNotSupported(void)
 {	
-	#ifdef DEBUG_USB
-		printf ("> Device not supported\r\n");
-	#endif
+	ECHO(DEBUG_USB,"> Device not supported\r\n");
 }
 
 /**
@@ -418,10 +385,8 @@ USBH_USR_Status USBH_USR_UserInput(void)
 * @retval Staus
 */
 void USBH_USR_OverCurrentDetected (void)
-{
-	#ifdef DEBUG_USB
-		printf("> Overcurrent detected\r\n");
-	#endif
+{	
+	ECHO(DEBUG_USB,"> Overcurrent detected\r\n");	
 }
 
 /**

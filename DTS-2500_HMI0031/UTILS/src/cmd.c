@@ -853,174 +853,148 @@ static void CmdSendBody( void )
 	{
 		case CMD_DEVICE_VERSION:	//PCB信息及固件版本
 			cmd_device_version();
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_DEVICE_VERSION\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_DEVICE_VERSION\r\n");			
 			break;
 			
 		case CMD_RESET:				//控制器重新启动
 			cmd_reset();
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_RESET\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_RESET\r\n");			
 			break;    
 
 		case CMD_PRIVATE_ACCESS:	//进入/退出特权访问状态
 			cmd_private_access(g_cmdMutual.pcmLssued.acess);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_PRIVATE_ACCESS\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_PRIVATE_ACCESS\r\n");			
 			break;
 			
 		case CMD_GET_ERROR:			//获取错误
 			cmd_get_error();	
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_GET_ERROR\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_GET_ERROR\r\n");			
 			break;
 		
 		case CMD_CLEAR_ERROR:		//清除错误
 			cmd_clear_error();
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_CLEAR_ERROR\r\n");
-			#endif
-
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_CLEAR_ERROR\r\n");
 			break;
 			
 		case CMD_READ_PRM:			//读取参数
 			cmd_read_prm(g_cmdMutual.pcmLssued.addr,g_cmdMutual.pcmLssued.len);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_READ_PRM\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_READ_PRM\r\n");			
 			break;
 			
 		case CMD_WRITE_PRM:			//设置参数
 			cmd_write_prm(g_cmdMutual.pcmLssued.addr,g_cmdMutual.pcmLssued.len,g_cmdMutual.pcmLssued.dat);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_WRITE_PRM\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_WRITE_PRM\r\n");			
 			break;
 		
 		case CMD_READ_PRV:			//读取特权参数
 			cmd_read_prv(g_cmdMutual.pcmLssued.addr,g_cmdMutual.pcmLssued.len);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_READ_PRV\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_READ_PRV\r\n");			
 			break;
 			
 		case CMD_WRITE_PRV:			//设置特权参数
 			cmd_write_prv(g_cmdMutual.pcmLssued.addr,g_cmdMutual.pcmLssued.len,g_cmdMutual.pcmLssued.dat);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_WRITE_PRV\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_WRITE_PRV\r\n");			
 			break; 	
 			
 		case CMD_BACKUP_PRM:		//备份参数
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_BACKUP_PRM\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_BACKUP_PRM\r\n");			
 			break;  				//上位机自己处理
 
 		case CMD_RESTORE_PRM:		//还原参数
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_RESTORE_PRM\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_RESTORE_PRM\r\n");			
 			break;					//上位机自己处理
 
 		case CMD_SIGN_OFF:			//断开连接
 			cmd_sign_off();
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_SIGN_OFF\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_SIGN_OFF\r\n");			
 			break;
 
 		case CMD_KEEP_ALIVE:		//保活机制
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_KEEP_ALIVE\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_KEEP_ALIVE\r\n");			
 			break;					
 
 		case CMD_SEND_START:		//开始发送实时数据
 			cmd_send_start(g_cmdMutual.pcmLssued.send_type);	   //相对码方式
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_SEND_START\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_SEND_START\r\n");			
 			break;
 
 		case CMD_SEND_STOP:			//停止发送实时数据
 			cmd_send_stop();
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_SEND_STOP\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_SEND_STOP\r\n");			
 			break;
 
 		case CMD_SET_TARE:			//设置零点
 			cmd_set_tare(g_cmdMutual.pcmLssued.tare_ch,0,0);	//零点由设备自取
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_SET_TARE\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_SET_TARE\r\n");			
 			break;
 
 		case CMD_CTRL_MODE:			//控制模式
 			cmd_ctrl_mode(g_cmdMutual.pcmLssued.ctrl_mode);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_CTRL_MODE\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_CTRL_MODE\r\n");			
 			break;
 
 		case CMD_PROTECT:			//设备保护使能
 			cmd_protect(g_cmdMutual.pcmLssued.bit_clr,g_cmdMutual.pcmLssued.bit_set,g_cmdMutual.pcmLssued.bit_rev);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_PROTECT\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_PROTECT\r\n");			
 			break;
 
 		case CMD_STOP:				//强制停止
 			cmd_stop();
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_STOP\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_STOP\r\n");			
 			break;
 
 		case CMD_STEP_NORM_V:		//下发试验步骤(值方式)
 			cmd_step_norm_v(g_cmdMutual.pcmLssued.step);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_STEP_NORM_V\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_STEP_NORM_V\r\n");			
 			break;
 		
 		case CMD_OPEN_LOOP:			//下发开环控制量
 			cmd_open_loop(g_cmdMutual.pcmLssued.open);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_OPEN_LOOP\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_OPEN_LOOP\r\n");			
 			break;
 
 		 case CMD_SWITCH:			//开关量
 			cmd_switch(g_cmdMutual.pcmLssued.bit_clr,g_cmdMutual.pcmLssued.bit_set,g_cmdMutual.pcmLssued.bit_rev);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_SWITCH\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_SWITCH\r\n");			
 			break;
 		 
 		 case CMD_SET_DEVICE_ID:	//设置设备ID
 			cmd_set_device_id(0x05D8FF31); 
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_SET_DEVICE_ID\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_SET_DEVICE_ID\r\n");			
 			break;
 		 
 		 case CMD_GET_DEVICE_ID:	//获取设备ID
 			cmd_general(CMD_GET_DEVICE_ID);
-			#ifdef DEBUG_CMD
-				printf("发送命令：CMD_GET_DEVICE_ID\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令：CMD_GET_DEVICE_ID\r\n");			
 			break;
 
 		default:
-			#ifdef DEBUG_CMD
-				printf("发送命令未定义\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"发送命令未定义\r\n");			
 			break;
 	}
 }
@@ -1042,99 +1016,84 @@ static void CmdReceiveBody( void )
 	{
 		case CMD_DEVICE_VERSION:	//PCB信息及固件版本
 			cmd_device_version_reply(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_DEVICE_VERSION\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_DEVICE_VERSION\r\n\r\n");		
 			break;		
 	
 		case CMD_RESET:				//控制器重新启动								 
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_RESET\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_RESET\r\n\r\n");			
 			break;
 		
 		case CMD_PRIVATE_ACCESS:	//进入/退出特权访问状态
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_PRIVATE_ACCESS\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_PRIVATE_ACCESS\r\n\r\n");			
 			break; 
 		
 		case CMD_GET_ERROR:			//获取错误
 			cmd_get_error_reply(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_GET_ERROR\r\n\r\n");
-			#endif					
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_GET_ERROR\r\n\r\n");							
 			break; 
 
 		case CMD_CLEAR_ERROR:		//清除错误
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_CLEAR_ERROR\r\n\r\n");
-			#endif	
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_CLEAR_ERROR\r\n\r\n");				
 			break;
 
 		case CMD_READ_PRM:			//读取参数	
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_READ_PRM\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_READ_PRM\r\n\r\n");		
 			break; 
 		
 		case CMD_WRITE_PRM:			//设置参数
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_WRITE_PRM\r\n\r\n");
-			#endif	
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_WRITE_PRM\r\n\r\n");				
 			break;
 
 		case CMD_READ_PRV:			//读取特权参数	
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_READ_PRV\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_READ_PRV\r\n\r\n");			
 			break; 
 		
 		case CMD_WRITE_PRV:			//设置特权参数
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_WRITE_PRV\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_WRITE_PRV\r\n\r\n");			
 			break; 
 
 		case CMD_BACKUP_PRM:		//备份参数
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_BACKUP_PRM\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_BACKUP_PRM\r\n\r\n");			
 			break;  					//上位机自己处理
 
 		case CMD_RESTORE_PRM:		//还原参数
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_RESTORE_PRM\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_RESTORE_PRM\r\n\r\n");			
 			break;						//上位机自己处理 
 
 		case CMD_SIGN_OFF:			//断开连接
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_SIGN_OFF\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_SIGN_OFF\r\n\r\n");			
 			break;
 
 		case CMD_KEEP_ALIVE:		//保活机制
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_KEEP_ALIVE\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_KEEP_ALIVE\r\n\r\n");			
 			break;
 
 		case CMD_SEND_START:		//开始发送实时数据
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_SEND_START\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_SEND_START\r\n\r\n");			
 			break;
 
 		case CMD_SEND_STOP:		//停止发送实时数据
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_SEND_STOP\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_SEND_STOP\r\n\r\n");			
 			break;
 
 		case CMD_SET_TARE:			//设置零点
@@ -1142,67 +1101,56 @@ static void CmdReceiveBody( void )
 			
 			smpl_tab_zero_set(g_cmdMutual.pcmLssued.tare_ch,g_cmdMutual.prmReply.tare_code);	
 			prm_save();
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_SET_TARE\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_SET_TARE\r\n\r\n");			
 			break;
 
 	   case CMD_CTRL_MODE:			//控制模式
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_CTRL_MODE\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_CTRL_MODE\r\n\r\n");			
 			break;
 
 		case CMD_PROTECT:			//设备保护使能
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_PROTECT\r\n\r\n");
-			#endif
+						
+			ECHO(DEBUG_CMD,"接收命令：CMD_PROTECT\r\n\r\n");			
 			break;
 
 		case CMD_STOP:				//强制停止
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_STOP\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_STOP\r\n\r\n");			
 			break;
 
 		case CMD_STEP_NORM_V:		//下发试验步骤(值方式)
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_STEP_NORM_V\r\n\r\n");
-			#endif					
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_STEP_NORM_V\r\n\r\n");								
 			break;
 
 		case CMD_OPEN_LOOP:			//下发开环控制量
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_OPEN_LOOP\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_OPEN_LOOP\r\n\r\n");			
 			break;
 
 		case CMD_SWITCH:			//开关量
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_SWITCH\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_SWITCH\r\n\r\n");			
 			break;
 			
 		case CMD_SET_DEVICE_ID:	//设置设备ID
 			reply_empty(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_SET_DEVICE_ID\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_SET_DEVICE_ID\r\n\r\n");			
 			break;
 	 
 		case CMD_GET_DEVICE_ID:	//获取设备ID
 			cmd_get_device_id_reply(uart_get_body(),&g_cmdMutual.prmReply);
-			#ifdef DEBUG_CMD
-				printf("接收命令：CMD_GET_DEVICE_ID\r\n\r\n");
-			#endif
+			
+			ECHO(DEBUG_CMD,"接收命令：CMD_GET_DEVICE_ID\r\n\r\n");			
 			break;
 	}
 }
@@ -1249,10 +1197,9 @@ static CMD_STATUS_TypeDef CmdMutualBody( void )
 				{
 					g_cmdMutual.cmdStatus = CMD_UNLINK;
 				}
-				
-				#ifdef DEBUG_CMD
-					printf("接收命令超时！\r\n\r\n");
-				#endif			
+								
+				ECHO(DEBUG_CMD,"接收命令超时！\r\n\r\n");
+							
 				break;
 			}
 			
@@ -1266,10 +1213,8 @@ static CMD_STATUS_TypeDef CmdMutualBody( void )
 			if (g_cmdMutual.pcmLssued.index != g_cmdMutual.prmReply.index)
 			{
 				g_cmdMutual.cmdStatus = CMD_TX;
-				
-				#ifdef DEBUG_CMD
-					printf("索引值不一致！\r\n\r\n");
-				#endif
+								
+				ECHO(DEBUG_CMD,"索引值不一致！\r\n\r\n");				
 				break;
 			}
 			
@@ -1310,9 +1255,7 @@ void sample_cycle( void )
 	g_ioStatus.st_sw_rol = g_sampleCycle.sw_rol;
 	g_ioStatus.st_sw_rw = g_sampleCycle.sw_rw;
 	
-	#ifdef DEBUG_REAL_TIME_DATA_FRAM
-		printf("%x\r\n",g_ioStatus.st_sw_rw);
-	#endif
+	ECHO(DEBUG_REAL_TIME_DATA_FRAME,"%x\r\n",g_ioStatus.st_sw_rw);
 	
 	/* 填充码值 */
 	g_sampleCode[SMPL_FH_NUM] = g_sampleCycle.smpl[SMPL_FH_NUM];
@@ -1388,11 +1331,9 @@ void spd_cal_cycle(void)
 	g_speedCalculate.speed[SMPL_WY_NUM]=spd_cal(SMPL_WY_NUM,50);
 	g_speedCalculate.speed[SMPL_BX_NUM]=spd_cal(SMPL_BX_NUM,50);
 	
-	#ifdef DEBUG_SPEED
-		printf("FH_Speed：%f\r\n",g_speedCalculate.speed[SMPL_FH_NUM]);
-		printf("WY_Speed：%f\r\n",g_speedCalculate.speed[SMPL_WY_NUM]);
-		printf("BX_Speed：%f\r\n",g_speedCalculate.speed[SMPL_WY_NUM]);
-	#endif
+	ECHO(DEBUG_SPEED,"FH_Speed：%f\r\n",g_speedCalculate.speed[SMPL_FH_NUM]);
+	ECHO(DEBUG_SPEED,"WY_Speed：%f\r\n",g_speedCalculate.speed[SMPL_WY_NUM]);
+	ECHO(DEBUG_SPEED,"BX_Speed：%f\r\n",g_speedCalculate.speed[SMPL_WY_NUM]);
 }
 
 /*------------------------------------------------------------
@@ -1732,10 +1673,9 @@ CMD_STATUS_TypeDef comm_cycle( void )
 	while ( Uart_GetPackageCycle() == YES )
 	{
 		if (ERROR == uart_check() )
-		{
-			#ifdef DEBUG_CMD
-				printf("CRC校验错误！\r\n\r\n");
-			#endif
+		{			
+			ECHO(DEBUG_CMD,"CRC校验错误！\r\n\r\n");
+			
 			continue;
 		}
 	
@@ -1813,9 +1753,7 @@ void link_init( void )
 	g_linkMutual.process = 0;
 	g_linkMutual.mdyCnt = 0;
 	
-	#ifdef DEBUG_LINK
-		printf("联机初始化\r\n");
-	#endif
+	ECHO(DEBUG_LINK,"联机初始化\r\n");
 }
 
 /*------------------------------------------------------------
@@ -1837,17 +1775,13 @@ static void LinkCmdSendBody( void )
 		case LINK_SEND_STOP:
 			cmd_send_stop();
 		
-			#ifdef DEBUG_LINK
-				printf("发送 LINK_SEND_STOP\r\n");
-			#endif
+			ECHO(DEBUG_LINK,"发送 LINK_SEND_STOP\r\n");		
 			break;
 		
 		case LINK_SIGN_ON:
 			cmd_cmd_sign_on();
 		
-			#ifdef DEBUG_LINK
-				printf("发送 LINK_SIGN_ON\r\n");
-			#endif
+			ECHO(DEBUG_LINK,"发送 LINK_SIGN_ON\r\n");		
 			break;
 		
 		case LINK_CHECK_PRM:
@@ -1862,9 +1796,7 @@ static void LinkCmdSendBody( void )
 					cmd_read_prm(g_WritePrm.targetAddr,g_WritePrm.len);	//最后一次读取
 				}
 
-				#ifdef DEBUG_LINK
-					printf("发送 LINK_CHECK_PRM\r\n");	
-				#endif										
+				ECHO(DEBUG_LINK,"发送 LINK_CHECK_PRM\r\n");															
 			}
 			else		//参数下发完毕
 			{
@@ -1883,17 +1815,13 @@ static void LinkCmdSendBody( void )
 				cmd_write_prm(g_WritePrm.targetAddr,g_WritePrm.len,g_WritePrm.pSourceAddr);
 			}
 
-			#ifdef DEBUG_LINK
-				printf("发送 LINK_MDY_PRM\r\n");	
-			#endif	
+			ECHO(DEBUG_LINK,"发送 LINK_MDY_PRM\r\n");					
 			break;
 		
 		case LINK_SEND_START:
 			cmd_send_start(SEND_RCODE);
 			
-			#ifdef DEBUG_LINK
-				printf("发送 LINK_SEND_START\r\n");		
-			#endif
+			ECHO(DEBUG_LINK,"发送 LINK_SEND_START\r\n");					
 			break;
 		
 		case LINK_SUCCESS:
@@ -1949,9 +1877,7 @@ static void LinkCmdReceiveBody( void )
 			g_linkMutual.linkStatus = LINK_UNLINK;
 		}
 		
-		#ifdef DEBUG_LINK
-			printf("接收命令超时！\r\n\r\n");
-		#endif	
+		ECHO(DEBUG_LINK,"接收命令超时！\r\n\r\n");		
 		
 		return;
 	}
@@ -1967,9 +1893,7 @@ static void LinkCmdReceiveBody( void )
 	{
 		g_linkMutual.cmdStatus = CMD_TX;
 		
-		#ifdef DEBUG_LINK
-			printf("索引值不一致！\r\n\r\n");
-		#endif
+		ECHO(DEBUG_LINK,"索引值不一致！\r\n\r\n");	
 		
 		return;
 	}
@@ -1986,17 +1910,13 @@ static void LinkCmdReceiveBody( void )
 			{
 				g_linkMutual.linkStatus = LINK_SIGN_ON;
 				
-				#ifdef DEBUG_LINK
-					printf("接收 LINK_SEND_STOP\r\n\r\n");	
-				#endif
+				ECHO(DEBUG_LINK,"接收 LINK_SEND_STOP\r\n\r\n");					
 			}
 			else
 			{
 				g_linkMutual.linkStatus = LINK_UNLINK;
 				
-				#ifdef DEBUG_LINK
-					printf("失败接收 LINK_SEND_STOP\r\n\r\n");	
-				#endif
+				ECHO(DEBUG_LINK,"失败接收 LINK_SEND_STOP\r\n\r\n");				
 			}
 			break;
 		
@@ -2009,17 +1929,13 @@ static void LinkCmdReceiveBody( void )
 				
 				WritePrmParameterInit();
 				
-				#ifdef DEBUG_LINK
-					printf("接收 LINK_SIGN_ON\r\n\r\n");	
-				#endif
+				ECHO(DEBUG_LINK,"接收 LINK_SIGN_ON\r\n\r\n");					
 			}
 			else
 			{
 				g_linkMutual.linkStatus = LINK_UNLINK;
 				
-				#ifdef DEBUG_LINK
-					printf("失败接收 LINK_SIGN_ON\r\n\r\n");	
-				#endif
+				ECHO(DEBUG_LINK,"失败接收 LINK_SIGN_ON\r\n\r\n");					
 			}
 			break;
 		
@@ -2055,9 +1971,7 @@ static void LinkCmdReceiveBody( void )
 				}
 			}
 			
-			#ifdef DEBUG_LINK
-				printf("接收 LINK_CHECK_PRM\r\n\r\n");	
-			#endif
+			ECHO(DEBUG_LINK,"接收 LINK_CHECK_PRM\r\n\r\n");				
 			break;
 		
 		case LINK_MDY_PRM:
@@ -2078,17 +1992,13 @@ static void LinkCmdReceiveBody( void )
 				}
 			}
 			
-			#ifdef DEBUG_LINK
-				printf("接收 LINK_MDY_PRM\r\n\r\n");	
-			#endif
+			ECHO(DEBUG_LINK,"接收 LINK_MDY_PRM\r\n\r\n");				
 			break;
 		
 		case LINK_SEND_START:  
 			g_linkMutual.linkStatus = LINK_SUCCESS;
 			
-			#ifdef DEBUG_LINK
-				printf("联机成功\r\n\r\n");
-			#endif
+			ECHO(DEBUG_LINK,"联机成功\r\n\r\n");			
 			break;
 		
 		case LINK_SUCCESS:
@@ -2139,9 +2049,8 @@ LINK_STATUS_TypeDef link_cycle( void )
 		
 		if (ERROR == uart_check() )
 		{
-			#ifdef DEBUG_LINK
-				printf("CRC校验错误！\r\n\r\n");
-			#endif
+			ECHO(DEBUG_LINK,"CRC校验错误！\r\n\r\n");
+			
 			continue;
 		}
 

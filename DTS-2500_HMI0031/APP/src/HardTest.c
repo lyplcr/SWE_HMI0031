@@ -1006,18 +1006,16 @@ static void DataInteractionWithPRM( void )
 		case SEND_CMD_ENCHANGE:
 			sendType ^= 0x01;
 			if (sendType)
-			{
-				#ifdef DEBUG_HARD_TEST
-					printf("发送绝对码\r\n");
-				#endif
+			{				
+				ECHO(DEBUG_HARD_TEST,"发送绝对码\r\n");
+				
 				cmd_send_start_pkg(SEND_ACODE);
 				g_hardTest.statusCmd = SEND_CMD_ABSOLUTE_WAIT;
 			}
 			else
-			{
-				#ifdef DEBUG_HARD_TEST
-					printf("发送相对码\r\n");
-				#endif
+			{				
+				ECHO(DEBUG_HARD_TEST,"发送相对码\r\n");
+				
 				cmd_send_start_pkg(SEND_RCODE);	
 				g_hardTest.statusCmd = SEND_CMD_RELATIVE_WAIT;
 			}			
@@ -1034,10 +1032,9 @@ static void DataInteractionWithPRM( void )
 			
 		case SEND_CMD_ABSOLUTE:
 			if ( bsp_CheckTimer(HARD_TEST_WAIT_TIMING) )
-			{
-				#ifdef DEBUG_HARD_TEST
-					printf("显示绝对码\r\n");
-				#endif
+			{			
+				ECHO(DEBUG_HARD_TEST,"显示绝对码\r\n");
+				
 				GetInputDataFromPrm();
 				GetCodeFromPrm(ABSOLUTE_CODE);
 				
@@ -1057,10 +1054,9 @@ static void DataInteractionWithPRM( void )
 		
 		case SEND_CMD_RELATIVE:
 			if ( bsp_CheckTimer(HARD_TEST_WAIT_TIMING) )
-			{
-				#ifdef DEBUG_HARD_TEST
-					printf("显示相对码\r\n");
-				#endif
+			{			
+				ECHO(DEBUG_HARD_TEST,"显示相对码\r\n");
+				
 				GetInputDataFromPrm();
 				GetCodeFromPrm(OPPOSITE_CODE);
 				

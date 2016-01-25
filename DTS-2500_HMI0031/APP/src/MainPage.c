@@ -4407,12 +4407,12 @@ static float AccordDispalcementGetDeformIncrement( float dispalcement )
 	
 	if (fabs(originalGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
-		ECHO(DEBUG_EXCEPTION_DIVISION_ZERO,"除零错误！\r\n");
-
 		originalGauge = 1;
 	}
 	
 	deformIncrement = COF * (extensometerGauge / originalGauge) * (dispalcement - g_klTestBody.originalDisplacemen);
+	
+	ECHO_ASSERT(fabs(originalGauge)>MIN_FLOAT_PRECISION_DIFF_VALUE,"原始标距除零错误！\r\n");
 	
 	return deformIncrement;
 }
@@ -5260,12 +5260,12 @@ static float GetMaxForceSumElongation( void )
 	
 	if (fabs(parallelLenth) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
-		ECHO(DEBUG_EXCEPTION_DIVISION_ZERO,"除零错误！\r\n");
-
 		parallelLenth = 1;
 	}
 	
 	maxForceSumElongation = maxForceSumExtend / parallelLenth * 100;
+	
+	ECHO_ASSERT(fabs(parallelLenth)>MIN_FLOAT_PRECISION_DIFF_VALUE,"平行长度除零错误！\r\n");
 	
 	return maxForceSumElongation;
 }

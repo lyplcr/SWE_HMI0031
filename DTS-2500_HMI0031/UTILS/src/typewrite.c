@@ -86,9 +86,7 @@ void KeyProcessCycle( void )
 	{
 		g_key.recordValue = g_key.value;
 		
-		#ifdef DEBUG_KEY
-			printf("keyVal: %X\r\n",g_key.value);
-		#endif
+		ECHO(DEBUG_KEY,"keyVal: %X\r\n",g_key.value);
 	}
 	
 	switch ( g_key.status )

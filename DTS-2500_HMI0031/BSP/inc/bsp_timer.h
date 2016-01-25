@@ -85,9 +85,7 @@ static __INLINE uint32_t GetTime( uint8_t id )
 {
 	uint32_t timing = bsp_GetTimeUS(id);
 	
-	#ifdef DEBUG_PRINTF_TIMING
-		printf("ID£º%d ,ºÄÊ±£º%d \r\n",id,timing);
-	#endif
+	ECHO(DEBUG_PRINTF_TIMING,"ID£º%d ,ºÄÊ±£º%d \r\n",id,timing);
 	
 	return timing;
 }

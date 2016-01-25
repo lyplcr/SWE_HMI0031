@@ -179,11 +179,13 @@ static void FormateSystemParameter( void )
 {	
 	if (CheckSystemParameterIsNull() == YES)
 	{
-		/* 询问是否擦除系统参数 */
-		if (EraseSystemParameterAskHandler() == DISABLE)
-		{
-			return;
-		}
+		#if 0
+			/* 询问是否擦除系统参数 */
+			if (EraseSystemParameterAskHandler() == DISABLE)
+			{
+				return;
+			}
+		#endif
 		
 		FormateSystemParameterExecuteBody();
 		
