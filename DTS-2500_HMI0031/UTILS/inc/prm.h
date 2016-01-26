@@ -106,8 +106,8 @@ FRESULT prm_backup(uint8_t type); 							//系统参数备份
 FRESULT prv_backup(uint8_t type);							//特权参数备份
 FRESULT prm_recover(uint8_t type); 							//系统参数恢复,保留加密信息不变 
 FRESULT prv_recover(uint8_t type);							//特权参数恢复  
-void prm_write(uint8_t *dat,uint16_t addr,uint16_t len);	//写参数内存的数据
-void prv_write(uint8_t *dat,uint16_t addr,uint16_t len);	//写特权参数内存的数据 
+ErrorStatus prm_write(const uint8_t * const dat, uint16_t addr, uint16_t len);	//写参数内存的数据
+ErrorStatus prv_write(const uint8_t * const dat, uint16_t addr, uint16_t len);	//写特权参数内存的数据 
 //下面函数备份和恢复在SD卡中以日期文件夹形式存储
 FRESULT PrmBackupWithDate(void);
 FRESULT PrvBackupWithDate(void);

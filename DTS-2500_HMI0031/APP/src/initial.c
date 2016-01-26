@@ -134,6 +134,10 @@ static void FormateSystemParameterExecuteBody( void )
 	
 	pHmi->test_standard_index = KYSNJS;	//…Ë÷√ƒ¨»œ ‘—È
 	
+	pcm_recover(BACKUP_SD);
+	prm_recover(BACKUP_SD);
+	prv_recover(BACKUP_SD);
+	
 	pcm_save();
 	prm_save();
 	prv_save();
@@ -176,7 +180,7 @@ static BoolStatus CheckSystemParameterIsNull( void )
  * Return         : None
  *------------------------------------------------------------*/
 static void FormateSystemParameter( void )
-{	
+{			
 	if (CheckSystemParameterIsNull() == YES)
 	{
 		#if 0

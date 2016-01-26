@@ -1124,16 +1124,24 @@ void prv_save(void)
 functionName:void prm_write(uint8_t *dat,uint16_t addr,uint16_t len)
 description:写参数内存的数据
 **********************************************************************/ 
-void prm_write(uint8_t *dat,uint16_t addr,uint16_t len)
+ErrorStatus prm_write(const uint8_t * const dat, uint16_t addr, uint16_t len)
 {
-	uint8_t *prm;
-	uint16_t j;
-	prm=prm_ram;
-	prm+=addr;
-	if((addr+len)>sizeof(SYS_PRM_TypeDef))
-	len=sizeof(SYS_PRM_TypeDef)-addr;	
-	for(j=0;j<len;j++)
-	prm[j]=dat[j]; 
+	uint8_t *prm = prm_ram;
+	uint16_t i;
+	
+	if (addr+len > sizeof(SYS_PRM_TypeDef))
+	{
+		return ERROR;
+	}
+
+	prm += addr;	
+		
+	for (i=0; i<len; i++)
+	{
+		prm[i] = dat[i]; 
+	}
+	
+	return SUCCESS;
 }
 
 
@@ -1141,16 +1149,24 @@ void prm_write(uint8_t *dat,uint16_t addr,uint16_t len)
 functionName:void prv_write(uint8_t *dat,uint16_t addr,uint16_t len)
 description:写特权参数内存的数据 
 **********************************************************************/ 
-void prv_write(uint8_t *dat,uint16_t addr,uint16_t len)
-{
-	uint8_t *prv;
-	uint16_t j;
-	prv=prv_ram;
-	prv+=addr;
-	if((addr+len)>sizeof(SYS_PRV_TypeDef))
-	len=sizeof(SYS_PRV_TypeDef)-addr;	
-	for(j=0;j<len;j++)
-	prv[j]=dat[j]; 
+ErrorStatus prv_write(const uint8_t * const dat, uint16_t addr, uint16_t len)
+{	
+	uint8_t *prv = prv_ram;
+	uint16_t i;
+	
+	if (addr+len > sizeof(SYS_PRV_TypeDef))
+	{
+		return ERROR;
+	}
+
+	prv += addr;	
+		
+	for (i=0; i<len; i++)
+	{
+		prv[i] = dat[i]; 
+	}
+	
+	return SUCCESS;
 }
 
 

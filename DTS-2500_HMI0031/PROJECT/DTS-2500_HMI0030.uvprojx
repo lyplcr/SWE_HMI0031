@@ -456,6 +456,21 @@
               <FileType>5</FileType>
               <FilePath>..\UTILS\inc\report.h</FilePath>
             </File>
+            <File>
+              <FileName>cmd.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\UTILS\inc\cmd.h</FilePath>
+            </File>
+            <File>
+              <FileName>prm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\UTILS\inc\prm.h</FilePath>
+            </File>
+            <File>
+              <FileName>prm_struct.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\UTILS\inc\prm_struct.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

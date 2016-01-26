@@ -83,8 +83,8 @@ const char * const pOnlineParameterErrorCue[] =
 
 const char * const pOnlineParameterSelectMenuCue[] = 
 {
-	"  重启  ",
-	"  取消  ",
+	"  重 启  ",
+	"  取 消  ",
 };
 
 /* Private macro -------------------------------------------------------------*/

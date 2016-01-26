@@ -33,6 +33,7 @@ typedef struct
 	const char * pTitle;							//标题
 	FunctionalState refreshShortcut;				//刷新快捷菜单
 	LEAVE_PAGE_TypeDef leavePage;					//离开页
+	FlagStatus flagUpdateSystemParameter;			//更新系统参数
 }LINK_MODE_TypeDef;
 
 /* Private constants ---------------------------------------------------------*/
@@ -119,6 +120,7 @@ static void LinkModeInit( void )
 	g_linkMode.leavePage.flagLeavePage = RESET;
 	g_linkMode.leavePage.flagSaveData = RESET;	
 	g_linkMode.refreshShortcut = ENABLE;
+	g_linkMode.flagUpdateSystemParameter = RESET;
 }
 
 /*------------------------------------------------------------
@@ -224,6 +226,12 @@ static void LinkModeLeavePageCheckCycle( void )
 	{
 		if (g_linkMode.leavePage.flagSaveData == SET)
 		{
+			if (g_linkMode.flagUpdateSystemParameter == SET)
+			{
+				ECHO(DEBUG_LINK_MODE,"保存下位机参数！\r\n");
+				prm_save();
+			}
+			
 			SystemSoftwareReset();
 		}
 	}
@@ -415,6 +423,52 @@ static void USARTConvUDPFormate( void *pHead )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : PRM_UpdateParameter
+ * Description    : 更新下位机参数
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void PRM_UpdateParameter(const uint8_t * const pReceiveData )
+{
+	const CMD_WRITE_PRM_TypeDef * pRxFrame = (const CMD_WRITE_PRM_TypeDef * )pReceiveData;
+
+	if (SUCCESS == prm_write((const uint8_t *)&pRxFrame->start_byte,pRxFrame->start_addr,pRxFrame->len))
+	{
+		ECHO(DEBUG_LINK_MODE,"写下位机参数：起始地址：%d 长度：%d\r\n",pRxFrame->start_addr,pRxFrame->len);
+		
+		g_linkMode.flagUpdateSystemParameter = SET;
+	}
+	else
+	{
+		ECHO(DEBUG_LINK_MODE,"写下位机参数：地址溢出！\r\n");
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : PRV_UpdateParameter
+ * Description    : 更新特权参数
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void PRV_UpdateParameter(const uint8_t * const pReceiveData )
+{
+	const CMD_WRITE_PRM_TypeDef * pRxFrame = (const CMD_WRITE_PRM_TypeDef *)pReceiveData;
+
+	if (SUCCESS == prv_write((const uint8_t *)&pRxFrame->start_byte,pRxFrame->start_addr,pRxFrame->len))
+	{
+		ECHO(DEBUG_LINK_MODE,"写特权参数：起始地址：%d 长度：%d\r\n",pRxFrame->start_addr,pRxFrame->len);
+		
+		g_linkMode.flagUpdateSystemParameter = SET;
+	}
+	else
+	{
+		ECHO(DEBUG_LINK_MODE,"写特权参数：地址溢出！\r\n");
+	}
+}
+
+/*------------------------------------------------------------
  * Function Name  : UDP_GetPackageCycle
  * Description    : 获取UDP数据包
  * Input          : None
@@ -440,14 +494,30 @@ static void UDP_GetPackageCycle( void )
 				break;
 			}
 			
-			if (CMD_SIGN_OFF == UDP_GetCmd((UDP_HEAD_Typdef *)pHead))
+			switch ( UDP_GetCmd((UDP_HEAD_Typdef *)pHead) )
 			{
-				g_linkMode.leavePage.flagLeavePage = SET;
-				g_linkMode.leavePage.flagSaveData = SET;
+				case CMD_SIGN_OFF:
+					g_linkMode.leavePage.flagLeavePage = SET;
+					g_linkMode.leavePage.flagSaveData = SET;
 				
-				ECHO(DEBUG_LINK_MODE,"UDP->UART：退出联机模式！\r\n");
-				
-				break;
+					ECHO(DEBUG_LINK_MODE,"UDP->UART：退出联机模式！\r\n");
+					return;
+				case CMD_WRITE_PRM:
+					{
+						const UDP_HEAD_Typdef * p = (UDP_HEAD_Typdef *)pHead;
+						
+						PRM_UpdateParameter((const uint8_t *)(&p->data));
+					}
+					break;
+				case CMD_WRITE_PRV:
+					{
+						const UDP_HEAD_Typdef * p = (UDP_HEAD_Typdef *)pHead;
+						
+						PRV_UpdateParameter((const uint8_t *)(&p->data));
+					}
+					break;
+				default:
+					break;
 			}
 			
 			UDPConvUSARTFormate(pHead);
@@ -499,7 +569,6 @@ void USART_GetPackageCycle( void )
 		{	
 			sample_cycle();
 		}
-
 			
 		if (ERROR == uart_check() )	
 		{			 

@@ -158,7 +158,7 @@ static void ControlParameterShortcutCycleTask( void );
 static void ControlParameterKeyProcess( void );
 static void ControlParameterWriteParameter( void );
 static void ControlParameterLeavePageCheckCycle( void );
-static TestStatus ControlParameterCheckDataCycle( void );
+static TestStatus ControlParameterCheckData( uint8_t index );
 static void ControlParameterStatusProcess( void );
 
 
@@ -1366,7 +1366,7 @@ static void ControlParameterKeyProcess( void )
 					default:
 						break;
 				}
-				if (FAILED == ControlParameterCheckDataCycle() )
+				if (FAILED == ControlParameterCheckData(index) )
 				{
 					g_controlParameter.leavePage.flagLeavePage = SET;
 					g_controlParameter.leavePage.flagSaveData = RESET;
@@ -1428,13 +1428,19 @@ static void ControlParameterLeavePageCheckCycle( void )
 	{
 		if (g_controlParameter.leavePage.flagSaveData == SET)
 		{
-			if (FAILED == ControlParameterCheckDataCycle() )
+			uint8_t i;
+			
+			for (i=0; i<g_controlParameter.curParameterNum; ++i)
 			{
-				SetPage(CONTROL_PARAMETER);
-				PopWindowsProcessCycle();
-				
-				return;
+				if (FAILED == ControlParameterCheckData(i) )
+				{
+					SetPage(CONTROL_PARAMETER);
+					PopWindowsProcessCycle();
+					
+					return;
+				}
 			}
+			
 			ControlParameterWriteParameter();
 			
 			SetLssuedParameter();
@@ -1443,217 +1449,218 @@ static void ControlParameterLeavePageCheckCycle( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : ControlParameterCheckDataCycle
+ * Function Name  : ControlParameterCheckData
  * Description    : ¼ì²âÊý¾Ý
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static TestStatus ControlParameterCheckDataCycle( void )
+static TestStatus ControlParameterCheckData( uint8_t index )
 {
-	uint8_t index;
 	float tempf = 0;
 	uint32_t tempu = 0;
 	uint8_t handle = 0;
 	
-	for (index=0; index<g_controlParameter.curParameterNum; ++index)
+	if (index >= g_controlParameter.curParameterNum)
 	{
-		handle = g_controlParameter.indexArray[index];
+		return PASSED;
+	}
+	
+	handle = g_controlParameter.indexArray[index];
+	
+	switch (handle)
+	{
+		case OBJECT_SYSTEM_MAX_VALUE:
+			tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+			
+			switch ( g_controlParameter.curChannel )
+			{
+				case SMPL_FH_NUM:	
+					if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
+					{
+						tempu *= 1000;
+						
+						if ((tempu < 10000) || (tempu > 10000000))
+						{
+							SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[0]);
+							
+							return FAILED;
+						}
+					}
+					else
+					{
+						if ((tempu < 10000) || (tempu > 100000))
+						{
+							SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[0]);
+							
+							return FAILED;
+						}
+					}	
+					break;
+				case SMPL_WY_NUM:
+					switch ( g_controlParameter.wyChannelUnit )
+					{
+						case WY_UNIT_MM:						
+							break;
+						case WY_UNIT_CM:
+							tempu *= 10; 	
+							break;
+						case WY_UNIT_DM:
+							tempu *= 100;	
+							break;
+						case WY_UNIT_M:
+							tempu *= 1000;	
+							break; 
+						default:
+							break;
+					}
+					
+					if ((tempu < 1) || (tempu > 10000))
+					{
+						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfo[0]);
+						
+						return FAILED;
+					}	
+					break;
+				case SMPL_BX_NUM:
+					switch ( g_controlParameter.bxChannelUnit )
+					{
+						case BX_UNIT_MM:						
+							break;
+						case BX_UNIT_CM:
+							tempu *= 10; 	
+							break;
+						case BX_UNIT_DM:
+							tempu *= 100;	
+							break;
+						case BX_UNIT_M:
+							tempu *= 1000;	
+							break; 
+						default:
+							break;
+					}
+			
+					if ((tempu < 1) || (tempu > 10000))
+					{
+						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfo[2]);
+						
+						return FAILED;
+					}	
+					break;
+				default:
+					break;
+			}
+			break;
+		case OBJECT_LOAD_START_VALUE:
+			tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+			
+			if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
+			{
+				tempu *= 1000;
+				
+				if ((tempu < 1000) || (tempu > 100000))
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[2]);
+					
+					return FAILED;
+				}
+			}
+			else
+			{
+				if ((tempu < 1) || (tempu > 10000))
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[2]);
+					
+					return FAILED;
+				}
+			}
+			break;
+		case OBJECT_CURVE_SHOW_START_VALUE:
+			tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+			if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
+			{
+				tempu *= 1000;
+				if ((tempu < 1000) || (tempu > 100000))
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[4]);
+					
+					return FAILED;
+				}
+			}
+			else
+			{
+				if ((tempu < 1) || (tempu > 10000))
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[4]);
+					
+					return FAILED;
+				}
+			}
+			break;
+		case OBJECT_BREAK_START_FORCE:
+			tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+			if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
+			{
+				tempu *= 1000;
+				if ((tempu < 1000) || (tempu > 1000000))
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[6]);
+					
+					return FAILED;
+				}
+			}
+			else
+			{
+				if ((tempu < 1) || (tempu > 10000))
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[6]);
+					
+					return FAILED;
+				}
+			}
+			break;
+		case OBJECT_BREAK_DOWM_POINT:
+			tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+			if ((tempu < 1) || (tempu > 100))
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[8]);
+				
+				return FAILED;
+			}
+			break;
 		
-		switch (handle)
-		{
-			case OBJECT_SYSTEM_MAX_VALUE:
-				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+		case OBJECT_FORCE_DECAY_RATE:
+			tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+			if ((tempu < 1) || (tempu > 100))
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[12]);
 				
-				switch ( g_controlParameter.curChannel )
+				return FAILED;
+			}
+			break;
+		
+		case OBJECT_MAX_FORCE_DIFF:
+			tempf = str2float(g_controlParameter.parameterData[index]);
+			if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
+			{
+				tempf *= 1000;
+				if ((tempf < 100) || (tempf > 100000))
 				{
-					case SMPL_FH_NUM:	
-						if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
-						{
-							tempu *= 1000;
-							
-							if ((tempu < 10000) || (tempu > 10000000))
-							{
-								SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[0]);
-								
-								return FAILED;
-							}
-						}
-						else
-						{
-							if ((tempu < 10000) || (tempu > 100000))
-							{
-								SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[0]);
-								
-								return FAILED;
-							}
-						}	
-						break;
-					case SMPL_WY_NUM:
-						switch ( g_controlParameter.wyChannelUnit )
-						{
-							case WY_UNIT_MM:						
-								break;
-							case WY_UNIT_CM:
-								tempu *= 10; 	
-								break;
-							case WY_UNIT_DM:
-								tempu *= 100;	
-								break;
-							case WY_UNIT_M:
-								tempu *= 1000;	
-								break; 
-							default:
-								break;
-						}
-						
-						if ((tempu < 1) || (tempu > 10000))
-						{
-							SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfo[0]);
-							
-							return FAILED;
-						}	
-						break;
-					case SMPL_BX_NUM:
-						switch ( g_controlParameter.bxChannelUnit )
-						{
-							case BX_UNIT_MM:						
-								break;
-							case BX_UNIT_CM:
-								tempu *= 10; 	
-								break;
-							case BX_UNIT_DM:
-								tempu *= 100;	
-								break;
-							case BX_UNIT_M:
-								tempu *= 1000;	
-								break; 
-							default:
-								break;
-						}
-				
-						if ((tempu < 1) || (tempu > 10000))
-						{
-							SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfo[2]);
-							
-							return FAILED;
-						}	
-						break;
-					default:
-						break;
-				}
-				break;
-			case OBJECT_LOAD_START_VALUE:
-				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				
-				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
-				{
-					tempu *= 1000;
-					
-					if ((tempu < 1000) || (tempu > 100000))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[2]);
-						
-						return FAILED;
-					}
-				}
-				else
-				{
-					if ((tempu < 1) || (tempu > 10000))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[2]);
-						
-						return FAILED;
-					}
-				}
-				break;
-			case OBJECT_CURVE_SHOW_START_VALUE:
-				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
-				{
-					tempu *= 1000;
-					if ((tempu < 1000) || (tempu > 100000))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[4]);
-						
-						return FAILED;
-					}
-				}
-				else
-				{
-					if ((tempu < 1) || (tempu > 10000))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[4]);
-						
-						return FAILED;
-					}
-				}
-				break;
-			case OBJECT_BREAK_START_FORCE:
-				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
-				{
-					tempu *= 1000;
-					if ((tempu < 1000) || (tempu > 1000000))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[6]);
-						
-						return FAILED;
-					}
-				}
-				else
-				{
-					if ((tempu < 1) || (tempu > 10000))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[6]);
-						
-						return FAILED;
-					}
-				}
-				break;
-			case OBJECT_BREAK_DOWM_POINT:
-				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if ((tempu < 1) || (tempu > 100))
-				{
-					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[8]);
+					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[10]);
 					
 					return FAILED;
 				}
-				break;
-			
-			case OBJECT_FORCE_DECAY_RATE:
-				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if ((tempu < 1) || (tempu > 100))
+			}
+			else
+			{
+				if ((tempf < 1) || (tempf > 10000))
 				{
-					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[12]);
+					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[10]);
 					
 					return FAILED;
 				}
-				break;
-			
-			case OBJECT_MAX_FORCE_DIFF:
-				tempf = str2float(g_controlParameter.parameterData[index]);
-				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
-				{
-					tempf *= 1000;
-					if ((tempf < 100) || (tempf > 100000))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[10]);
-						
-						return FAILED;
-					}
-				}
-				else
-				{
-					if ((tempf < 1) || (tempf > 10000))
-					{
-						SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[10]);
-						
-						return FAILED;
-					}
-				}
-				break;
-		}
+			}
+			break;
 	}
 	
 	return PASSED;

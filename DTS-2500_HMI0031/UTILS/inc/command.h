@@ -65,7 +65,7 @@
 #define		CMD_PC_READ						0x0011				//读取PC管理的存储区
 #define		CMD_PC_WRITE					0x0012				//写入PC管理的存储区
 #define		CMD_OPEN_LOOP_EX 				0x0111				//扩展的开度命令
-#define	    CMD_SIGN_OFF						0x00FE				//断开连接
+#define	    CMD_SIGN_OFF					0x00FE				//断开连接
  
  
 //骆挺增加的命令

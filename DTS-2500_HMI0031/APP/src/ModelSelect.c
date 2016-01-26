@@ -111,8 +111,8 @@ const char * const pModelSelectErrorCue[] =
 
 const char * const pModelSelectMenuCue[] = 
 {
-	"  重启  ",
-	"  取消  ",
+	"  重 启  ",
+	"  取 消  ",
 };
 	
 /* Private macro -------------------------------------------------------------*/

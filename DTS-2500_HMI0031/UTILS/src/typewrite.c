@@ -265,6 +265,25 @@ static void JudgePutinValidStatus( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : GeneralSampleTask
+ * Description    : 通用采样任务
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void GeneralSampleTask( void )
+{
+	switch ( GetPageName() )
+	{
+		case LINK_PAGE:
+			break;
+		default:
+			comm_cycle();
+			break;
+	}
+}
+
+/*------------------------------------------------------------
  * Function Name  : PutinProcessCycle
  * Description    : 输入法处理循环
  * Input          : None
@@ -282,14 +301,17 @@ void PutinProcessCycle( void )
 	/* 输入有效性检测任务 */
 	JudgePutinValidStatus();
 	
+	/* 采样任务 */
+	GeneralSampleTask();
+	
 	/* 通讯小灯任务 */
 	CommucationLampTask();
 	
-	/* 油泵状态灯任务 */
-	PumpStatusLampTask();
-	
 	/* 执行机构任务 */
 	ExecuteTask();
+	
+	/* 油泵状态灯任务 */
+	PumpStatusLampTask();
 	
 	#if 0
 		/* 警告检测 */
