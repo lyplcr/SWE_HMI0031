@@ -13,9 +13,9 @@
 #include "isqrt.h"
 #include "ustring.h"
 
+#include "config.h"
 #include "MY_DEBUG.H"
 
-#include "config.h"
 #include "diskio.h"
 #include "ff.h"
 
@@ -47,8 +47,6 @@
 /* FATFS…Ë±∏ */
 #define MMC		0
 #define USB		1
-
-//#define ENABLE_BEEP
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

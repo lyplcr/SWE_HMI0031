@@ -44,8 +44,8 @@
 ..\output\obj\controlparameter.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\controlparameter.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\controlparameter.o: ..\UTILS\inc\ustring.h
-..\output\obj\controlparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\controlparameter.o: ..\UTILS\inc\config.h
+..\output\obj\controlparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\controlparameter.o: ..\FATFS\diskio.h
 ..\output\obj\controlparameter.o: ..\FATFS\integer.h
 ..\output\obj\controlparameter.o: ..\FATFS\ff.h

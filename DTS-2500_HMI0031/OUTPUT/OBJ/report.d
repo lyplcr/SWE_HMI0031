@@ -43,8 +43,8 @@
 ..\output\obj\report.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\report.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\report.o: ..\UTILS\inc\ustring.h
-..\output\obj\report.o: ..\USER\MY_DEBUG.H
 ..\output\obj\report.o: ..\UTILS\inc\config.h
+..\output\obj\report.o: ..\USER\MY_DEBUG.H
 ..\output\obj\report.o: ..\FATFS\diskio.h
 ..\output\obj\report.o: ..\FATFS\integer.h
 ..\output\obj\report.o: ..\FATFS\ff.h

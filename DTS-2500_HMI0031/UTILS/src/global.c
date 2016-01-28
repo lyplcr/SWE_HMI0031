@@ -851,6 +851,31 @@ void RefreshDynamicCode( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t b
 }
 
 /*------------------------------------------------------------
+ * Function Name  : RefreshDynamicDoubleCode
+ * Description    : 刷新2个码值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void RefreshDynamicDoubleCode( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, int32_t code1, int32_t code2 )
+{
+	char showBuff[10];
+	const uint8_t FONT_SIZE = 16;
+	
+	usprintf(showBuff,"%07d",code1);
+	GUI_DispStr16At(x,y,pointColor,backColor,showBuff);
+	
+	x += 8 * (FONT_SIZE >> 1);
+	
+	GUI_DispStr16At(x,y,pointColor,backColor,"┇");//┇Ψ
+	
+	x += 3 * (FONT_SIZE >> 1);
+	
+	usprintf(showBuff,"%07d",code2);
+	GUI_DispStr16At(x,y,pointColor,backColor,showBuff);
+}
+
+/*------------------------------------------------------------
  * Function Name  : RefreshDynamicSystemTime
  * Description    : 刷新系统时间
  * Input          : None
@@ -935,7 +960,9 @@ void InitInterfaceElement( void )
 	g_interfaceElement.peak = 0;
 	g_interfaceElement.linkStatus = LINK_IDLE;
 	g_interfaceElement.testStatus = TEST_IDLE;
-	g_interfaceElement.code = 0;
+	g_interfaceElement.fhCode = 0;
+	g_interfaceElement.wyCode = 0;
+	g_interfaceElement.bxCode = 0;
 	g_interfaceElement.usbConnect = NO;
 	g_interfaceElement.ethernetConnect = NO;
 }
@@ -1073,15 +1100,39 @@ void SetInterfaceCalibrationStatus( CALIBRATION_STATUS_TypeDef calibrationStatus
 }
 
 /*------------------------------------------------------------
- * Function Name  : SetInterfaceElementCode
- * Description    : 设置界面码值
+ * Function Name  : SetInterfaceElementFHCode
+ * Description    : 设置界面负荷通道码值
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-void SetInterfaceElementCode( int32_t code )
+void SetInterfaceElementFHCode( int32_t code )
 {
-	g_interfaceElement.code = code;
+	g_interfaceElement.fhCode = code;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetInterfaceElementWYCode
+ * Description    : 设置界面位移通道码值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetInterfaceElementWYCode( int32_t code )
+{
+	g_interfaceElement.wyCode = code;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SetInterfaceElementBXCode
+ * Description    : 设置界面变形通道码值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SetInterfaceElementBXCode( int32_t code )
+{
+	g_interfaceElement.bxCode = code;
 }
 
 /*------------------------------------------------------------
@@ -1247,9 +1298,26 @@ CALIBRATION_STATUS_TypeDef GetInterfaceCalibrationStatus( void )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-int32_t GetInterfaceElementCode( void )
+int32_t GetInterfaceElementCode( SMPL_NAME_TypeDef tureChannel )
 {
-	return g_interfaceElement.code;
+	int32_t code = 0;
+	
+	switch ( tureChannel )
+	{
+		case SMPL_FH_NUM:
+			code = g_interfaceElement.fhCode;
+			break;
+		case SMPL_WY_NUM:
+			code = g_interfaceElement.wyCode;
+			break;
+		case SMPL_BX_NUM:
+			code = g_interfaceElement.bxCode;
+			break;
+		default:
+			break;
+	}
+	
+	return code;
 }
 
 /*------------------------------------------------------------
@@ -1323,14 +1391,14 @@ void GUI_DrawCoordinate( COORDINATE_TypeDef *pCoordinate )
 	lcd_draw_dashed_frame(dashed_frame);	
 	
 	/* 轴线 */
-	lcd_fill(pCoordinate->x,pCoordinate->y+pCoordinate->yLenth,pCoordinate->xLenth,\
+	lcd_fill(pCoordinate->x-5,pCoordinate->y+pCoordinate->yLenth,pCoordinate->xLenth+10,\
 			pCoordinate->lineWidth,pCoordinate->xLinePointColor);
-	lcd_fill(pCoordinate->x,pCoordinate->y,pCoordinate->lineWidth,pCoordinate->yLenth,\
+	lcd_fill(pCoordinate->x,pCoordinate->y-5,pCoordinate->lineWidth,pCoordinate->yLenth+10,\
 			pCoordinate->yLinePointColor);
-	lcd_fill(pCoordinate->x,pCoordinate->y,pCoordinate->xLenth,\
-			pCoordinate->lineWidth,pCoordinate->xLinePointColor);
-	lcd_fill(pCoordinate->x+pCoordinate->xLenth,pCoordinate->y,pCoordinate->lineWidth,pCoordinate->yLenth,\
-			pCoordinate->yLinePointColor);
+//	lcd_fill(pCoordinate->x,pCoordinate->y,pCoordinate->xLenth,\
+//			pCoordinate->lineWidth,pCoordinate->xLinePointColor);
+//	lcd_fill(pCoordinate->x+pCoordinate->xLenth,pCoordinate->y,pCoordinate->lineWidth,pCoordinate->yLenth,\
+//			pCoordinate->yLinePointColor);
 			
 	/* 限制条件 */
 	if (pCoordinate->maxTime < 20)
@@ -2346,7 +2414,22 @@ void SetDynamicContentLinkStatus( void )
  *------------------------------------------------------------*/
 void SetDynamicContentCode( SMPL_NAME_TypeDef tureChannel )
 {
-	SetInterfaceElementCode(GetSammpleCode(tureChannel));
+	int32_t code = GetSammpleCode(tureChannel);
+	
+	switch ( tureChannel )
+	{
+		case SMPL_FH_NUM:
+			SetInterfaceElementFHCode(code);
+			break;
+		case SMPL_WY_NUM:
+			SetInterfaceElementWYCode(code);
+			break;
+		case SMPL_BX_NUM:
+			SetInterfaceElementBXCode(code);
+			break;
+		default:
+			break;
+	}	
 }
 
 /*------------------------------------------------------------

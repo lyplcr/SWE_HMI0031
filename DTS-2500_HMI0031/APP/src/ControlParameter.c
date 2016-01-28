@@ -89,6 +89,8 @@ const char * const pCntrolParameterName[] =
 	"B:与最大力差值：",	//7
 	"位移满量程：",		//8
 	"变形满量程：",		//9
+	"加载起始位移：",	//10
+	"加载起始变形：",	//11
 };
 
 const char * const ControlParamErrInfoKN[] = 
@@ -133,6 +135,8 @@ const char * const ControlParamErrInfo[] =
 	"(1 ~ 10000)",
 	"变形满量程输入范围：",		//2
 	"(1 ~ 10000)",
+	"加载起始位移不能为0！",		//4
+	"加载起始变形不能为0！",		//5
 };
 
 const char * const ControlParameterCondition[] = 
@@ -381,28 +385,34 @@ static void ControlParameterConfig( void )
 			break;
 		case SMPL_WY_NUM:
 			/* 个数 */
-			g_controlParameter.curParameterNum = 1;	
+			g_controlParameter.curParameterNum = 2;	
 		
 			/* 索引值 */
 			g_controlParameter.indexArray[INDEX_SYSTEM_MAX_VALUE] 					= OBJECT_SYSTEM_MAX_VALUE;
+			g_controlParameter.indexArray[INDEX_LOAD_START_VALUE] 					= OBJECT_LOAD_START_VALUE;
 			
 			/* 参数名称 */
 			g_controlParameter.pParameterNameArray[INDEX_SYSTEM_MAX_VALUE] 			= pCntrolParameterName[8];
-
+			g_controlParameter.pParameterNameArray[INDEX_LOAD_START_VALUE] 			= pCntrolParameterName[10];
+		
 			/* 单位 */
 			switch ( g_controlParameter.wyChannelUnit )
 			{
 				case WY_UNIT_MM:
 					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[4];	
+					g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE]  = pUnitType[4];
 					break;
 				case WY_UNIT_CM:
-					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[12];		
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[12];
+					g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE]  = pUnitType[12];
 					break;
 				case WY_UNIT_DM:
-					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[13];		
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[13];
+					g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE]  = pUnitType[13];
 					break;
 				case WY_UNIT_M:
-					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[14];		
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[14];
+					g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE]  = pUnitType[14];
 					break; 
 				default:
 					break;
@@ -410,43 +420,54 @@ static void ControlParameterConfig( void )
 			
 			/* 数据保存类型 */
 			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].saveType 		= TYPE_INT;
+			g_controlParameter.oneLevelMenu[INDEX_LOAD_START_VALUE].saveType 		= TYPE_FLOAT;
 
 			/* 小数点位数 */
 			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].pointBit 		= 0;
+			g_controlParameter.oneLevelMenu[INDEX_LOAD_START_VALUE].pointBit 		= 1;
 			
 			/* 二级菜单类型 */
 			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+			g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].parameterType 	= IMMEDIATELY_PUTIN_NONE;
 			
 			/* 二级菜单参数名 */
 			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].pParameterNameArray = NULL;
+			g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].pParameterNameArray = NULL;
 			
 			/* 二级菜单参数个数 */
 			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterCnt = 0;
+			g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].parameterCnt = 0;
 			break;
 		case SMPL_BX_NUM:
 			/* 个数 */
-			g_controlParameter.curParameterNum = 1;	
+			g_controlParameter.curParameterNum = 2;	
 		
 			/* 索引值 */
 			g_controlParameter.indexArray[INDEX_SYSTEM_MAX_VALUE] 					= OBJECT_SYSTEM_MAX_VALUE;
-			
+			g_controlParameter.indexArray[INDEX_LOAD_START_VALUE]					= OBJECT_LOAD_START_VALUE;
+		
 			/* 参数名称 */
 			g_controlParameter.pParameterNameArray[INDEX_SYSTEM_MAX_VALUE] 			= pCntrolParameterName[9];
+			g_controlParameter.pParameterNameArray[INDEX_LOAD_START_VALUE] 			= pCntrolParameterName[11];
 
 			/* 单位 */
 			switch ( g_controlParameter.bxChannelUnit )
 			{
 				case BX_UNIT_MM:
-					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[4];	
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[4];
+					g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE]  = pUnitType[4];
 					break;
 				case BX_UNIT_CM:
-					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[12];		
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[12];
+					g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE]  = pUnitType[12];
 					break;
 				case BX_UNIT_DM:
-					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[13];		
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[13];
+					g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE]  = pUnitType[13];
 					break;
 				case BX_UNIT_M:
-					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[14];		
+					g_controlParameter.pParameterUnitArray[INDEX_SYSTEM_MAX_VALUE] 	= pUnitType[14];
+					g_controlParameter.pParameterUnitArray[INDEX_LOAD_START_VALUE]  = pUnitType[14];
 					break; 
 				default:
 					break;
@@ -454,18 +475,23 @@ static void ControlParameterConfig( void )
 			
 			/* 数据保存类型 */
 			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].saveType 		= TYPE_INT;
+			g_controlParameter.oneLevelMenu[INDEX_LOAD_START_VALUE].saveType 		= TYPE_FLOAT;
 
 			/* 小数点位数 */
 			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].pointBit 		= 0;
+			g_controlParameter.oneLevelMenu[INDEX_LOAD_START_VALUE].pointBit 		= 1;
 			
 			/* 二级菜单类型 */
 			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+			g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].parameterType 	= IMMEDIATELY_PUTIN_NONE;
 			
 			/* 二级菜单参数名 */
 			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].pParameterNameArray = NULL;
+			g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].pParameterNameArray = NULL;
 			
 			/* 二级菜单参数个数 */
-			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterCnt = 0;	
+			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterCnt = 0;
+			g_controlParameter.twoLevelMenu[INDEX_LOAD_START_VALUE].parameterCnt = 0;
 			break;
 		default:
 			break;
@@ -739,6 +765,29 @@ static void ControlParameterReadParameter( void )
 				}
 				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
 			}	
+			
+			index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
+			if (index != 0xff)
+			{
+				tempf = smpl_ctrl_entry_get(g_controlParameter.curChannel);
+				switch ( g_controlParameter.wyChannelUnit )
+				{
+					case WY_UNIT_MM:						
+						break;
+					case WY_UNIT_CM:
+						tempf /= 10; 	
+						break;
+					case WY_UNIT_DM:
+						tempf /= 100;	
+						break;
+					case WY_UNIT_M:
+						tempf /= 1000;	
+						break; 
+					default:
+						break;
+				}
+				floattochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,g_controlParameter.oneLevelMenu[index].pointBit,tempf,g_controlParameter.parameterData[index]);
+			}
 			break;
 		case SMPL_BX_NUM:
 			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
@@ -762,7 +811,30 @@ static void ControlParameterReadParameter( void )
 						break;
 				}
 				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,(uint32_t)tempf,g_controlParameter.parameterData[index]);
-			}	
+			}
+
+			index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
+			if (index != 0xff)
+			{
+				tempf = smpl_ctrl_entry_get(g_controlParameter.curChannel);
+				switch ( g_controlParameter.bxChannelUnit )
+				{
+					case BX_UNIT_MM:						
+						break;
+					case BX_UNIT_CM:
+						tempf /= 10; 	
+						break;
+					case BX_UNIT_DM:
+						tempf /= 100;	
+						break;
+					case BX_UNIT_M:
+						tempf /= 1000;	
+						break; 
+					default:
+						break;
+				}
+				floattochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,g_controlParameter.oneLevelMenu[index].pointBit,tempf,g_controlParameter.parameterData[index]);
+			}
 			break;
 		default:
 			break;
@@ -891,7 +963,30 @@ static void ControlParameterWriteParameter( void )
 						break;
 				}
 				smpl_ctrl_full_p_set(g_controlParameter.curChannel,tempu);
-			}	
+			}
+
+			index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
+			if (index != 0xff)
+			{
+				tempf = str2float(g_controlParameter.parameterData[index]);
+				switch ( g_controlParameter.wyChannelUnit )
+				{
+					case WY_UNIT_MM:						
+						break;
+					case WY_UNIT_CM:
+						tempf *= 10; 	
+						break;
+					case WY_UNIT_DM:
+						tempf *= 100;	
+						break;
+					case WY_UNIT_M:
+						tempf *= 1000;	
+						break; 
+					default:
+						break;
+				}
+				smpl_ctrl_entry_set(g_controlParameter.curChannel,tempf);
+			}
 			break;
 		case SMPL_BX_NUM:
 			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
@@ -915,7 +1010,30 @@ static void ControlParameterWriteParameter( void )
 						break;
 				}
 				smpl_ctrl_full_p_set(g_controlParameter.curChannel,tempu);
-			}	
+			}
+
+			index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
+			if (index != 0xff)
+			{
+				tempf = str2float(g_controlParameter.parameterData[index]);
+				switch ( g_controlParameter.bxChannelUnit )
+				{
+					case BX_UNIT_MM:						
+						break;
+					case BX_UNIT_CM:
+						tempf *= 10; 	
+						break;
+					case BX_UNIT_DM:
+						tempf *= 100;	
+						break;
+					case BX_UNIT_M:
+						tempf *= 1000;	
+						break; 
+					default:
+						break;
+				}
+				smpl_ctrl_entry_set(g_controlParameter.curChannel,tempf);
+			}
 			break;
 		default:
 			break;
@@ -1552,27 +1670,88 @@ static TestStatus ControlParameterCheckData( uint8_t index )
 			}
 			break;
 		case OBJECT_LOAD_START_VALUE:
-			tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+			switch ( g_controlParameter.curChannel )
+			{
+				case SMPL_FH_NUM:
+					tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
 			
-			if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
-			{
-				tempu *= 1000;
+					if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
+					{
+						tempu *= 1000;
+						
+						if ((tempu < 1000) || (tempu > 100000))
+						{
+							SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[2]);
+							
+							return FAILED;
+						}
+					}
+					else
+					{
+						if ((tempu < 1) || (tempu > 10000))
+						{
+							SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[2]);
+							
+							return FAILED;
+						}
+					}
+					break;
+				case SMPL_WY_NUM:
+					tempf = str2float(g_controlParameter.parameterData[index]);
 				
-				if ((tempu < 1000) || (tempu > 100000))
-				{
-					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[2]);
+					switch ( g_controlParameter.wyChannelUnit )
+					{
+						case WY_UNIT_MM:						
+							break;
+						case WY_UNIT_CM:
+							tempf *= 10; 	
+							break;
+						case WY_UNIT_DM:
+							tempf *= 100;	
+							break;
+						case WY_UNIT_M:
+							tempf *= 1000;	
+							break; 
+						default:
+							break;
+					}
 					
-					return FAILED;
-				}
-			}
-			else
-			{
-				if ((tempu < 1) || (tempu > 10000))
-				{
-					SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoN[2]);
+					if ((fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE))
+					{
+						SetPopWindowsInfomation(POP_PCM_CUE,1,&ControlParamErrInfo[4]);
+						
+						return FAILED;
+					}
+					break;
+				case SMPL_BX_NUM:
+					tempf = str2float(g_controlParameter.parameterData[index]);
+				
+					switch ( g_controlParameter.bxChannelUnit )
+					{
+						case BX_UNIT_MM:						
+							break;
+						case BX_UNIT_CM:
+							tempf *= 10; 	
+							break;
+						case BX_UNIT_DM:
+							tempf *= 100;	
+							break;
+						case BX_UNIT_M:
+							tempf *= 1000;	
+							break; 
+						default:
+							break;
+					}
 					
-					return FAILED;
-				}
+					if ((fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE))
+					{
+						SetPopWindowsInfomation(POP_PCM_CUE,1,&ControlParamErrInfo[5]);
+						
+						return FAILED;
+					}
+					break;
+				default:
+					break;
 			}
 			break;
 		case OBJECT_CURVE_SHOW_START_VALUE:

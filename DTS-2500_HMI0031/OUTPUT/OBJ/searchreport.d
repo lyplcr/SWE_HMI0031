@@ -44,8 +44,8 @@
 ..\output\obj\searchreport.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\searchreport.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\searchreport.o: ..\UTILS\inc\ustring.h
-..\output\obj\searchreport.o: ..\USER\MY_DEBUG.H
 ..\output\obj\searchreport.o: ..\UTILS\inc\config.h
+..\output\obj\searchreport.o: ..\USER\MY_DEBUG.H
 ..\output\obj\searchreport.o: ..\FATFS\diskio.h
 ..\output\obj\searchreport.o: ..\FATFS\integer.h
 ..\output\obj\searchreport.o: ..\FATFS\ff.h

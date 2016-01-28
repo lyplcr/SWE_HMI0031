@@ -118,7 +118,9 @@ typedef struct
 	LINK_STATUS_TypeDef linkStatus;
 	TEST_STATUS_TypeDef testStatus;
 	CALIBRATION_STATUS_TypeDef calibrationStatus;
-	int32_t code;
+	int32_t fhCode;
+	int32_t wyCode;
+	int32_t bxCode;
 	BoolStatus usbConnect;
 	BoolStatus ethernetConnect;
 }INTERFACE_ELEMENT_TypeDef;
@@ -171,7 +173,9 @@ typedef struct
 typedef enum
 {
 	STATUS_DRAW_LINE_IDLE = 0,
+	STATUS_DRAW_LINE_START,
 	STATUS_DRAW_LINE_LOAD,
+	STATUS_DRAW_LINE_END,
 }STATUS_COORDINATE_DRAW_LINE_TypeDef;
 
 typedef struct
@@ -325,7 +329,9 @@ void SetInterfaceElementPeak( float peak );
 void SetInterfaceLinkStatus( LINK_STATUS_TypeDef linkStatus );
 void SetInterfaceCalibrationStatus( CALIBRATION_STATUS_TypeDef calibrationStatus );
 void SetInterfaceTestStatus( TEST_STATUS_TypeDef testStatus );
-void SetInterfaceElementCode( int32_t code );
+void SetInterfaceElementFHCode( int32_t code );
+void SetInterfaceElementWYCode( int32_t code );
+void SetInterfaceElementBXCode( int32_t code );
 void SetInterfaceElementUSBStatus( BoolStatus usbConnect );
 void SetInterfaceElementEthernetConnectStatus( BoolStatus ethernetConnect );
 float GetInterfaceElementForce( void );
@@ -339,13 +345,14 @@ float GetInterfaceElementPeak( void );
 LINK_STATUS_TypeDef GetInterfaceLinkStatus( void );
 TEST_STATUS_TypeDef GetInterfaceTestStatus( void );
 CALIBRATION_STATUS_TypeDef GetInterfaceCalibrationStatus( void );
-int32_t GetInterfaceElementCode( void );
+int32_t GetInterfaceElementCode( SMPL_NAME_TypeDef tureChannel );
 BoolStatus GetInterfaceElementUSBStatus( void );
 BoolStatus GetInterfaceElementEthernetConnectStatus( void );
 void RefreshDynamicCommunicationStatus( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, LINK_STATUS_TypeDef linkStatus );
 void RefreshDynamicTestStatus( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, TEST_STATUS_TypeDef testStatus );
 void RefreshDynamicCalibrationStatus( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, CALIBRATION_STATUS_TypeDef calibrationStatus );
 void RefreshDynamicCode( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, int32_t code );
+void RefreshDynamicDoubleCode( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, int32_t code1, int32_t code2 );
 void RefreshDynamicSystemTime( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor );
 void RefreshDynamicEthernetIco( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, BoolStatus ethernetConnect );
 void RefreshDynamicUSBIco( uint16_t x, uint16_t y, uint16_t pointColor, uint16_t backColor, BoolStatus usbConnect );

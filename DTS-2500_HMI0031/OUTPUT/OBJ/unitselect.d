@@ -44,8 +44,8 @@
 ..\output\obj\unitselect.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\unitselect.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\unitselect.o: ..\UTILS\inc\ustring.h
-..\output\obj\unitselect.o: ..\USER\MY_DEBUG.H
 ..\output\obj\unitselect.o: ..\UTILS\inc\config.h
+..\output\obj\unitselect.o: ..\USER\MY_DEBUG.H
 ..\output\obj\unitselect.o: ..\FATFS\diskio.h
 ..\output\obj\unitselect.o: ..\FATFS\integer.h
 ..\output\obj\unitselect.o: ..\FATFS\ff.h

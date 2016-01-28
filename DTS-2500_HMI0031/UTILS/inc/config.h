@@ -13,6 +13,13 @@
 #ifndef __CONFIG_H
 #define	__CONFIG_H	
 
+/* 宏定义软件为正式版本 */
+//#define		VERSION_RELEASE	
+
+#ifdef VERSION_RELEASE
+	#define ENABLE_BEEP
+#endif
+
 #define 	USER_PROGRAM_START_ADDR	0x08020000							//应用程序起始地址
 #define		SMPL_NUM				6									//传感器通道数	  
 #define		CTRL_CHN				2   								//控制通道数

@@ -2106,7 +2106,14 @@ SAMPLE_C_TypeDef *GetSampleAddr( void )
  *------------------------------------------------------------*/
 int32_t GetSammpleCode( uint8_t channel )
 {
-	return g_sampleCycle.smpl[channel];
+	if (channel >= SMPL_NUM)
+	{
+		return 0;
+	}
+	else
+	{
+		return g_sampleCycle.smpl[channel];
+	}
 }
 
 /*------------------------------------------------------------

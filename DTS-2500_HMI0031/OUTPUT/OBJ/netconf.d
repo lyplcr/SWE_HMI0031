@@ -43,8 +43,8 @@
 ..\output\obj\netconf.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\netconf.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\netconf.o: ..\UTILS\inc\ustring.h
-..\output\obj\netconf.o: ..\USER\MY_DEBUG.H
 ..\output\obj\netconf.o: ..\UTILS\inc\config.h
+..\output\obj\netconf.o: ..\USER\MY_DEBUG.H
 ..\output\obj\netconf.o: ..\FATFS\diskio.h
 ..\output\obj\netconf.o: ..\FATFS\integer.h
 ..\output\obj\netconf.o: ..\FATFS\ff.h

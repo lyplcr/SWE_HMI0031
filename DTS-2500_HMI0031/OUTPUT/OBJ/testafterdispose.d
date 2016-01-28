@@ -44,8 +44,8 @@
 ..\output\obj\testafterdispose.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\testafterdispose.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\testafterdispose.o: ..\UTILS\inc\ustring.h
-..\output\obj\testafterdispose.o: ..\USER\MY_DEBUG.H
 ..\output\obj\testafterdispose.o: ..\UTILS\inc\config.h
+..\output\obj\testafterdispose.o: ..\USER\MY_DEBUG.H
 ..\output\obj\testafterdispose.o: ..\FATFS\diskio.h
 ..\output\obj\testafterdispose.o: ..\FATFS\integer.h
 ..\output\obj\testafterdispose.o: ..\FATFS\ff.h

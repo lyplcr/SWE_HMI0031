@@ -66,8 +66,8 @@
 ..\output\obj\ethernetif.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\ethernetif.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\ethernetif.o: ..\UTILS\inc\ustring.h
-..\output\obj\ethernetif.o: ..\USER\MY_DEBUG.H
 ..\output\obj\ethernetif.o: ..\UTILS\inc\config.h
+..\output\obj\ethernetif.o: ..\USER\MY_DEBUG.H
 ..\output\obj\ethernetif.o: ..\FATFS\diskio.h
 ..\output\obj\ethernetif.o: ..\FATFS\integer.h
 ..\output\obj\ethernetif.o: ..\FATFS\ff.h

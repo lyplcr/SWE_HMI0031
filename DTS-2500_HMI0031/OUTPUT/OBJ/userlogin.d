@@ -44,8 +44,8 @@
 ..\output\obj\userlogin.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\userlogin.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\userlogin.o: ..\UTILS\inc\ustring.h
-..\output\obj\userlogin.o: ..\USER\MY_DEBUG.H
 ..\output\obj\userlogin.o: ..\UTILS\inc\config.h
+..\output\obj\userlogin.o: ..\USER\MY_DEBUG.H
 ..\output\obj\userlogin.o: ..\FATFS\diskio.h
 ..\output\obj\userlogin.o: ..\FATFS\integer.h
 ..\output\obj\userlogin.o: ..\FATFS\ff.h

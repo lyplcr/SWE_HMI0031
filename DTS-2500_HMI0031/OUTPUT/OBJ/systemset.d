@@ -44,8 +44,8 @@
 ..\output\obj\systemset.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\systemset.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\systemset.o: ..\UTILS\inc\ustring.h
-..\output\obj\systemset.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systemset.o: ..\UTILS\inc\config.h
+..\output\obj\systemset.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systemset.o: ..\FATFS\diskio.h
 ..\output\obj\systemset.o: ..\FATFS\integer.h
 ..\output\obj\systemset.o: ..\FATFS\ff.h

@@ -44,8 +44,8 @@
 ..\output\obj\advanceparameter.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\advanceparameter.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\advanceparameter.o: ..\UTILS\inc\ustring.h
-..\output\obj\advanceparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\advanceparameter.o: ..\UTILS\inc\config.h
+..\output\obj\advanceparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\advanceparameter.o: ..\FATFS\diskio.h
 ..\output\obj\advanceparameter.o: ..\FATFS\integer.h
 ..\output\obj\advanceparameter.o: ..\FATFS\ff.h

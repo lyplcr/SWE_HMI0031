@@ -44,8 +44,8 @@
 ..\output\obj\systempassword.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\systempassword.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\systempassword.o: ..\UTILS\inc\ustring.h
-..\output\obj\systempassword.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systempassword.o: ..\UTILS\inc\config.h
+..\output\obj\systempassword.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systempassword.o: ..\FATFS\diskio.h
 ..\output\obj\systempassword.o: ..\FATFS\integer.h
 ..\output\obj\systempassword.o: ..\FATFS\ff.h

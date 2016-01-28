@@ -2236,16 +2236,16 @@ static void ConfigMainPageStatusBarOneRectangleFrameCoordinate( uint8_t fieldInd
 	switch ( handle )
 	{
 		case OBJECT_COMM_STATUS:
-			g_mainPage.oneLevelMenuStatusBar[fieldIndex].lenth = 150;
+			g_mainPage.oneLevelMenuStatusBar[fieldIndex].lenth = 130;
 			break;
 		case OBJECT_TEST_STATUS:
-			g_mainPage.oneLevelMenuStatusBar[fieldIndex].lenth = 150;
+			g_mainPage.oneLevelMenuStatusBar[fieldIndex].lenth = 130;
 			break;
 		case OBJECT_CODE:
-			g_mainPage.oneLevelMenuStatusBar[fieldIndex].lenth = 150;		
+			g_mainPage.oneLevelMenuStatusBar[fieldIndex].lenth = 210;		
 			break;
 		case OBJECT_TIME:
-			g_mainPage.oneLevelMenuStatusBar[fieldIndex].lenth = 254;	
+			g_mainPage.oneLevelMenuStatusBar[fieldIndex].lenth = 234;	
 			break;
 		case OBJECT_PERIPHERAL_STATUS:
 			g_mainPage.oneLevelMenuStatusBar[fieldIndex].lenth = 104;		
@@ -2725,7 +2725,7 @@ static void Show_MainPageOneStatusBarContent( uint8_t indexField )
 	
 //	lcd_fill(x,y,lenth,width,backColor);
 	
-	x += strlen(g_mainPage.pStatusBarTitleNameArray[indexField]) * (fontSize>>1) + 10;
+	x += strlen(g_mainPage.pStatusBarTitleNameArray[indexField]) * (fontSize>>1) + 2;
 	y += 1;
 	
 	switch ( handle )
@@ -2737,7 +2737,22 @@ static void Show_MainPageOneStatusBarContent( uint8_t indexField )
 			RefreshDynamicTestStatus(x,y,pointColor,backColor,GetInterfaceTestStatus());
 			break;
 		case OBJECT_CODE:
-			RefreshDynamicCode(x,y,pointColor,backColor,GetInterfaceElementCode());		
+			{
+				int32_t code1 = 0,code2 = 0;
+				
+				code1 = GetInterfaceElementCode(SMPL_FH_NUM);
+				
+				switch ( GetDisplacementOrDeformShow() )
+				{
+					case SHOW_DISPLACEMENT:
+						code2 = GetInterfaceElementCode(SMPL_WY_NUM);
+						break;
+					case SHOW_DEFORM:
+						code2 = GetInterfaceElementCode(SMPL_BX_NUM);
+						break;
+				}
+				RefreshDynamicDoubleCode(x,y,pointColor,backColor,code1,code2);						
+			}
 			break;
 		case OBJECT_TIME:
 			RefreshDynamicSystemTime(x,y,pointColor,backColor);
@@ -2843,8 +2858,8 @@ static void GUI_MainPageDrawCoordinate( uint32_t maxForce, uint32_t maxTime )
 	pCoordinate->columnFieldNum = 5;
 	pCoordinate->mainBackColor = COLOR_BACK;
 	pCoordinate->windowsBackColor = COLOR_BACK;
-	pCoordinate->rowLineColor = FOREST_GREEN;
-	pCoordinate->columnLineColor = FOREST_GREEN;
+	pCoordinate->rowLineColor = GREEN_LITTLE1;
+	pCoordinate->columnLineColor = BROWN_LITTLE1;
 	pCoordinate->fontPointColor = ORANGE;
 	pCoordinate->fontBackColor = COLOR_BACK;
 	pCoordinate->xLinePointColor = FRESH_GREEN;
@@ -4038,6 +4053,8 @@ static void SetDynamicContentTask( void )
 	SetDynamicContentLinkStatus();
 	SetDynamicContentTestStatus();
 	SetDynamicContentCode(SMPL_FH_NUM);
+	SetDynamicContentCode(SMPL_WY_NUM);
+	SetDynamicContentCode(SMPL_BX_NUM);
 	SetDynamicContentUSBStatus();
 	SetDynamicContentNETStatus();
 }
@@ -5753,7 +5770,7 @@ static void InitMainPageCoordinateDrawLine( void )
 	pDrawLine->maxForce = (maxForce >> 1);
 	pDrawLine->maxTime = pCoordinate->maxTime * 1000;
 	pDrawLine->nowTimePoint = 0;
-	pDrawLine->lineColor = RED;
+	pDrawLine->lineColor = CRIMSON;
 	pDrawLine->timeScalingCoefficient = 0.001;
 	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 	{
@@ -5778,16 +5795,14 @@ static void InitMainPageCoordinateDrawLine( void )
  *------------------------------------------------------------*/
 static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
-	float force = 0;
-	float curveShowStartForce = 0; 
-	
-	curveShowStartForce = GetCurveShowStartValue(SMPL_FH_NUM);
-	force = get_smpl_value(SMPL_FH_NUM);
+	float force 				= get_smpl_value(SMPL_FH_NUM);
+	float curveShowStartForce 	= GetCurveShowStartValue(SMPL_FH_NUM);
+	float startLoadForce	 	= smpl_ctrl_entry_get(SMPL_FH_NUM);
 	
 	switch ( pDrawLine->status )
 	{
 		case STATUS_DRAW_LINE_IDLE:
-			if ((GetTestStatus()==TEST_LOAD) && (force>curveShowStartForce))
+			if (force > curveShowStartForce)
 			{		
 				/* 保证采样点索引值与判破点索引值始终保持一致，
 				 * 这样，系统进行判破，屈服点操作，获取的值相同
@@ -5797,19 +5812,45 @@ static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeD
 				LoadDefaultCoordinate();
 				
 				pDrawLine->start = SET;
-				pDrawLine->status = STATUS_DRAW_LINE_LOAD;					
+				pDrawLine->status = STATUS_DRAW_LINE_START;	
+
+				ECHO(DEBUG_COORDINATE_LINE_STATUS,"开始画线！\r\n");
 			}
 			break;
-		case STATUS_DRAW_LINE_LOAD:		
-			if (GetTestStatus() == TEST_IDLE)
+		case STATUS_DRAW_LINE_START:
+			if (force > startLoadForce)
 			{
-				pDrawLine->start = RESET;
+				pDrawLine->status = STATUS_DRAW_LINE_LOAD;	
+				
+				ECHO(DEBUG_COORDINATE_LINE_STATUS,"进入加载状态！\r\n");
+			}
+			else if (force < curveShowStartForce)
+			{
 				pDrawLine->status = STATUS_DRAW_LINE_IDLE;
+				pDrawLine->start = RESET;
+
+				ECHO(DEBUG_COORDINATE_LINE_STATUS,"进入空闲状态！\r\n");
 			}
 			break;
+		case STATUS_DRAW_LINE_LOAD:	
+			if (force < curveShowStartForce)
+			{
+				pDrawLine->status = STATUS_DRAW_LINE_END;
+
+				ECHO(DEBUG_COORDINATE_LINE_STATUS,"进入结束状态！\r\n");
+			} 			
+			break;
+		case STATUS_DRAW_LINE_END:
+			pDrawLine->start = RESET;
+			pDrawLine->status = STATUS_DRAW_LINE_IDLE;
 			
+			ECHO(DEBUG_COORDINATE_LINE_STATUS,"进入空闲状态！\r\n");
+			break;
 		default:
 			pDrawLine->status = STATUS_DRAW_LINE_IDLE;
+			pDrawLine->start = RESET;
+			
+			ECHO(DEBUG_COORDINATE_LINE_STATUS,"进入空闲状态！\r\n");
 			break;
 	}
 }
@@ -5898,7 +5939,7 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 	
 	pDrawLine->force[pDrawLine->nowTimePoint] = force;
 	
-//	ECHO(DEBUG_COORDINATE_DRAW_LINE,"画线时间：%d\r\n",pDrawLine->nowTimePoint);
+	ECHO(DEBUG_COORDINATE_DRAW_LINE,"画线时间：%d\r\n",pDrawLine->nowTimePoint);
 	ECHO(DEBUG_COORDINATE_DRAW_LINE,"画线力值：%f\r\n",force);
 	
 	/* 重新画线判断条件 */

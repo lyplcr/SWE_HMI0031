@@ -44,8 +44,8 @@
 ..\output\obj\forcecalibration.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\forcecalibration.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\forcecalibration.o: ..\UTILS\inc\ustring.h
-..\output\obj\forcecalibration.o: ..\USER\MY_DEBUG.H
 ..\output\obj\forcecalibration.o: ..\UTILS\inc\config.h
+..\output\obj\forcecalibration.o: ..\USER\MY_DEBUG.H
 ..\output\obj\forcecalibration.o: ..\FATFS\diskio.h
 ..\output\obj\forcecalibration.o: ..\FATFS\integer.h
 ..\output\obj\forcecalibration.o: ..\FATFS\ff.h

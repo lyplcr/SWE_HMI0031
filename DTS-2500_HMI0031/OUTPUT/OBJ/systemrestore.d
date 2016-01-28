@@ -44,8 +44,8 @@
 ..\output\obj\systemrestore.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\systemrestore.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\systemrestore.o: ..\UTILS\inc\ustring.h
-..\output\obj\systemrestore.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systemrestore.o: ..\UTILS\inc\config.h
+..\output\obj\systemrestore.o: ..\USER\MY_DEBUG.H
 ..\output\obj\systemrestore.o: ..\FATFS\diskio.h
 ..\output\obj\systemrestore.o: ..\FATFS\integer.h
 ..\output\obj\systemrestore.o: ..\FATFS\ff.h

@@ -44,8 +44,8 @@
 ..\output\obj\typewrite.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\typewrite.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\typewrite.o: ..\UTILS\inc\ustring.h
-..\output\obj\typewrite.o: ..\USER\MY_DEBUG.H
 ..\output\obj\typewrite.o: ..\UTILS\inc\config.h
+..\output\obj\typewrite.o: ..\USER\MY_DEBUG.H
 ..\output\obj\typewrite.o: ..\FATFS\diskio.h
 ..\output\obj\typewrite.o: ..\FATFS\integer.h
 ..\output\obj\typewrite.o: ..\FATFS\ff.h

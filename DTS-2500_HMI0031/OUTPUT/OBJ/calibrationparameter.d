@@ -44,8 +44,8 @@
 ..\output\obj\calibrationparameter.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\calibrationparameter.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\calibrationparameter.o: ..\UTILS\inc\ustring.h
-..\output\obj\calibrationparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\calibrationparameter.o: ..\UTILS\inc\config.h
+..\output\obj\calibrationparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\calibrationparameter.o: ..\FATFS\diskio.h
 ..\output\obj\calibrationparameter.o: ..\FATFS\integer.h
 ..\output\obj\calibrationparameter.o: ..\FATFS\ff.h

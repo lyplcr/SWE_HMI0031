@@ -1538,7 +1538,7 @@ static void Show_ForceCalibrationOneStatusBarContent( uint8_t indexField )
 			RefreshDynamicCalibrationStatus(x,y,pointColor,backColor,GetInterfaceCalibrationStatus());
 			break;
 		case OBJECT_BAR_CODE:
-			RefreshDynamicCode(x,y,pointColor,backColor,GetInterfaceElementCode());		
+			RefreshDynamicCode(x,y,pointColor,backColor,GetInterfaceElementCode(g_ForceCalibration.curChannel));		
 			break;
 		case OBJECT_TIME:
 			RefreshDynamicSystemTime(x,y,pointColor,backColor);

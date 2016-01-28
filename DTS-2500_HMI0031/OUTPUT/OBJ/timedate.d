@@ -44,8 +44,8 @@
 ..\output\obj\timedate.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\timedate.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\timedate.o: ..\UTILS\inc\ustring.h
-..\output\obj\timedate.o: ..\USER\MY_DEBUG.H
 ..\output\obj\timedate.o: ..\UTILS\inc\config.h
+..\output\obj\timedate.o: ..\USER\MY_DEBUG.H
 ..\output\obj\timedate.o: ..\FATFS\diskio.h
 ..\output\obj\timedate.o: ..\FATFS\integer.h
 ..\output\obj\timedate.o: ..\FATFS\ff.h

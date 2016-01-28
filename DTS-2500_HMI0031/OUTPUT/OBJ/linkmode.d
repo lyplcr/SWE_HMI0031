@@ -44,8 +44,8 @@
 ..\output\obj\linkmode.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\linkmode.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\linkmode.o: ..\UTILS\inc\ustring.h
-..\output\obj\linkmode.o: ..\USER\MY_DEBUG.H
 ..\output\obj\linkmode.o: ..\UTILS\inc\config.h
+..\output\obj\linkmode.o: ..\USER\MY_DEBUG.H
 ..\output\obj\linkmode.o: ..\FATFS\diskio.h
 ..\output\obj\linkmode.o: ..\FATFS\integer.h
 ..\output\obj\linkmode.o: ..\FATFS\ff.h

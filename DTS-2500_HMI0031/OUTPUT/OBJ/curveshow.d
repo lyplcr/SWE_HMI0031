@@ -44,8 +44,8 @@
 ..\output\obj\curveshow.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\curveshow.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\curveshow.o: ..\UTILS\inc\ustring.h
-..\output\obj\curveshow.o: ..\USER\MY_DEBUG.H
 ..\output\obj\curveshow.o: ..\UTILS\inc\config.h
+..\output\obj\curveshow.o: ..\USER\MY_DEBUG.H
 ..\output\obj\curveshow.o: ..\FATFS\diskio.h
 ..\output\obj\curveshow.o: ..\FATFS\integer.h
 ..\output\obj\curveshow.o: ..\FATFS\ff.h

@@ -44,8 +44,8 @@
 ..\output\obj\testtypeselect.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\testtypeselect.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\testtypeselect.o: ..\UTILS\inc\ustring.h
-..\output\obj\testtypeselect.o: ..\USER\MY_DEBUG.H
 ..\output\obj\testtypeselect.o: ..\UTILS\inc\config.h
+..\output\obj\testtypeselect.o: ..\USER\MY_DEBUG.H
 ..\output\obj\testtypeselect.o: ..\FATFS\diskio.h
 ..\output\obj\testtypeselect.o: ..\FATFS\integer.h
 ..\output\obj\testtypeselect.o: ..\FATFS\ff.h

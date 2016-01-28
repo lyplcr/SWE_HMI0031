@@ -44,8 +44,8 @@
 ..\output\obj\onlineparameter.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\onlineparameter.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\onlineparameter.o: ..\UTILS\inc\ustring.h
-..\output\obj\onlineparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\onlineparameter.o: ..\UTILS\inc\config.h
+..\output\obj\onlineparameter.o: ..\USER\MY_DEBUG.H
 ..\output\obj\onlineparameter.o: ..\FATFS\diskio.h
 ..\output\obj\onlineparameter.o: ..\FATFS\integer.h
 ..\output\obj\onlineparameter.o: ..\FATFS\ff.h

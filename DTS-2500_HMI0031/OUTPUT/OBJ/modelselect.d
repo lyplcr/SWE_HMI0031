@@ -44,8 +44,8 @@
 ..\output\obj\modelselect.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\modelselect.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\modelselect.o: ..\UTILS\inc\ustring.h
-..\output\obj\modelselect.o: ..\USER\MY_DEBUG.H
 ..\output\obj\modelselect.o: ..\UTILS\inc\config.h
+..\output\obj\modelselect.o: ..\USER\MY_DEBUG.H
 ..\output\obj\modelselect.o: ..\FATFS\diskio.h
 ..\output\obj\modelselect.o: ..\FATFS\integer.h
 ..\output\obj\modelselect.o: ..\FATFS\ff.h

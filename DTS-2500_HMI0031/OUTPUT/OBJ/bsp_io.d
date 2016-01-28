@@ -43,8 +43,8 @@
 ..\output\obj\bsp_io.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 ..\output\obj\bsp_io.o: ..\UTILS\inc\isqrt.h
 ..\output\obj\bsp_io.o: ..\UTILS\inc\ustring.h
-..\output\obj\bsp_io.o: ..\USER\MY_DEBUG.H
 ..\output\obj\bsp_io.o: ..\UTILS\inc\config.h
+..\output\obj\bsp_io.o: ..\USER\MY_DEBUG.H
 ..\output\obj\bsp_io.o: ..\FATFS\diskio.h
 ..\output\obj\bsp_io.o: ..\FATFS\integer.h
 ..\output\obj\bsp_io.o: ..\FATFS\ff.h

@@ -201,8 +201,8 @@ static void GUI_CurveShowDrawCoordinate( void )
 	pCoordinate->columnFieldNum = 10;
 	pCoordinate->mainBackColor = COLOR_BACK;
 	pCoordinate->windowsBackColor = COLOR_BACK;
-	pCoordinate->rowLineColor = FOREST_GREEN;
-	pCoordinate->columnLineColor = FOREST_GREEN;
+	pCoordinate->rowLineColor = GREEN_LITTLE1;
+	pCoordinate->columnLineColor = BROWN_LITTLE1;
 	pCoordinate->fontPointColor = ORANGE;
 	pCoordinate->fontBackColor = COLOR_BACK;
 	pCoordinate->xLinePointColor = FRESH_GREEN;
@@ -257,7 +257,7 @@ static void InitCurveShowCoordinateDrawLine( void )
 	pDrawLine->maxForce = pCurve->maxValueY;
 	pDrawLine->maxTime = pCurve->maxValueX;
 	pDrawLine->nowTimePoint = pCurve->nowUsePointNum;
-	pDrawLine->lineColor = RED;
+	pDrawLine->lineColor = CRIMSON;
 	pDrawLine->timeScalingCoefficient = pCurve->xScalingCoefficient;
 	pDrawLine->forceScalingCoefficient = pCurve->yScalingCoefficient;
 	pDrawLine->recordPointFreq = pCurve->recordPointFreq;
