@@ -471,6 +471,11 @@
               <FileType>5</FileType>
               <FilePath>..\UTILS\inc\prm_struct.h</FilePath>
             </File>
+            <File>
+              <FileName>config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\UTILS\inc\config.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1165,11 +1170,6 @@
               <FileName>MY_DEBUG.H</FileName>
               <FileType>5</FileType>
               <FilePath>..\USER\MY_DEBUG.H</FilePath>
-            </File>
-            <File>
-              <FileName>config.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\UTILS\inc\config.h</FilePath>
             </File>
             <File>
               <FileName>程序标准格式.txt</FileName>

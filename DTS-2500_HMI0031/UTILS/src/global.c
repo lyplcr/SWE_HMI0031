@@ -2523,6 +2523,21 @@ void InitJudgeBreakPoint( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : InitJudgeBreakPointIndex
+ * Description    : 初始化判破点索引值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void InitJudgeBreakPointIndex( uint8_t chn, uint8_t initValue )
+{
+	if (chn < SMPL_NUM)
+	{
+		g_judgeBreak.index[chn] = initValue;	
+	}
+}
+
+/*------------------------------------------------------------
  * Function Name  : JudgeBreakCalculateCycle
  * Description    : 计算判破循环体
  * Input          : None
@@ -2533,6 +2548,8 @@ void JudgeBreakCalculateCycle( uint8_t chn )
 {
 	const uint8_t ADJOIN_DOWN_POINT_NUM = 5;	//每20ms一个点
 	const uint16_t MAX_DOWN_POINT_NUM = 100;
+
+	ECHO(DEBUG_COORDINATE_DRAW_LINE,"判破索引：%d\r\n",g_judgeBreak.index[chn]);
 	
 	g_judgeBreak.index[chn]++;
 	
@@ -2601,6 +2618,8 @@ void JudgeBreakCalculateCycle( uint8_t chn )
 			ECHO(DEBUG_SAMPLE_FH,"最大力差值：%f\r\n",g_judgeBreak.maxForceDiff[SMPL_FH_NUM]);
 			ECHO(DEBUG_SAMPLE_FH,"相邻点差值：%f\r\n",g_judgeBreak.adjoinPointDiff[SMPL_FH_NUM]);
 		}
+		
+		ECHO(DEBUG_COORDINATE_DRAW_LINE,"判破力值：%f\r\n",g_judgeBreak.nowForcePoint[chn]);
 	}
 }
 

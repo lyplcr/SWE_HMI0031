@@ -393,6 +393,7 @@ float GetCurveShowStartValue( SMPL_NAME_TypeDef channel );
 void DrawCircleMark( DRAW_CIRCLE_MARK_TypeDef *pDrawCircle );
 
 void InitJudgeBreakPoint( void );
+void InitJudgeBreakPointIndex( uint8_t chn, uint8_t initValue );
 void JudgeBreakCalculateCycle( uint8_t chn );
 float GetWithMaxForceDifference( SMPL_NAME_TypeDef channel );
 float GetAdjoinTwoPointDifference( SMPL_NAME_TypeDef channel );

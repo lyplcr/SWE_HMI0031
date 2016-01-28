@@ -458,6 +458,7 @@ static void MainPageShortcutCycleTask( void );
 static void InitMainPageCoordinateDrawLine( void );
 static TestStatus MainPageCheckSerialRepeat( void );
 static void SetTestStatus( TEST_STATUS_TypeDef testStatus );
+static void InitMainPageCoordinateDrawLineIndex( void );
 
 #if 0
 	static void InitKL_TestProgress( void );
@@ -4216,40 +4217,37 @@ static void KL_TestJumpTestResultPage( void )
  *------------------------------------------------------------*/
 static void MainPageExecuteTestStartBody( void )
 {
+	/* 初始化判破 */
+	InitJudgeBreakPoint();
+	
+	InitMainPageCoordinateDrawLineIndex();
+	
 	switch ( g_mainPage.testAttribute )
 	{
 		case COMPRESSION_TEST:
-		case BENDING_TEST:
-			/* 初始化判破 */
-			InitJudgeBreakPoint();
-		
+		case BENDING_TEST:		
 			/* 跳转到试验结果页 */
 			KZKY_TestJumpTestResultPage();
 			
 			g_mainPage.refreshShortcut = ENABLE;
 			break;
-		case STRETCH_TEST:	
-			/* 初始化判破 */
-			InitJudgeBreakPoint();
-			
+		case STRETCH_TEST:							
 			/* 初始化抗拉试验 */
 			InitKL_TestBody(&g_klTestBody);
+		
+			/* 跳转到试验结果页 */
+			KL_TestJumpTestResultPage();
 			
 			#if 0
 				InitKL_TestProgress();
 				SetKL_TestProgress(STATUS_KL_PROGRESS_IDLE);
 				SetKL_TestProgress(STATUS_KL_PROGRESS_ELASTIC_DEFORMATION);
-			#endif
 		
-			/* 跳转到试验结果页 */
-			KL_TestJumpTestResultPage();
-			
-			/* 此时菜单栏正在显示进度，不能刷新 */
-			g_mainPage.refreshShortcut = DISABLE;
+				/* 此时菜单栏正在显示进度，不能刷新 */
+				g_mainPage.refreshShortcut = DISABLE;
+			#endif
 			break;
 	}
-
-	LoadDefaultCoordinate();
 	
 	g_testBody.startTest = SET;
 	g_testBody.endTest = RESET;
@@ -5438,7 +5436,7 @@ static void MainPageExecuteEndOnePieceProcess( void )
 			case STRETCH_TEST:	
 				if (g_testBody.curCompletePieceSerial)
 				{
-					//PrintfUpYieldToMaxForceData();
+//					PrintfUpYieldToMaxForceData();
 					
 					/* 获取下屈服点数据 */
 					g_klTestBody.downYieldForce = GetDownYieldForce();
@@ -5716,6 +5714,20 @@ static void MainPageCheckWarn( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : InitMainPageCoordinateDrawLineIndex
+ * Description    : 初始化坐标系画线索引值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void InitMainPageCoordinateDrawLineIndex( void )
+{
+	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
+	
+	pDrawLine->baseIndex = 0;
+}
+
+/*------------------------------------------------------------
  * Function Name  : InitMainPageCoordinateDrawLine
  * Description    : 初始化坐标系画线
  * Input          : None
@@ -5766,17 +5778,24 @@ static void InitMainPageCoordinateDrawLine( void )
  *------------------------------------------------------------*/
 static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
-//	float force = 0;
-//	float curveShowStartForce = 0; 
-//	
-//	curveShowStartForce = GetCurveShowStartValue(SMPL_FH_NUM);
-//	force = get_smpl_value(SMPL_FH_NUM);
+	float force = 0;
+	float curveShowStartForce = 0; 
+	
+	curveShowStartForce = GetCurveShowStartValue(SMPL_FH_NUM);
+	force = get_smpl_value(SMPL_FH_NUM);
 	
 	switch ( pDrawLine->status )
 	{
 		case STATUS_DRAW_LINE_IDLE:
-			if (GetTestStatus() == TEST_LOAD)
-			{			
+			if ((GetTestStatus()==TEST_LOAD) && (force>curveShowStartForce))
+			{		
+				/* 保证采样点索引值与判破点索引值始终保持一致，
+				 * 这样，系统进行判破，屈服点操作，获取的值相同
+				 */
+				InitJudgeBreakPointIndex(SMPL_FH_NUM,1);
+				
+				LoadDefaultCoordinate();
+				
 				pDrawLine->start = SET;
 				pDrawLine->status = STATUS_DRAW_LINE_LOAD;					
 			}
@@ -5854,12 +5873,16 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 	}
 	
 	/* 画线周期 */
+	ECHO(DEBUG_COORDINATE_DRAW_LINE,"画线索引：%d\r\n",pDrawLine->baseIndex);
+	
 	pDrawLine->baseIndex++;
+	
 	if (pDrawLine->baseIndex < (uint16_t)(CTRL_FREQ/RECORD_COORDINATE_FREQ))
 	{
 		return;
 	}	
 	pDrawLine->baseIndex = 0;
+	
 //	GetTime(0);
 //	SetTime(0);
 	/* 记录力值信息 */
@@ -5875,8 +5898,8 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 	
 	pDrawLine->force[pDrawLine->nowTimePoint] = force;
 	
-	ECHO(DEBUG_COORDINATE_DRAW_LINE,"time ：%d\r\n",pDrawLine->nowTimePoint);
-	ECHO(DEBUG_COORDINATE_DRAW_LINE,"force：%f\r\n",force);
+//	ECHO(DEBUG_COORDINATE_DRAW_LINE,"画线时间：%d\r\n",pDrawLine->nowTimePoint);
+	ECHO(DEBUG_COORDINATE_DRAW_LINE,"画线力值：%f\r\n",force);
 	
 	/* 重新画线判断条件 */
 	MainPageCoordinateDrawLineRedrawJudgeCondition(pDrawLine);
