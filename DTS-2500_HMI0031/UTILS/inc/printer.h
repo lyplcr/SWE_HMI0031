@@ -11,9 +11,9 @@ extern const char * const pPrintErrorCue[];
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-ErrorStatus PrintCalibrationTable( SMPL_NAME_TypeDef tureChannel, SMPL_NAME_TypeDef showChannel );
-ErrorStatus PrintTestReport( SMPL_NAME_TypeDef showChannel, TEST_TYPE_TypeDef test_type, \
-							 const REPORT_TypeDef *report, const TEST_INFO_TypeDef *test_info );
+ErrorStatus PrintCalibrationTable( SMPL_NAME_TypeDef tureChannel );
+ErrorStatus PrintTestReport( TEST_TYPE_TypeDef test_type, TEST_ATTRIBUTE_TypeDef testAttribute, \
+				const REPORT_TypeDef *report, const TEST_INFO_TypeDef *test_info );
 ErrorStatus PrintForceCalibrationResultTable( CALIBRATION_RSULT_PRINT_TypeDef *pCalibrationResult );							 
 
 #endif

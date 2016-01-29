@@ -1312,7 +1312,7 @@ static void CalibrationTablePagePrint( void )
 {
 	ShowPrintingShortcutMenu();
 	
-	if (PrintCalibrationTable(g_calibrationTable.curChannel,g_calibrationTable.fhChannelUnit) == ERROR)
+	if (PrintCalibrationTable(g_calibrationTable.curChannel) == ERROR)
 	{
 		g_calibrationTable.leavePage.flagLeavePage = SET;
 		g_calibrationTable.leavePage.flagSaveData = RESET;

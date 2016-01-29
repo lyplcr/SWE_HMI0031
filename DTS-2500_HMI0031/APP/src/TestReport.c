@@ -18,6 +18,7 @@
 #include "global.h"
 #include "TestReport.h"
 #include "SearchReport.h"
+#include "TestTypeSelect.h"
 
 /* Private define ------------------------------------------------------------*/
 #define COLOR_POINT						WHITE
@@ -1588,8 +1589,8 @@ static ErrorStatus TestReportPrintOneReport( uint8_t reportIndex )
 	
 	report_read(testType,g_testReport.pSearchResult->testReportData[reportIndex].fname,&readReport);
 	
-	errStatus = PrintTestReport(SMPL_FH_NUM,(TEST_TYPE_TypeDef)testType,&readReport,\
-				&g_testReport.pSearchResult->testReportData[reportIndex]);
+	errStatus = PrintTestReport((TEST_TYPE_TypeDef)testType,GetTestAttribute(testType),\
+					&readReport,&g_testReport.pSearchResult->testReportData[reportIndex]);
 	
 	return errStatus;
 }

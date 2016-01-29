@@ -17,6 +17,7 @@ typedef enum
 	MODEL_KZ,			//抗折机
 	MODEL_KZKY,			//抗折抗压一体机
 	MODEL_UNIVERSAL,	//万能机
+	MODEL_UNDEFINED,	//未定义机型
 }MODEL_TYPE_TypeDef;
 
 typedef enum

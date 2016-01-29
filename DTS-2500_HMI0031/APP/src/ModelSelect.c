@@ -207,7 +207,7 @@ void LoadModelSelectPage( void )
  *------------------------------------------------------------*/
 MODEL_TYPE_TypeDef GetModelType( void )
 {
-	MODEL_TYPE_TypeDef Type = MODEL_KY;
+	MODEL_TYPE_TypeDef Type = MODEL_UNDEFINED;
 	uint8_t Model = 0;	
 	
 	Model = devc_token_get();
@@ -236,7 +236,7 @@ MODEL_TYPE_TypeDef GetModelType( void )
 			Type = MODEL_UNIVERSAL;
 			break;
 		default:
-			Type = MODEL_KY;
+			Type = MODEL_UNDEFINED;
 			break;
 	}
 	
@@ -662,7 +662,7 @@ static void DefaultParameterSet( MODEL_ATTRIBUTE_TypeDef type, uint16_t ton, \
 	
 	//上位机参数
 	pHmi->test_standard_index = KYSNJS;
-	pHmi->attenuationRate[SMPL_KY_NUM] = 50;
+	pHmi->attenuationRate[SMPL_FH_NUM] = 50;
 	pHmi->curveStayTime = 5;
 	if ((ton>=1) && (ton<=10))
 	{

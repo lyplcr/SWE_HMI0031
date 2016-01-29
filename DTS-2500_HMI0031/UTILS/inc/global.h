@@ -223,8 +223,7 @@ typedef struct
 
 typedef struct
 {
-	SMPL_NAME_TypeDef2 tureChannel;
-	SMPL_NAME_TypeDef2 showChannel;
+	SMPL_NAME_TypeDef channel;
 	uint8_t calibrationPointNums;
 	const int32_t *pCheckForce;
 	const float *pRealForce;
@@ -286,6 +285,16 @@ typedef enum
 	SHOW_DISPLACEMENT = 0,
 	SHOW_DEFORM,
 }DISPLACEMENT_CONV_DEFORM_TypeDef;
+
+typedef enum
+{
+	COMPRESSION_TEST = 0,	/* 压缩试验 */
+	BENDING_TEST,			/* 弯曲试验 */
+	STRETCH_TEST,			/* 拉伸试验 */
+	INVALID_TEST,			/* 无效试验 */
+}TEST_ATTRIBUTE_TypeDef;
+
+typedef void (*pFunctionDevide)(void *);
 
 /* Includes ------------------------------------------------------------------*/
 #include "printer.h"
@@ -363,7 +372,6 @@ void DrawProcessBody( PROGRESS_BAR_TypeDef *pProgress );
 void RelinkPRM( uint16_t backColor );
 float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, float CurForce );
 void CheckOfflineCycle( void );
-TestStatus CheckSystemWarning( SMPL_NAME_TypeDef2 tureChannel );
 
 void CoordinateDrawLineBodyCycle( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 COORDINATE_DRAW_LINE_TypeDef *GetDrawLineAddr( void );
@@ -424,6 +432,11 @@ float GetOriginalGauge( void );
 
 COORDINATE_POINT_TypeDef *GetCoordinatePointAddr( void );
 void PrintfTypeDefSize( uint32_t len );
+
+void UintDivisionTen( uint32_t *pSource );
+void FloatDivisionTen( float *pSource );
+void AccordUnitConvValue( SMPL_NAME_TypeDef channel, void *pVal, pFunctionDevide devideTen );
+float CountPipeArea(float pipeOuterDiameter, float pipeThickness);
 
 #endif
 

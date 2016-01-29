@@ -310,6 +310,8 @@ static void TestSelectConfig( void )
 			/* Ãû³Æ */
 			g_testSelect.pParameterNameArray[INDEX_KL_MODEL_KLJSSW] = pKLTestSelectName[0];	
 			break;
+		case INVALID_TEST:
+			break;
 		default:
 			break;
 	}

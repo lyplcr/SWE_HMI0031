@@ -270,8 +270,9 @@ typedef struct
 	uint8_t fieldNum;								//字段个数
 	DETAIL_REPORT_SHOW_TYPE_TypeDef oneFieldShowType[MAX_FIELD_NUM];	//一个字段显示类型
 	TEST_TYPE_TypeDef testType;						//试验类型
-	SMPL_NAME_TypeDef2 showChannel;					//显示通道
-	SMPL_NAME_TypeDef2 tureChannel;					//真实通道
+	FH_UINT_TypeDef fhChannelUnit;					//负荷通道单位
+	WY_UINT_TypeDef	wyChannelUnit;					//位移通道单位
+	BX_UINT_TypeDef	bxChannelUnit;					//变形通道单位
 	BoolStatus isPageTurning;						//翻页事件
 	TEST_ATTRIBUTE_TypeDef testAttribute;			//试验属性
 }DETAIL_REPORT_TypeDef;
@@ -406,6 +407,10 @@ static void DetailReportInit( void )
 	g_detailReport.curPageSampleNum = 0;
 	g_detailReport.sumSampleNum = 0;
 	
+	g_detailReport.fhChannelUnit = GetFH_SmplUnit();
+	g_detailReport.wyChannelUnit = GetWY_SmplUnit();
+	g_detailReport.bxChannelUnit = GetBX_SmplUnit();
+	
 	if (isShowDetailReport() == YES)
 	{
 		ResetShowDetailReport();
@@ -488,7 +493,7 @@ static void DetailReportConfig( void )
 			g_detailReport.pParameterNameArray[INDEX_SNJSKY_TEST_VARIETY] 	= pDetailReportFieldName[1];
 			g_detailReport.pParameterNameArray[INDEX_SNJSKY_TEST_GRADE] 	= pDetailReportFieldName[4];
 			g_detailReport.pParameterNameArray[INDEX_SNJSKY_TEST_AGE] 		= pDetailReportFieldName[10];
-			if (g_detailReport.showChannel == SMPL_KY_NUM)
+			if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 			{
 				g_detailReport.pParameterNameArray[INDEX_SNJSKY_TEST_FORCE] 	= pDetailReportFieldName[12];
 			}
@@ -550,7 +555,7 @@ static void DetailReportConfig( void )
 			g_detailReport.pParameterNameArray[INDEX_JZSJKY_TEST_VARIETY] 		= pDetailReportFieldName[1];
 			g_detailReport.pParameterNameArray[INDEX_JZSJKY_TEST_CORRECTION] 	= pDetailReportFieldName[14];
 			g_detailReport.pParameterNameArray[INDEX_JZSJKY_TEST_AGE] 			= pDetailReportFieldName[10];
-			if (g_detailReport.showChannel == SMPL_KY_NUM)
+			if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 			{
 				g_detailReport.pParameterNameArray[INDEX_JZSJKY_TEST_FORCE] 	= pDetailReportFieldName[12];
 			}
@@ -612,7 +617,7 @@ static void DetailReportConfig( void )
 			g_detailReport.pParameterNameArray[INDEX_HNTKY_TEST_CORRECTION] 	= pDetailReportFieldName[14];
 			g_detailReport.pParameterNameArray[INDEX_HNTKY_TEST_STRENGTH] 		= pDetailReportFieldName[4];
 			g_detailReport.pParameterNameArray[INDEX_HNTKY_TEST_AGE] 			= pDetailReportFieldName[10];
-			if (g_detailReport.showChannel == SMPL_KY_NUM)
+			if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 			{
 				g_detailReport.pParameterNameArray[INDEX_HNTKY_TEST_FORCE] 	= pDetailReportFieldName[12];
 			}
@@ -674,7 +679,7 @@ static void DetailReportConfig( void )
 			g_detailReport.pParameterNameArray[INDEX_HNTKZ_TEST_CORRECTION] 	= pDetailReportFieldName[14];
 			g_detailReport.pParameterNameArray[INDEX_HNTKZ_TEST_STRENGTH] 		= pDetailReportFieldName[4];
 			g_detailReport.pParameterNameArray[INDEX_HNTKZ_TEST_AGE] 			= pDetailReportFieldName[10];
-			if (g_detailReport.showChannel == SMPL_KY_NUM)
+			if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 			{
 				g_detailReport.pParameterNameArray[INDEX_HNTKZ_TEST_FORCE] 	= pDetailReportFieldName[12];
 			}
@@ -736,7 +741,7 @@ static void DetailReportConfig( void )
 			g_detailReport.pParameterNameArray[INDEX_QQZKY_TEST_LENTH] 		= pDetailReportFieldName[7];
 			g_detailReport.pParameterNameArray[INDEX_QQZKY_TEST_WIDTH] 		= pDetailReportFieldName[8];
 			g_detailReport.pParameterNameArray[INDEX_QQZKY_TEST_HIGH] 		= pDetailReportFieldName[9];
-			if (g_detailReport.showChannel == SMPL_KY_NUM)
+			if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 			{
 				g_detailReport.pParameterNameArray[INDEX_QQZKY_TEST_FORCE] 	= pDetailReportFieldName[12];
 			}
@@ -807,7 +812,7 @@ static void DetailReportConfig( void )
 					g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_WIDTH] 					= pDetailReportFieldName[8];
 					g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_AREA]					= pDetailReportFieldName[16];
 					g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_TEST_CORRECTION] 		= pDetailReportFieldName[14];
-					if (g_detailReport.showChannel == SMPL_KY_NUM)
+					if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 					{
 						g_detailReport.pParameterNameArray[INDEX_TYKY_RECTANGLE_TEST_FORCE] 		= pDetailReportFieldName[12];
 					}
@@ -872,7 +877,7 @@ static void DetailReportConfig( void )
 					g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_DIAMETER] 				= pDetailReportFieldName[18];
 					g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_AREA]					= pDetailReportFieldName[16];
 					g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_TEST_CORRECTION] 		= pDetailReportFieldName[14];
-					if (g_detailReport.showChannel == SMPL_KY_NUM)
+					if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 					{
 						g_detailReport.pParameterNameArray[INDEX_TYKY_ROUND_TEST_FORCE] 		= pDetailReportFieldName[12];
 					}
@@ -932,7 +937,7 @@ static void DetailReportConfig( void )
 					g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_TEST_SAMPLE_SHAPE] 		= pDetailReportFieldName[17];
 					g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_AREA] 					= pDetailReportFieldName[16];
 					g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_TEST_CORRECTION] 		= pDetailReportFieldName[14];
-					if (g_detailReport.showChannel == SMPL_KY_NUM)
+					if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 					{
 						g_detailReport.pParameterNameArray[INDEX_TYKY_IRREGULAR_TEST_FORCE] 		= pDetailReportFieldName[12];
 					}
@@ -993,7 +998,7 @@ static void DetailReportConfig( void )
 			g_detailReport.pParameterNameArray[INDEX_SNJSKZ_TEST_SPAN] 			= pDetailReportFieldName[6];
 			g_detailReport.pParameterNameArray[INDEX_SNJSKZ_TEST_STRENGTH] 		= pDetailReportFieldName[4];
 			g_detailReport.pParameterNameArray[INDEX_SNJSKZ_TEST_AGE] 			= pDetailReportFieldName[10];
-			if (g_detailReport.showChannel == SMPL_KY_NUM)
+			if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 			{
 				g_detailReport.pParameterNameArray[INDEX_SNJSKZ_TEST_FORCE] 	= pDetailReportFieldName[12];
 			}
@@ -1055,7 +1060,7 @@ static void DetailReportConfig( void )
 			g_detailReport.pParameterNameArray[INDEX_YJSNJKZ_TEST_SPAN] 		= pDetailReportFieldName[6];
 			g_detailReport.pParameterNameArray[INDEX_YJSNJKZ_TEST_STRENGTH] 	= pDetailReportFieldName[4];
 			g_detailReport.pParameterNameArray[INDEX_YJSNJKZ_TEST_AGE] 			= pDetailReportFieldName[10];
-			if (g_detailReport.showChannel == SMPL_KY_NUM)
+			if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 			{
 				g_detailReport.pParameterNameArray[INDEX_YJSNJKZ_TEST_FORCE] 	= pDetailReportFieldName[12];
 			}
@@ -1522,7 +1527,7 @@ static void DetailReportReadParameter( void )
 		for (i=0; i<g_detailReport.curPageSampleNum; ++i)
 		{
 			force = g_readReport.force[baseIndex+i];
-			if (g_detailReport.showChannel == SMPL_KY_NUM)
+			if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
 			{
 				force /= 1000;
 			}
@@ -2083,6 +2088,10 @@ static void GUI_DetailReportOtherField( void )
 			break;
 		case STRETCH_TEST:				
 			break;
+		case INVALID_TEST:
+			break;
+		default:
+			break;
 	}
 	
 }	
@@ -2389,6 +2398,10 @@ static void Show_DetailReportOtherFieldContent( void )
 			Show_DetailReportAvailStrengthFieldContent();
 			break;
 		case STRETCH_TEST:				
+			break;
+		case INVALID_TEST:
+			break;
+		default:
 			break;
 	}	
 }

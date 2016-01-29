@@ -203,6 +203,11 @@ const char * const pPumpWarning[] =
 	"油泵停止失败！",		//1
 };
 
+const char * const pGlobalWarning[] = 
+{
+	"机型配置错误！",
+};
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 HMI_TypeDef *pHmi = NULL;	 		//人机界面杂项参数
@@ -293,7 +298,7 @@ void GetTestContent( void )
 	
 	if (pHmi->test_standard_index >= SUPPORT_TEST_NUM)
 	{
-		pHmi->test_standard_index = 0;
+		pHmi->test_standard_index = NONE_TEST;
 	}	
 	pTest = pcm_test_get(pHmi->test_standard_index);
 }
@@ -334,20 +339,19 @@ void ProcessMachineMatchTestType( void )
 	switch ( Type )
 	{
 		case MODEL_KY:
-			if (testType > KYTY)
-			{
-				pHmi->test_standard_index = KYSNJS;
-				pcm_save();
-			}
-			break;
 		case MODEL_KZ:
-			if (testType > KZTY)
+		case MODEL_KZKY:
+		case MODEL_UNDEFINED:
+			SetPopWindowsInfomation(POP_PCM_CUE,1,&pGlobalWarning[0]);		
+			PopWindowsProcessCycle();
+			break;
+		
+		case MODEL_UNIVERSAL:
+			if (testType >= SUPPORT_TEST_NUM)
 			{
-				pHmi->test_standard_index = KZSNJS;
+				pHmi->test_standard_index = NONE_TEST;
 				pcm_save();
 			}
-			break;
-		case MODEL_UNIVERSAL:
 			break;
 		default:
 			break;
@@ -1872,7 +1876,7 @@ static void ClearErrorStatus( void )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void CheckSystemMaxForceWarning( SMPL_NAME_TypeDef2 tureChannel )
+static void CheckSystemMaxForceWarning( SMPL_NAME_TypeDef tureChannel )
 {
 	float force = get_smpl_value(tureChannel);
 	float maxForce = smpl_ctrl_full_p_get(tureChannel);
@@ -1910,14 +1914,18 @@ void CheckSystemWarningStatusCycle( void )
 	switch (modelType)
 	{
 		case MODEL_KY:
-			CheckSystemMaxForceWarning(SMPL_KY_NUM);
+			CheckSystemMaxForceWarning(SMPL_FH_NUM);
 			break;
 		case MODEL_KZ:
-			CheckSystemMaxForceWarning(SMPL_KZ_NUM);
+			CheckSystemMaxForceWarning(SMPL_FH_NUM);
 			break;
 		case MODEL_KZKY:
-			CheckSystemMaxForceWarning(SMPL_KY_NUM);
-			CheckSystemMaxForceWarning(SMPL_KZ_NUM);
+			CheckSystemMaxForceWarning(SMPL_FH_NUM);
+			break;
+		case MODEL_UNIVERSAL:
+			CheckSystemMaxForceWarning(SMPL_FH_NUM);	
+			break;
+		case MODEL_UNDEFINED:			
 			break;
 		default:
 			break;
@@ -3075,6 +3083,119 @@ COORDINATE_POINT_TypeDef *GetCoordinatePointAddr( void )
 void PrintfTypeDefSize( uint32_t len )
 {
 	printf("结构体占内存大小：%d\r\n",len);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : UintDivisionTen
+ * Description    : 无符号整型除10
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void UintDivisionTen( uint32_t *pSource )
+{
+	*pSource /= 10;
+}	
+
+/*------------------------------------------------------------
+ * Function Name  : FloatDivisionTen
+ * Description    : 浮点数除10
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void FloatDivisionTen( float *pSource )
+{
+	*pSource /= 10;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : AccordUnitConvValue
+ * Description    : 根据单位转换值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void AccordUnitConvValue( SMPL_NAME_TypeDef channel, void *pVal, pFunctionDevide devideTen )
+{
+	FH_UINT_TypeDef fhChannelUnit = GetFH_SmplUnit();
+	WY_UINT_TypeDef wyChannelUnit = GetWY_SmplUnit();
+	BX_UINT_TypeDef bxChannelUnit = GetBX_SmplUnit();
+	
+	switch ( channel )
+	{
+		case SMPL_FH_NUM:			
+			switch (fhChannelUnit)
+			{
+				case FH_UNIT_kN:
+					devideTen(pVal);
+					devideTen(pVal);
+					devideTen(pVal);
+					break;
+				case FH_UNIT_N:						
+					break;
+			}
+			break;
+		
+		case SMPL_WY_NUM:
+			switch ( wyChannelUnit )
+			{
+				case WY_UNIT_MM:						
+					break;
+				case WY_UNIT_CM:
+					devideTen(pVal);
+					break;
+				case WY_UNIT_DM:
+					devideTen(pVal);
+					devideTen(pVal);
+					break;
+				case WY_UNIT_M:
+					devideTen(pVal);
+					devideTen(pVal);
+					devideTen(pVal);
+					break; 
+				default:
+					break;
+			}
+			break;
+		
+		case SMPL_BX_NUM:
+			switch ( bxChannelUnit )
+			{
+				case BX_UNIT_MM:
+					break;
+				case BX_UNIT_CM:
+					devideTen(pVal);
+					break;
+				case BX_UNIT_DM:
+					devideTen(pVal);
+					devideTen(pVal);
+					break;
+				case BX_UNIT_M:
+					devideTen(pVal);
+					devideTen(pVal);
+					devideTen(pVal);
+					break; 
+				default:
+					break;
+			}
+			break;
+		
+		default:				
+			break;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : CountPipeArea
+ * Description    : 计算管段面积
+ * Input          : pipeOuterDiameter：管段外径，pipeThickness：管段厚度
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float CountPipeArea(float pipeOuterDiameter, float pipeThickness)
+{
+	return ( PI * pipeThickness * (pipeOuterDiameter - pipeThickness) );
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

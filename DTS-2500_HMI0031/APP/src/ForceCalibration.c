@@ -1834,8 +1834,7 @@ static void ForceCalibrationPrintCalibrationResult( void )
 		return;
 	}
 	
-//	g_CalibrationResult.tureChannel = g_ForceCalibration.tureChannel;
-//	g_CalibrationResult.showChannel = g_ForceCalibration.showChannel;
+	g_CalibrationResult.channel = g_ForceCalibration.curChannel;
 	g_CalibrationResult.calibrationPointNums = calibrationNum;
 	g_CalibrationResult.pCheckForce = g_CalibrationBody.checkValue;
 	g_CalibrationResult.pRealForce = g_CalibrationBody.realValue;
@@ -2126,27 +2125,33 @@ static void ForceCalibrationKeyProcess( void )
 				break;
 			
 			case KEY_FORCE_TARE:		
-				if (SendChannelTareCmd(g_ForceCalibration.curChannel) == ERROR)
+				if (SendChannelTareCmd(SMPL_FH_NUM) == ERROR)
 				{
-					switch ( g_ForceCalibration.curChannel )
-					{
-						case SMPL_FH_NUM:
-							SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[5]);	
-							break;
-						case SMPL_WY_NUM:
-							SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[6]);	
-							break;
-						case SMPL_BX_NUM:
-							SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[7]);	
-							break;
-						default:
-							break;
-					}
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[5]);								
 			
 					g_ForceCalibration.leavePage.flagLeavePage = SET;
 					g_ForceCalibration.leavePage.flagSaveData = RESET;
 				}
 				break;
+			case KEY_DISPLACE_TARE:
+				if (SendChannelTareCmd(SMPL_WY_NUM) == ERROR)
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[6]);								
+			
+					g_ForceCalibration.leavePage.flagLeavePage = SET;
+					g_ForceCalibration.leavePage.flagSaveData = RESET;
+				}
+				break;
+			
+			case KEY_DEFORMATE_TARE:
+				if (SendChannelTareCmd(SMPL_BX_NUM) == ERROR)
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[7]);								
+			
+					g_ForceCalibration.leavePage.flagLeavePage = SET;
+					g_ForceCalibration.leavePage.flagSaveData = RESET;
+				}
+				break;	
 		}
 	}
 }
@@ -2879,7 +2884,6 @@ static void ForceCalibrationExecuteCoreCycle( void )
 	
 	/* ´òµã */
 	ForceCalibrationTakePointCoreCycle();
-
 }
 
 /*------------------------------------------------------------
@@ -2895,9 +2899,7 @@ static void ForceCalibrationLeavePageCheckCycle( void )
 	{
 		if (g_ForceCalibration.leavePage.flagSaveData == SET)
 		{
-			g_CalibrationBody.curCompletePieceSerial = 0;
-			g_CalibrationBody.flagCalibrationComplete = RESET;
-			SetCalibrationStatus(STATUS_CALIBRATION_IDLE);
+			memset(&g_CalibrationBody,0x00,sizeof(FORCE_CALIBRATION_BODY_TypeDef));
 		}
 	}
 }

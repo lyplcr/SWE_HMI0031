@@ -728,6 +728,10 @@ static void MainPageConfig( void )
 			g_mainPage.indexKLTestResultArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= OBJECT_KL_MAX_FORCE_ALL_EXTEND;	
 			g_mainPage.indexKLTestResultArray[INDEX_KL_TOTAL_ELONGATION] 		= OBJECT_KL_TOTAL_ELONGATION;	
 			break;
+		case INVALID_TEST:
+			break;
+		default:
+			break;
 	}
 	
 	/* 状态栏索引 */
@@ -814,6 +818,10 @@ static void MainPageConfig( void )
 			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_DOWN_YIELD_STRENGTH] 	= pKLTestResultName[6];
 			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pKLTestResultName[7];
 			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_TOTAL_ELONGATION] 		= pKLTestResultName[8];
+			break;
+		case INVALID_TEST:
+			break;
+		default:
 			break;
 	}
 	
@@ -1748,6 +1756,10 @@ static void MainPageReadParameter( void )
 				g_mainPage.curPageSampleNum = 0;
 			}
 			break;
+		case INVALID_TEST:
+			break;
+		default:
+			break;
 	}	
 	g_testBody.curCompletePieceSerial = g_readReport.sample_serial;
 	
@@ -1779,6 +1791,10 @@ static void MainPageReadParameter( void )
 			break;
 		case STRETCH_TEST:	
 			MainPageWriteKLParameter();
+			break;
+		case INVALID_TEST:
+			break;
+		default:
 			break;
 	}
 	
@@ -2545,6 +2561,10 @@ static void GUI_MainPageDrawTetResultArea( void )
 				GUI_MainPageKLTestRectangleFrame();
 				GUI_MainPageKLTestOneLevelMenu();
 				break;
+			case INVALID_TEST:
+				break;
+			default:
+				break;
 		}		
 	}
 	else
@@ -2562,6 +2582,10 @@ static void GUI_MainPageDrawTetResultArea( void )
 				GUI_MainPageLoadPageInfomation();
 				break;
 			case STRETCH_TEST:	
+				break;
+			case INVALID_TEST:
+				break;
+			default:
 				break;
 		}		
 	}
@@ -3178,7 +3202,11 @@ static void Traverse_TestResultTable( void )
 				
 				Show_MainPageKLTestOneLevelMenuUnit();
 				break;
-			}
+			case INVALID_TEST:
+				break;
+			default:
+				break;
+		}
 	}
 }
 
@@ -3515,7 +3543,8 @@ static void MainPagePrintReport( void )
 		
 		if (result == FR_OK)
 		{
-			errStatus = PrintTestReport(SMPL_FH_NUM,g_mainPage.testType,&readReport,&testInfo);
+			errStatus = PrintTestReport(g_mainPage.testType,GetTestAttribute(g_mainPage.testType),\
+							&readReport,&testInfo);
 		}
 		else
 		{
@@ -3714,6 +3743,10 @@ static void MainPageCancelLastPiece( void )
 				
 				return;
 			}			
+			break;
+		case INVALID_TEST:
+			break;
+		default:
 			break;
 	}
 	
@@ -4263,6 +4296,10 @@ static void MainPageExecuteTestStartBody( void )
 				/* 此时菜单栏正在显示进度，不能刷新 */
 				g_mainPage.refreshShortcut = DISABLE;
 			#endif
+			break;
+		case INVALID_TEST:
+			break;
+		default:
 			break;
 	}
 	
@@ -5195,6 +5232,10 @@ static void MainPageExecuteCancelLastPiece( void )
 					g_readReport.sample_serial = g_testBody.curCompletePieceSerial;
 				}
 				break;
+			case INVALID_TEST:
+				break;
+			default:
+				break;
 		}
 
 		if (g_readReport.sample_serial)
@@ -5490,6 +5531,10 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					Show_MainPageKLTestOneLevelMenuUnit();
 				}
 				break;
+			case INVALID_TEST:
+				break;
+			default:
+				break;
 		}
 		
 		g_readReport.sample_serial = g_testBody.curCompletePieceSerial;
@@ -5530,8 +5575,11 @@ static void MainPageExecuteEndOneGroupProcess( void )
 					Show_MainPageTestResultTableAvailValue(OBJECT_STRENGTH);
 				}
 				break;
-			case STRETCH_TEST:	
-				
+			case STRETCH_TEST:					
+				break;
+			case INVALID_TEST:
+				break;
+			default:
 				break;
 		}
 		
@@ -5652,6 +5700,10 @@ static void MainPageTestExecuteCoreCycle( void )
 				case STRETCH_TEST:	
 					KL_TestLoadCoreCycle();
 					break;
+				case INVALID_TEST:
+					break;
+				default:
+					break;
 			}			
 			break;
 		case TEST_YIELD:
@@ -5703,6 +5755,10 @@ static void MainPageTestExecuteCoreCycle( void )
 			break;
 		case STRETCH_TEST:	
 			KL_TestCheckPeakCycle();
+			break;
+		case INVALID_TEST:
+			break;
+		default:
 			break;
 	}
 }

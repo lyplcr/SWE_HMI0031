@@ -91,21 +91,19 @@ void PrestrainLoadChannelSelectPage( void )
 	switch ( modelType )
 	{
 		case MODEL_KY:
-			g_channelSelect.selChannel = SMPL_FH_NUM;
-			SetPage(g_channelSelect.targetPage);
-			
-			return;
+			LoadChannelSelectPage();			
+			break;
 		case MODEL_KZ:
-			g_channelSelect.selChannel = SMPL_FH_NUM;
-			SetPage(g_channelSelect.targetPage);
-			
-			return;
+			LoadChannelSelectPage();			
+			break;
 		case MODEL_KZKY:
 			LoadChannelSelectPage();
-			break;	
-		
+			break;			
 		case MODEL_UNIVERSAL:
 			LoadChannelSelectPage();
+			break;
+		case MODEL_UNDEFINED:			
+			LoadChannelSelectPage();			
 			break;
 	}
 }	

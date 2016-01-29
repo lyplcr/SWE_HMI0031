@@ -57,6 +57,7 @@ const char * const pPrintErrorCue[] =
 };
 
 extern const char * const pSpecimen_sharp[];
+extern const char * const pSpecimenSharp_KLJSSW[];
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -145,13 +146,85 @@ static void PrintRowSpace( uint8_t num )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : PrintUnit
+ * Description    : 打印单位
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void PrintUnit( SMPL_NAME_TypeDef channel )
+{
+	FH_UINT_TypeDef fhChannelUnit = GetFH_SmplUnit();
+	WY_UINT_TypeDef wyChannelUnit = GetWY_SmplUnit();
+	BX_UINT_TypeDef bxChannelUnit = GetBX_SmplUnit();
+	
+	switch ( channel )
+	{
+		case SMPL_FH_NUM:			
+			switch (fhChannelUnit)
+			{
+				case FH_UNIT_kN:
+					PrintWordsAndLineFeed("kN");
+					break;
+				case FH_UNIT_N:
+					PrintWordsAndLineFeed("N");
+					break;
+			}
+			break;
+		
+		case SMPL_WY_NUM:
+			switch ( wyChannelUnit )
+			{
+				case WY_UNIT_MM:
+					PrintWordsAndLineFeed("mm");
+					break;
+				case WY_UNIT_CM:
+					PrintWordsAndLineFeed("cm");
+					break;
+				case WY_UNIT_DM:
+					PrintWordsAndLineFeed("dm");
+					break;
+				case WY_UNIT_M:
+					PrintWordsAndLineFeed("m");
+					break; 
+				default:
+					break;
+			}
+			break;
+		
+		case SMPL_BX_NUM:
+			switch ( bxChannelUnit )
+			{
+				case BX_UNIT_MM:
+					PrintWordsAndLineFeed("mm");
+					break;
+				case BX_UNIT_CM:
+					PrintWordsAndLineFeed("cm");
+					break;
+				case BX_UNIT_DM:
+					PrintWordsAndLineFeed("dm");
+					break;
+				case BX_UNIT_M:
+					PrintWordsAndLineFeed("m");
+					break; 
+				default:
+					break;
+			}
+			break;
+		
+		default:				
+			break;
+	}
+}
+
+/*------------------------------------------------------------
  * Function Name  : PrintCalibrationTable
  * Description    : 打印标定表
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-ErrorStatus PrintCalibrationTable( SMPL_NAME_TypeDef tureChannel, SMPL_NAME_TypeDef showChannel )
+ErrorStatus PrintCalibrationTable( SMPL_NAME_TypeDef tureChannel )
 {
 	const uint8_t MIN_CALIRATION_SEGS = 2;	//最小标定表项数
 	const uint8_t MAX_CALIRATION_SEGS = 10;
@@ -159,9 +232,12 @@ ErrorStatus PrintCalibrationTable( SMPL_NAME_TypeDef tureChannel, SMPL_NAME_Type
 	const uint8_t MAX_DATA_BIT = 8;
 	uint8_t i;
 	uint8_t tab_num = 0;
-	uint32_t force_value = 0,force_code = 0;
+	uint32_t value = 0,code = 0;
 	char value_buff[MAX_CNT];
 	tTime t;
+	FH_UINT_TypeDef fhChannelUnit = GetFH_SmplUnit();
+	WY_UINT_TypeDef wyChannelUnit = GetWY_SmplUnit();
+	BX_UINT_TypeDef bxChannelUnit = GetBX_SmplUnit();
 	
 	ConfigPrinterDefaultSet();
 	
@@ -181,12 +257,16 @@ ErrorStatus PrintCalibrationTable( SMPL_NAME_TypeDef tureChannel, SMPL_NAME_Type
 	
 	switch ( tureChannel )
 	{
-		case SMPL_KY_NUM:			
-			PrintWordsAndLineFeed("     抗压通道标定表");
+		case SMPL_FH_NUM:			
+			PrintWordsAndLineFeed("     负荷通道标定表");
 			break;
 		
-		case SMPL_KZ_NUM:
-			PrintWordsAndLineFeed("     抗折通道标定表");
+		case SMPL_WY_NUM:
+			PrintWordsAndLineFeed("     位移通道标定表");
+			break;
+		
+		case SMPL_BX_NUM:
+			PrintWordsAndLineFeed("     变形通道标定表");
 			break;
 		
 		default:
@@ -205,27 +285,18 @@ ErrorStatus PrintCalibrationTable( SMPL_NAME_TypeDef tureChannel, SMPL_NAME_Type
 		PrintWordsAndLineFeed(pPrint_Title[i-1]);
 		
 		print("值：");
-		force_value = (uint32_t)smpl_tab_value_get(tureChannel,i);
-				
-		if (showChannel == SMPL_KY_NUM)
-		{
-			force_value /= 1000;
-		}
+		value = (uint32_t)smpl_tab_value_get(tureChannel,i);
 		
-		numtochar(MAX_DATA_BIT,force_value,value_buff);
+		AccordUnitConvValue(tureChannel,&value,(pFunctionDevide)UintDivisionTen);
+		
+		numtochar(MAX_DATA_BIT,value,value_buff);
 		print(value_buff);
-		if (showChannel == SMPL_KY_NUM)
-		{
-			PrintWordsAndLineFeed("kN");
-		}
-		else
-		{
-			PrintWordsAndLineFeed("N");
-		}
+		
+		PrintUnit(tureChannel);
 		
 		print("码：");
-		force_code = (uint32_t)smpl_tab_code_get(tureChannel,i);		
-		numtochar(MAX_DATA_BIT,force_code,value_buff);
+		code = (uint32_t)smpl_tab_code_get(tureChannel,i);		
+		numtochar(MAX_DATA_BIT,code,value_buff);
 		PrintWordsAndLineFeed(value_buff);
 		
 		bsp_DelayMS(PRINT_DELAY);
@@ -254,6 +325,9 @@ ErrorStatus PrintForceCalibrationResultTable( CALIBRATION_RSULT_PRINT_TypeDef *p
 	char print_buff[20];
 	tTime t;
 	uint8_t calibrationPointNums = pCalibrationResult->calibrationPointNums;
+	FH_UINT_TypeDef fhChannelUnit = GetFH_SmplUnit();
+	WY_UINT_TypeDef wyChannelUnit = GetWY_SmplUnit();
+	BX_UINT_TypeDef bxChannelUnit = GetBX_SmplUnit();
 	
 	ConfigPrinterDefaultSet();	
 	
@@ -265,14 +339,18 @@ ErrorStatus PrintForceCalibrationResultTable( CALIBRATION_RSULT_PRINT_TypeDef *p
 		return ERROR;
 	}
 	
-	switch ( pCalibrationResult->tureChannel )
+	switch ( pCalibrationResult->channel )
 	{
-		case SMPL_KY_NUM:			
-			PrintWordsAndLineFeed("    抗压通道标定结果");
+		case SMPL_FH_NUM:			
+			PrintWordsAndLineFeed("    负荷通道标定结果");
 			break;
 		
-		case SMPL_KZ_NUM:
-			PrintWordsAndLineFeed("    抗折通道标定结果");
+		case SMPL_WY_NUM:
+			PrintWordsAndLineFeed("    位移通道标定结果");
+			break;
+		
+		case SMPL_BX_NUM:
+			PrintWordsAndLineFeed("    变形通道标定结果");
 			break;
 		
 		default:
@@ -300,40 +378,26 @@ ErrorStatus PrintForceCalibrationResultTable( CALIBRATION_RSULT_PRINT_TypeDef *p
 					print("检测点：");
 					
 					buff_u = pCalibrationResult->pCheckForce[i];
-					if (pCalibrationResult->showChannel == SMPL_KY_NUM)
-					{
-						buff_u /= 1000;
-					}
+					
+					AccordUnitConvValue(pCalibrationResult->channel,&buff_u,(pFunctionDevide)UintDivisionTen);
+					
 					numtochar(MAX_FORCE_BIT,buff_u,print_buff);
 					print(print_buff);
-					if (pCalibrationResult->showChannel == SMPL_KY_NUM)
-					{
-						PrintWordsAndLineFeed("kN");
-					}
-					else
-					{
-						PrintWordsAndLineFeed("N");
-					}					
+					
+					PrintUnit(pCalibrationResult->channel);					
 					break;
 					
 				case 1:		//实测力值
 					print("实测值：");
 				
 					buff_f = pCalibrationResult->pRealForce[i];
-					if (pCalibrationResult->showChannel == SMPL_KY_NUM)
-					{
-						buff_f /= 1000;
-					}
+				
+					AccordUnitConvValue(pCalibrationResult->channel,&buff_f,(pFunctionDevide)FloatDivisionTen);
+
 					floattochar(MAX_FORCE_BIT,2,buff_f,print_buff);
 					print(print_buff);
-					if (pCalibrationResult->showChannel == SMPL_KY_NUM)
-					{
-						PrintWordsAndLineFeed("kN");
-					}
-					else
-					{
-						PrintWordsAndLineFeed("N");
-					}
+					
+					PrintUnit(pCalibrationResult->channel);		
 					break;
 				case 2:		//力码
 					print("力码：  ");
@@ -369,8 +433,8 @@ ErrorStatus PrintForceCalibrationResultTable( CALIBRATION_RSULT_PRINT_TypeDef *p
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-ErrorStatus PrintTestReport( SMPL_NAME_TypeDef showChannel, TEST_TYPE_TypeDef test_type, \
-							 const REPORT_TypeDef *report, const TEST_INFO_TypeDef *test_info )
+ErrorStatus PrintTestReport( TEST_TYPE_TypeDef test_type, TEST_ATTRIBUTE_TypeDef testAttribute, \
+				const REPORT_TypeDef *report, const TEST_INFO_TypeDef *test_info )
 {
 	tTime *t = NULL;
 	char print_buff[20];
@@ -379,10 +443,13 @@ ErrorStatus PrintTestReport( SMPL_NAME_TypeDef showChannel, TEST_TYPE_TypeDef te
 	const uint8_t MAX_TEST_NUM = 20;
 	const uint8_t BIT_FORCE_DOT = 2;			//力值小数位
 	const uint8_t BIT_COF_DOT = 2;				//修正系数小数位
-	const uint8_t BIT_LENTH_DOT = 1;			//长度小数位
+	const uint8_t BIT_LENTH_DOT = 2;			//长度小数位
 	const uint8_t BIT_AREA_DOT = 2;				//面积小数位
 	const uint8_t BIT_AVAIL_STRENGTH_DOT = 1;	//有效强度小数位
 	float force_buff = 0;
+	FH_UINT_TypeDef fhChannelUnit = GetFH_SmplUnit();
+	WY_UINT_TypeDef wyChannelUnit = GetWY_SmplUnit();
+	BX_UINT_TypeDef bxChannelUnit = GetBX_SmplUnit();
 	
 	ConfigPrinterDefaultSet();
 	
@@ -680,9 +747,99 @@ ErrorStatus PrintTestReport( SMPL_NAME_TypeDef showChannel, TEST_TYPE_TypeDef te
 			return ERROR;	
 		
 		case KLJSSW:
-			PrintWordsAndLineFeed("暂且不支持通用抗折试验！");		
+			print("标准：");
+			PrintWordsAndLineFeed(report->test_standard);
+
+			print("编号：");
+			PrintWordsAndLineFeed(test_info->fname);
+		
+			print("试件形状：");
+			switch (report->sample_shape_index)
+			{
+				case JSSWKL_SHAPE_RECTANGLE:
+					PrintWordsAndLineFeed(pSpecimenSharp_KLJSSW[0]);
+					break;
+				case JSSWKL_SHAPE_ROUND:
+					PrintWordsAndLineFeed(pSpecimenSharp_KLJSSW[1]);
+					break;
+				case JSSWKL_SHAPE_TUBE:
+					PrintWordsAndLineFeed(pSpecimenSharp_KLJSSW[2]);
+					break;
+				case JSSWKL_SHAPE_IRREGULAR:
+					PrintWordsAndLineFeed(pSpecimenSharp_KLJSSW[3]);
+					break;
+			}
+
+			{
+				float area = 0;
+				
+				switch (report->sample_shape_index)
+				{
+					case JSSWKL_SHAPE_RECTANGLE:
+						print("矩形厚度：");			
+						floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->length,print_buff);			
+						print(print_buff);
+						PrintWordsAndLineFeed("mm");
+					
+						print("矩形宽度：");			
+						floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->width,print_buff);			
+						print(print_buff);
+						PrintWordsAndLineFeed("mm");
+					
+						area = report->length * report->width;
+						break;
+					case JSSWKL_SHAPE_ROUND:
+						print("圆形直径：");			
+						floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->yx_diameter,print_buff);			
+						print(print_buff);
+						PrintWordsAndLineFeed("mm");
+					
+						area = GetCircularArea(report->yx_diameter);
+						break;
+					case JSSWKL_SHAPE_TUBE:
+						print("管段厚度：");			
+						floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->pipeThickness,print_buff);			
+						print(print_buff);
+						PrintWordsAndLineFeed("mm");
+					
+						print("管段外径：");			
+						floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->pipeOuterDiameter,print_buff);			
+						print(print_buff);
+						PrintWordsAndLineFeed("mm");
+					
+						area = CountPipeArea(report->pipeOuterDiameter,report->pipeThickness);
+						break;
+					case JSSWKL_SHAPE_IRREGULAR:
+						area = report->bgz_area;
+						break;
+				}
+				
+				print("原始截面积：");			
+				floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,area,print_buff);			
+				print(print_buff);
+				PrintWordsAndLineFeed("mm2");
+			}
 			
-			return ERROR;
+			print("引伸计标距：");			
+			floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->extensometerGauge,print_buff);			
+			print(print_buff);
+			PrintWordsAndLineFeed("mm");
+			
+			print("原始标距：");			
+			floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->originalGauge,print_buff);			
+			print(print_buff);
+			PrintWordsAndLineFeed("mm");
+			
+			print("平行长度：");			
+			floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->parallelLenth,print_buff);			
+			print(print_buff);
+			PrintWordsAndLineFeed("mm");
+			
+			print("试件根数：");			
+			numtochar(MAX_SHOW_BIT,report->sample_num,print_buff);			
+			print(print_buff);
+			PrintWordsAndLineFeed("根");
+			break;
 
 		default:
 			break;
@@ -701,74 +858,165 @@ ErrorStatus PrintTestReport( SMPL_NAME_TypeDef showChannel, TEST_TYPE_TypeDef te
 		return ERROR;
 	}
 	
-	for (i=0; i<tab_num; ++i)	//加载力值、强度
+	switch ( testAttribute )
 	{
-		PrintWordsAndLineFeed(pPrint_Title[i]);
-		
-		print("力值：");
-		force_buff = report->force[i];
-		if (showChannel == SMPL_KY_NUM)
-		{
-			force_buff /= 1000;
-		}
-		floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force_buff,print_buff);
-		print(print_buff);	
-		if (showChannel == SMPL_KY_NUM)
-		{
-			PrintWordsAndLineFeed("kN");
-		}
-		else
-		{
-			PrintWordsAndLineFeed("N");
-		}
-		
-		print("强度：");
-		floattochar(MAX_SHOW_BIT,BIT_AVAIL_STRENGTH_DOT,report->strength[i],print_buff);
-		print(print_buff);	
-		PrintWordsAndLineFeed("MPa");
-		
-		bsp_DelayMS(PRINT_DELAY);		//必须加延时，否则数据发送太快导致丢失
-	}
-	
-	print_enter();
-	print("有效力值：");
-	force_buff = report->force_valid[0];
-	
-	if (report->force_valid[0] < MIN_FLOAT_PRECISION_DIFF_VALUE)
-	{		
-		PrintWordsAndLineFeed("无 效");
-	}
-	else
-	{	
-		if (showChannel == SMPL_KY_NUM)
-		{
-			 force_buff /= 1000;
-		}
-		floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force_buff,print_buff);
-		print(print_buff);
+		case COMPRESSION_TEST:
+		case BENDING_TEST:
+			for (i=0; i<tab_num; ++i)	//加载力值、强度
+			{
+				PrintWordsAndLineFeed(pPrint_Title[i]);
+				
+				print("力值：");
+				force_buff = report->force[i];
+				AccordUnitConvValue(SMPL_FH_NUM,&force_buff,(pFunctionDevide)FloatDivisionTen);
+				floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force_buff,print_buff);
+				print(print_buff);	
+				PrintUnit(SMPL_FH_NUM);
+				
+				print("强度：");
+				floattochar(MAX_SHOW_BIT,BIT_AVAIL_STRENGTH_DOT,report->strength[i],print_buff);
+				print(print_buff);	
+				PrintWordsAndLineFeed("MPa");
+				
+				bsp_DelayMS(PRINT_DELAY);		//必须加延时，否则数据发送太快导致丢失
+			}
+			
+			print_enter();
+			print("有效力值：");
+			force_buff = report->force_valid[0];
+			
+			if (report->force_valid[0] < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{		
+				PrintWordsAndLineFeed("无 效");
+			}
+			else
+			{	
+				AccordUnitConvValue(SMPL_FH_NUM,&force_buff,(pFunctionDevide)FloatDivisionTen);
+				floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force_buff,print_buff);
+				print(print_buff);
+							
+				PrintUnit(SMPL_FH_NUM);
+			}
+			
+			print("有效强度：");
+			force_buff = report->strength_valid[0];
+			
+			if (report->result_valid == 0)
+			{
+				PrintWordsAndLineFeed("无 效");
+			}
+			else
+			{
+				floattochar(MAX_SHOW_BIT,1,force_buff,print_buff);
+				print(print_buff);
+				PrintWordsAndLineFeed("MPa");
+			}
+			break;
+		case STRETCH_TEST:
+			for (i=0; i<tab_num; ++i)
+			{
+				PrintWordsAndLineFeed(pPrint_Title[i]);
+				
+				{
+					float force = report->maxForce[i];
 					
-		if (showChannel == SMPL_KY_NUM)
-		{
-			PrintWordsAndLineFeed("kN");
-		}
-		else
-		{
-			PrintWordsAndLineFeed("N");
-		}
-	}
-	
-	print("有效强度：");
-	force_buff = report->strength_valid[0];
-	
-	if (report->result_valid == 0)
-	{
-		PrintWordsAndLineFeed("无 效");
-	}
-	else
-	{
-		floattochar(MAX_SHOW_BIT,1,force_buff,print_buff);
-		print(print_buff);
-		PrintWordsAndLineFeed("MPa");
+					print("最大力：");
+					
+					AccordUnitConvValue(SMPL_FH_NUM,&force,(pFunctionDevide)FloatDivisionTen);
+					
+					floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force,print_buff);
+					print(print_buff);
+					
+					PrintUnit(SMPL_FH_NUM);
+				}
+				
+				{
+					float strength = report->maxStrength[i];
+					
+					print("抗拉强度：");					
+					
+					floattochar(MAX_SHOW_BIT,1,strength,print_buff);
+					print(print_buff);
+					
+					PrintWordsAndLineFeed("MPa");
+				}
+				
+				{
+					float force = report->upYieldForce[i];
+					
+					print("上屈服：");
+					
+					AccordUnitConvValue(SMPL_FH_NUM,&force,(pFunctionDevide)FloatDivisionTen);
+					
+					floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force,print_buff);
+					print(print_buff);
+					
+					PrintUnit(SMPL_FH_NUM);
+				}
+				
+				{
+					float force = report->downYieldForce[i];
+					
+					print("下屈服：");
+					
+					AccordUnitConvValue(SMPL_FH_NUM,&force,(pFunctionDevide)FloatDivisionTen);
+					
+					floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force,print_buff);
+					print(print_buff);
+					
+					PrintUnit(SMPL_FH_NUM);
+				}
+				
+				{
+					float strength = report->upYieldStrength[i];
+					
+					print("上屈服强度：");				
+					
+					floattochar(MAX_SHOW_BIT,1,strength,print_buff);
+					print(print_buff);
+					
+					PrintWordsAndLineFeed("MPa");
+				}
+				
+				{
+					float strength = report->downYieldStrength[i];
+					
+					print("下屈服强度：");				
+					
+					floattochar(MAX_SHOW_BIT,1,strength,print_buff);
+					print(print_buff);
+					
+					PrintWordsAndLineFeed("MPa");
+				}
+				
+				{
+					float tempf = report->maxForceSumExtend[i];
+					
+					print("最大力总延伸：");				
+					
+					floattochar(MAX_SHOW_BIT,2,tempf,print_buff);
+					print(print_buff);
+					
+					PrintWordsAndLineFeed("mm");
+				}
+				
+				{
+					float tempf = report->maxForceSumElongation[i];
+					
+					print("最大力总伸长率：");				
+					
+					floattochar(MAX_SHOW_BIT,1,tempf,print_buff);
+					print(print_buff);
+					
+					PrintWordsAndLineFeed("%");
+				}
+			}
+			break;
+			
+		case INVALID_TEST:
+			break;
+		default:
+			break;
 	}
 	
 	PrintRowSpace(END_ROW_CNT);	//防止被打印的数据卡在打印机内部

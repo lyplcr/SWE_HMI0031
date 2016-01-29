@@ -163,6 +163,11 @@
       <TargetDriverDllRegistry>
         <SetRegEntry>
           <Number>0</Number>
+          <Key>DLGUARM</Key>
+          <Name></Name>
+        </SetRegEntry>
+        <SetRegEntry>
+          <Number>0</Number>
           <Key>ARMRTXEVENTFLAGS</Key>
           <Name>-L70 -Z18 -C0 -M0 -T1</Name>
         </SetRegEntry>
@@ -191,9 +196,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>1325</LineNumber>
+          <LineNumber>1326</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134395574</Address>
+          <Address>134396814</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -202,7 +207,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\APP\src\TestReport.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\DTS_2500_HMI0030\../APP/src/TestReport.c\1325</Expression>
+          <Expression>\\DTS_2500_HMI0030\../APP/src/TestReport.c\1326</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -226,12 +231,52 @@
           <WinNumber>1</WinNumber>
           <ItemText>g_coordinatePoint</ItemText>
         </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>*pVal</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>*pSource,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>value</ItemText>
+        </Ww>
+        <Ww>
+          <count>7</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>g_CalibrationBody</ItemText>
+        </Ww>
+        <Ww>
+          <count>8</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>g_ForceCalibration</ItemText>
+        </Ww>
+        <Ww>
+          <count>9</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>g_ForceCalibration.fieldData</ItemText>
+        </Ww>
+        <Ww>
+          <count>10</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>g_CalibrationBody</ItemText>
+        </Ww>
+        <Ww>
+          <count>11</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>g_CalibrationResult</ItemText>
+        </Ww>
       </WatchWindow1>
       <MemoryWindow1>
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>0</SubType>
-          <ItemText>fno-&gt;lfname</ItemText>
+          <ItemText>0x100041f0</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>
@@ -1147,7 +1192,7 @@
 
   <Group>
     <GroupName>UTILS</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1540,7 +1585,7 @@
 
   <Group>
     <GroupName>CMSIS</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2182,8 +2227,8 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Doc\BUG日志.txt</PathWithFileName>
-      <FilenameWithoutPath>BUG日志.txt</FilenameWithoutPath>
+      <PathWithFileName>..\Doc\固件升级日志.txt</PathWithFileName>
+      <FilenameWithoutPath>固件升级日志.txt</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -2195,21 +2240,8 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Doc\固件升级日志.txt</PathWithFileName>
-      <FilenameWithoutPath>固件升级日志.txt</FilenameWithoutPath>
-      <RteFlg>0</RteFlg>
-      <bShared>0</bShared>
-    </File>
-    <File>
-      <GroupNumber>10</GroupNumber>
-      <FileNumber>143</FileNumber>
-      <FileType>5</FileType>
-      <tvExp>0</tvExp>
-      <Focus>0</Focus>
-      <tvExpOptDlg>0</tvExpOptDlg>
-      <bDave2>0</bDave2>
-      <PathWithFileName>..\Doc\程序标准格式.txt</PathWithFileName>
-      <FilenameWithoutPath>程序标准格式.txt</FilenameWithoutPath>
+      <PathWithFileName>..\Doc\BUG日志.txt</PathWithFileName>
+      <FilenameWithoutPath>BUG日志.txt</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

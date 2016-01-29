@@ -233,8 +233,6 @@ typedef struct
 	TEST_TYPE_TypeDef testType;
 	uint8_t indexArray[MAX_TEST_PARAMETER_NUM];
 	uint8_t curParameterNum;						//参数个数
-	SMPL_NAME_TypeDef showChannel;					//显示通道
-	SMPL_NAME_TypeDef tureChannel;					//真实通道
 	BoolStatus isIndexMove;							//索引值移动
 	FunctionalState enableMoveIndex;				//使能移动索引值
 	FunctionalState enablePutin;					//使能输入
@@ -1095,6 +1093,9 @@ static void TestParameterInit( void )
 				g_testParameter.testType = KYSNJS;
 				break;	
 			case MODEL_UNIVERSAL:
+				g_testParameter.testType = KYSNJS;
+				break;
+			case MODEL_UNDEFINED:
 				g_testParameter.testType = KYSNJS;
 				break;
 		}
@@ -4115,7 +4116,7 @@ static void TestParameterGetConvertArea( uint8_t nowIndex )
 					if ( (nowIndex==GetTestParameterIndex(OBJECT_PIPE_THICKNESS)) || \
 							(nowIndex == GetTestParameterIndex(OBJECT_PIPE_OUTER_DIAMETER)) )
 					{
-						float area = PI * pipeThickness * (pipeOuterDiameter - pipeThickness);
+						float area = CountPipeArea(pipeOuterDiameter,pipeThickness);
 						
 						floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[sampleAreaIndex].pointBit,\
 								area,g_testParameter.parameterData[sampleAreaIndex]);

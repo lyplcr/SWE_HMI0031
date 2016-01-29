@@ -35,6 +35,12 @@ typedef struct
 }CURVE_SHOW_TypeDef;
 
 /* Private constants ---------------------------------------------------------*/
+const char * const pCurveShowCue[] = 
+{
+	"读取报告失败！",			//0
+	"读取坐标点文件失败！",		//1
+};
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static CURVE_SHOW_TypeDef g_curveShow;
@@ -145,6 +151,10 @@ static void CurveShowReadParameter( void )
 		g_curveShow.leavePage.flagLeavePage = SET;
 		SetPage(DETAIL_REPORT_PAGE);
 		
+		SetPopWindowsInfomation(POP_PCM_CUE,1,&pCurveShowCue[0]);
+			
+		PopWindowsProcessCycle();
+		
 		return;
 	}
 	
@@ -171,6 +181,10 @@ static void CurveShowReadParameter( void )
 		{
 			g_curveShow.leavePage.flagLeavePage = SET;
 			SetPage(DETAIL_REPORT_PAGE);
+			
+			SetPopWindowsInfomation(POP_PCM_CUE,1,&pCurveShowCue[1]);
+			
+			PopWindowsProcessCycle();
 			
 			return;
 		}

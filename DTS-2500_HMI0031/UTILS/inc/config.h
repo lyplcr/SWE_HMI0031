@@ -101,7 +101,7 @@ typedef enum
 	SMPL_BX_NUM = 0x02,			//变形通道
 	SMPL_EX1_NUM = 0x03,		//扩展1通道
 	SMPL_ECD1_NUM = 0x04,		//光电编码器1
-	SMPL_ECD2_NUM = 0x05,		//光电编码器2
+	SMPL_ECD2_NUM = 005,		//光电编码器2
 }SMPL_NAME_TypeDef; 
 
 typedef enum

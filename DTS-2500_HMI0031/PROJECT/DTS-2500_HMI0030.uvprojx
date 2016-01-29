@@ -1162,19 +1162,14 @@
           <GroupName>Doc</GroupName>
           <Files>
             <File>
-              <FileName>BUG日志.txt</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Doc\BUG日志.txt</FilePath>
-            </File>
-            <File>
               <FileName>固件升级日志.txt</FileName>
               <FileType>5</FileType>
               <FilePath>..\Doc\固件升级日志.txt</FilePath>
             </File>
             <File>
-              <FileName>程序标准格式.txt</FileName>
+              <FileName>BUG日志.txt</FileName>
               <FileType>5</FileType>
-              <FilePath>..\Doc\程序标准格式.txt</FilePath>
+              <FilePath>..\Doc\BUG日志.txt</FilePath>
             </File>
           </Files>
         </Group>

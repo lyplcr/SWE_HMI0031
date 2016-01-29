@@ -39,11 +39,7 @@ static void PageProcessCycle( void );
  * Return         : None
  *------------------------------------------------------------*/
 int main( void )
-{
-	#ifndef VERSION_RELEASE
-		#warning "Version : Demo"
-	#endif
-	
+{	
 	InitSystem();	
 	
 	while (1)

@@ -430,6 +430,8 @@ static void ReportSearchConfig( void )
 			g_reportSearch.testIndexArray[9] 	= KZTY;
 			g_reportSearch.testIndexArray[10] 	= KLJSSW;
 			break;
+		case MODEL_UNDEFINED:
+			break;	
 	}
 	
 	/* 二级菜单参数个数 */
@@ -447,6 +449,8 @@ static void ReportSearchConfig( void )
 		case MODEL_UNIVERSAL:
 			g_reportSearch.twoLevelMenu[INDEX_FIND_OBJECT].parameterCnt = 11;
 			break;
+		case MODEL_UNDEFINED:
+			break;	
 	}	
 	g_reportSearch.twoLevelMenu[INDEX_FIND_MODE].parameterCnt			= 2;
 	g_reportSearch.twoLevelMenu[INDEX_START_DATE].parameterCnt 			= 0;
@@ -475,6 +479,8 @@ static void ReportSearchConfig( void )
 		case MODEL_UNIVERSAL:
 			g_reportSearch.twoLevelMenu[INDEX_FIND_OBJECT].pParameterNameArray = pReportSearchNameUniversal;
 			break;
+		case MODEL_UNDEFINED:
+			break;	
 	}	
 	g_reportSearch.twoLevelMenu[INDEX_FIND_MODE].pParameterNameArray 		= pFindModeName;
 	g_reportSearch.twoLevelMenu[INDEX_START_DATE].pParameterNameArray 		= NULL;

@@ -449,6 +449,10 @@ static void TestTypeSelectLeavePageCheckCycle( void )
 					g_testTypeSelect.selChannel = STRETCH_TEST;
 					SetPage(g_testTypeSelect.targetPage);
 					break;
+				case INVALID_TEST:
+					break;
+				default:
+					break;
 			}
 		}
 		else
@@ -489,7 +493,7 @@ TEST_ATTRIBUTE_TypeDef GetTestAttribute( uint8_t testIndex )
 			testAttribute = STRETCH_TEST;
 			break;
 		default:
-			testAttribute = COMPRESSION_TEST;
+			testAttribute = INVALID_TEST;
 			break;
 	}
 	

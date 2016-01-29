@@ -60,6 +60,12 @@ void InitSystem( void )
 	BSP_Init();					/* 底层驱动初始化 	*/
 	
 	InitGeneralTask();			/* 初始化通用任务 	*/
+	
+	#ifndef VERSION_RELEASE
+		#warning "Version : Demo"
+	
+		printf("Demo！\r\n");
+	#endif
 }
 
 /*------------------------------------------------------------
