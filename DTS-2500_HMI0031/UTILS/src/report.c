@@ -129,8 +129,6 @@ void report_get_path(uint8_t type,char *path)
 	strcpy(path,testPathSD[type].path);
 }
 
-
-
 /**********************************************************************
 functionName:FRESULT report_save(char *type,char *file,REPORT_TypeDef *report)
 description:保存结果,type：试验类型 file:文件名 report:实验报告
@@ -741,6 +739,7 @@ FRESULT SaveCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, 
 				usprintf(pathSerial,"%s/%s",g_coordinatePointPath_USB[testType].path,pSerial); 
 				break;
 			default:
+				f_close(&file_obj);
 				return FR_INVALID_DRIVE;
 		}
 		 	
@@ -751,6 +750,8 @@ FRESULT SaveCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, 
 	
 	if (fresult != FR_OK)
 	{
+		f_close(&file_obj);
+		
 		return fresult; 
 	}
 	
@@ -808,6 +809,8 @@ FRESULT ReadCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, 
 	
 	if (fresult != FR_OK)
 	{	 
+		f_close(&file_obj);
+		
 		return fresult;	
 	}
 	
@@ -906,6 +909,322 @@ FRESULT DeleteCoordinateFolder( uint8_t pdrv, uint8_t testType, const char * con
 	fresult = f_unlink(pathFile); 	
 	
 	return fresult; 
+}
+
+/*------------------------------------------------------------
+ * Function Name  : CreatFolder
+ * Description    : 创建文件夹
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static FRESULT CreatFolder( const char * const pPath )
+{
+	uint32_t i = 0;
+	uint32_t pathIndex = 0;
+	char pathBuff[100];
+	FRESULT fresult;
+	
+	while (pPath[i] != NULL)
+	{	
+		if (pPath[i] == '/')
+		{
+			pathBuff[pathIndex] = NULL;
+			
+			fresult = f_mkdir(pathBuff); 
+			if ((fresult!=FR_OK) && (fresult!=FR_EXIST))
+			{									
+				break;
+			}
+			
+			pathBuff[pathIndex++] = '/';
+		}
+		else
+		{
+			pathBuff[pathIndex++] = pPath[i];
+		}
+		
+		i++;
+	}
+	
+	return fresult;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : CopyFileTime
+ * Description    : 复制文件时间
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static FRESULT CopyFileTime( const char * const pSourcePath, const char * const pTargetPath )
+{
+	FILINFO file_info;
+	FRESULT fresult;
+	
+	#if _USE_LFN
+         file_info.lfname = Lfname;
+         file_info.lfsize = sizeof(Lfname);
+    #endif
+	
+	fresult = f_stat(pSourcePath,&file_info);
+	if (fresult != FR_OK)
+	{									
+		return fresult;
+	}
+	
+	fresult = f_utime(pTargetPath,&file_info);
+	
+	return fresult;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : CopyFileFromDevices
+ * Description    : 从设备拷贝文件
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+ErrorStatus CopyFileFromDevices( const char * const pSourcePath, const char * const pTargetPath )
+{
+	FRESULT fresult;
+	FIL sourceFileObj; 
+	FIL targetFileObj; 
+	uint32_t br; 
+	const uint16_t ONCE_READ_SIZE = 1024;
+	uint8_t fileBuff[ONCE_READ_SIZE];
+	uint32_t totalReadSize = 0;
+	uint32_t totalWriteSize = 0;
+	
+	fresult = f_open(&sourceFileObj,pSourcePath,FA_OPEN_EXISTING|FA_READ);
+	if (fresult != FR_OK)
+	{
+		f_close(&sourceFileObj);
+		
+		return ERROR;
+	}
+	
+	fresult = f_open(&targetFileObj,pTargetPath,FA_CREATE_ALWAYS|FA_WRITE);
+	if (fresult == FR_NO_PATH)
+	{
+		fresult = CreatFolder(pTargetPath);		
+		fresult = f_open(&targetFileObj,pTargetPath,FA_CREATE_ALWAYS|FA_WRITE);
+		if (fresult != FR_OK)
+		{
+			f_close(&sourceFileObj);
+			f_close(&targetFileObj);
+		
+			return ERROR;
+		}	
+	}
+	else if (fresult != FR_OK)
+	{
+		f_close(&sourceFileObj);
+		f_close(&targetFileObj);
+	
+		return ERROR;
+	}
+
+	totalReadSize = sourceFileObj.fsize;
+	
+	do{
+		uint32_t realReadSize = 0;
+		
+		fresult = f_read(&sourceFileObj,fileBuff,ONCE_READ_SIZE,&br); 
+		if (fresult != FR_OK)
+		{
+			break;
+		}
+		realReadSize = br;
+		
+		fresult = f_write(&targetFileObj,fileBuff,realReadSize,&br);
+		if (fresult != FR_OK)
+		{
+			break;
+		}		
+		totalWriteSize += br;	
+		
+	} while (br != 0);
+	
+	f_close(&sourceFileObj);
+	f_close(&targetFileObj);
+	
+	if (fresult != FR_OK)
+	{
+		return ERROR;
+	}
+	
+	if (totalReadSize != totalWriteSize)
+	{
+		return ERROR;
+	}
+	
+	fresult = CopyFileTime(pSourcePath,pTargetPath);
+	if (fresult != FR_OK)
+	{
+		return ERROR;
+	}
+	
+	return SUCCESS;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : CopyFileBody
+ * Description    : 从设备拷贝文件体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static ErrorStatus CopyFileBody( const char * const pSourceFolderPath, const char * const pTargetFolderPath,\
+				const char * const pSourceFileName )
+{
+	const uint8_t FILE_PATH_MAX_LEN = 100;
+	char sourcePathName[FILE_PATH_MAX_LEN];
+	char targetPathName[FILE_PATH_MAX_LEN];
+	uint16_t pathLen = 0;
+	
+	pathLen = strlen(pSourceFolderPath) + strlen(pSourceFileName) + 1;	//+1：中间有一个'/'符号
+	if (pathLen >= FILE_PATH_MAX_LEN)
+	{
+		return ERROR; 
+	}
+	
+	pathLen = strlen(pTargetFolderPath) + strlen(pSourceFileName) + 1;	//+1：中间有一个'/'符号
+	if (pathLen >= FILE_PATH_MAX_LEN)
+	{
+		return ERROR; 
+	}
+	
+	strcpy(sourcePathName,pSourceFolderPath);
+	strcat(sourcePathName,"/");
+	strcat(sourcePathName,pSourceFileName);
+	
+	strcpy(targetPathName,pTargetFolderPath);
+	strcat(targetPathName,"/");
+	strcat(targetPathName,pSourceFileName);
+
+	if (ERROR == CopyFileFromDevices(sourcePathName,targetPathName) )
+	{
+		return ERROR;
+	}
+	
+	return SUCCESS;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : CopyFolderBody
+ * Description    : 从设备拷贝文件夹体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static ErrorStatus CopyFolderBody( const char * const pSourceFolderPath, const char * const pTargetFolderPath,\
+				const char * const pSourceFolderName )
+{
+	const uint8_t FILE_PATH_MAX_LEN = 100;
+	char sourcePathName[FILE_PATH_MAX_LEN];
+	char targetPathName[FILE_PATH_MAX_LEN];
+	uint16_t pathLen = 0;
+	
+	pathLen = strlen(pSourceFolderPath) + strlen(pSourceFolderName) + 1;	//+1：中间有一个'/'符号
+	if (pathLen >= FILE_PATH_MAX_LEN)
+	{
+		return ERROR; 
+	}
+	
+	pathLen = strlen(pTargetFolderPath) + strlen(pSourceFolderName) + 1;	//+1：中间有一个'/'符号
+	if (pathLen >= FILE_PATH_MAX_LEN)
+	{
+		return ERROR; 
+	}
+	
+	strcpy(sourcePathName,pSourceFolderPath);
+	strcat(sourcePathName,"/");
+	strcat(sourcePathName,pSourceFolderName);
+	
+	strcpy(targetPathName,pTargetFolderPath);
+	strcat(targetPathName,"/");
+	strcat(targetPathName,pSourceFolderName);
+
+	if (ERROR == CopyFolderFromDevices(sourcePathName,targetPathName) )
+	{
+		return ERROR;
+	}
+	
+	return SUCCESS;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : CopyFolderFromDevices
+ * Description    : 从设备拷贝文件夹
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+ErrorStatus CopyFolderFromDevices( const char * const pSourceFolderPath, const char * const pTargetFolderPath )
+{
+	DIR dir_object;  
+	FILINFO sourceFileInfo; 
+	FRESULT fresult;
+	FlagStatus flagLongFileName = RESET;
+	
+	#if _USE_LFN								
+		sourceFileInfo.lfname = Lfname;
+		sourceFileInfo.lfsize = sizeof(Lfname);
+    #endif
+	
+	fresult = f_opendir(&dir_object,pSourceFolderPath); 	
+	if (fresult != FR_OK)
+	{
+		return ERROR; 
+	}
+	
+	for (;;)
+	{
+		fresult = f_readdir(&dir_object,&sourceFileInfo);		
+		if (fresult != FR_OK)
+		{
+			return ERROR; 
+		}
+		
+		/* 文件夹内文件读取完毕 */
+		if ( !sourceFileInfo.fname[0] )	
+		{			
+			break;	
+		}
+		
+		flagLongFileName = (sourceFileInfo.lfname[0] == 0) ? RESET : SET;	//判断是否是长文件名
+		
+		{
+			const char *pName = NULL;
+			
+			if (flagLongFileName == SET)
+			{
+				pName = sourceFileInfo.lfname;
+			}
+			else
+			{
+				pName = sourceFileInfo.fname;
+			}
+			
+			if (sourceFileInfo.fattrib & AM_ARC)		//是个文件
+			{						
+				if ( CopyFileBody(pSourceFolderPath,pTargetFolderPath,pName) == ERROR)
+				{
+					return ERROR;
+				}
+			}
+			else if (sourceFileInfo.fattrib & AM_DIR)		//是个文件夹
+			{			
+				if ( CopyFolderBody(pSourceFolderPath,pTargetFolderPath,pName) == ERROR)
+				{
+					return ERROR;
+				}
+			}
+		}
+	}
+	
+	return SUCCESS;
 }
 
 /******************* (C) COPYRIGHT 2012 XinGao Tech *****END OF FILE************************************/ 

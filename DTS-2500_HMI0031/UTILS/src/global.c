@@ -1395,15 +1395,19 @@ void GUI_DrawCoordinate( COORDINATE_TypeDef *pCoordinate )
 	lcd_draw_dashed_frame(dashed_frame);	
 	
 	/* 轴线 */
-	lcd_fill(pCoordinate->x-5,pCoordinate->y+pCoordinate->yLenth,pCoordinate->xLenth+10,\
-			pCoordinate->lineWidth,pCoordinate->xLinePointColor);
-	lcd_fill(pCoordinate->x,pCoordinate->y-5,pCoordinate->lineWidth,pCoordinate->yLenth+10,\
-			pCoordinate->yLinePointColor);
-//	lcd_fill(pCoordinate->x,pCoordinate->y,pCoordinate->xLenth,\
-//			pCoordinate->lineWidth,pCoordinate->xLinePointColor);
-//	lcd_fill(pCoordinate->x+pCoordinate->xLenth,pCoordinate->y,pCoordinate->lineWidth,pCoordinate->yLenth,\
-//			pCoordinate->yLinePointColor);
-			
+	{
+		uint8_t lineWidth = 2;
+		
+		lcd_fill(pCoordinate->x-5,pCoordinate->y+pCoordinate->yLenth,pCoordinate->xLenth+10,\
+				lineWidth,pCoordinate->xLinePointColor);
+		lcd_fill(pCoordinate->x-1,pCoordinate->y-5,lineWidth,pCoordinate->yLenth+10,\
+				pCoordinate->yLinePointColor);
+	//	lcd_fill(pCoordinate->x,pCoordinate->y,pCoordinate->xLenth,\
+	//			lineWidth,pCoordinate->xLinePointColor);
+	//	lcd_fill(pCoordinate->x+pCoordinate->xLenth,pCoordinate->y,lineWidth,pCoordinate->yLenth,\
+	//			pCoordinate->yLinePointColor);
+	}
+	
 	/* 限制条件 */
 	if (pCoordinate->maxTime < 20)
  	{

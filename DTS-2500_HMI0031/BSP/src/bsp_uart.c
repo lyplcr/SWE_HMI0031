@@ -840,6 +840,33 @@ void USART3_SendOverCallBack( void )
 	#endif
 }
 
+/*------------------------------------------------------------
+ * Function Name  : GetReceiveBuffUnreadPercentage
+ * Description    : 获取接收缓存未读取数据百分比
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float GetReceiveBuffUnreadPercentage( COM_PORT_E _ucPort )
+{
+	UART_T *pUart = ComToUart(_ucPort);
+	
+	return (1.0 * pUart->usRxCount / pUart->usRxBufSize) * 100;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetSendBuffUnwritePercentage
+ * Description    : 获取发送缓存未写入数据百分比
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float GetSendBuffUnwritePercentage( COM_PORT_E _ucPort )
+{
+	UART_T *pUart = ComToUart(_ucPort);
+	
+	return (1.0 * pUart->usTxCount / pUart->usTxBufSize) * 100;
+}
 
 /*
 *********************************************************************************************************

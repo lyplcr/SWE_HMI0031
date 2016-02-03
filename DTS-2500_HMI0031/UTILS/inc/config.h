@@ -29,8 +29,9 @@
 #define		VALVE_RESET_DEGREE		-6400								//阀口复位开度
 #define 	CTRL_FREQ				50									//控制频率
 #define 	CTRL_PERIOD				(1000/CTRL_FREQ)					//控制周期
+#define		FLASH_FONT_PASSWORD		0x2F8E4A7D							//FLASH字库密码
 
-#define		SYSTEM_MODEL			"SWE"								//系统型号（DTS-2500(屏显)）
+#define		SYSTEM_MODEL			"SWE"								//系统型号
 #define		SOFT_VERSION			"1.0.0.0"							//上位机软件版本	
 #define		PCB_VERSION				"HMI0031"							//上位机PCB版本
 

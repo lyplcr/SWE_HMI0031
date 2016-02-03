@@ -215,8 +215,8 @@ static void GUI_CurveShowDrawCoordinate( void )
 	pCoordinate->columnFieldNum = 10;
 	pCoordinate->mainBackColor = COLOR_BACK;
 	pCoordinate->windowsBackColor = COLOR_BACK;
-	pCoordinate->rowLineColor = GREEN_LITTLE1;
-	pCoordinate->columnLineColor = BROWN_LITTLE1;
+	pCoordinate->rowLineColor = CL_GREEN1;
+	pCoordinate->columnLineColor = CL_BROWN1;
 	pCoordinate->fontPointColor = ORANGE;
 	pCoordinate->fontBackColor = COLOR_BACK;
 	pCoordinate->xLinePointColor = FRESH_GREEN;

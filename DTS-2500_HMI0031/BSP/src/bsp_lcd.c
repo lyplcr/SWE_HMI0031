@@ -18,6 +18,20 @@
 #include "font_asc.h"
 
 
+#define KByte(x)				(x * (1 << 10))
+
+/* 字库 */		
+#define FONT_BASE_ADDR			( KByte(100) )
+#define FONT_PASSWORD_ADDR		( FONT_BASE_ADDR - KByte(4) )
+
+/* 宋体24号-中文 */
+#define SONG24_FONT_HZ_ADDR		(FONT_BASE_ADDR + 0)
+#define SD_FONT_HZ_PATH			"0:hz/"
+
+/* 宋体24号-英文（放在宋体24号中文后面，4K字节对齐） */
+#define SONG24_FONT_ENG_ADDR	(FONT_BASE_ADDR + KByte(592))
+#define SD_FONT_ENG_PATH		"0:asc/"
+
 
 #define		LCD_WR_Data(x)		*(__IO uint16_t *) (LCD_DATA_ADD)=(x)
 #define		Bank1_LCD_D			LCD_DATA_ADD   
@@ -517,30 +531,6 @@ FIL file_obj;
 FIL english_obj;
 FIL chinese_obj;
 
-//16号字体
-// static FIL file_16_ht_ch; 		//黑体中文
-// static FIL file_16_ht_en;		//黑体英文
-// static FIL file_16_st_ch; 		//宋体中文
-// static FIL file_16_st_en;		//宋体英文
-
-// //20号字体
-// static FIL file_20_st_ch; 		//宋体中文
-// static FIL file_20_st_en;		//宋体英文
-
-// //24号字体
-// static FIL file_24_ht_ch; 		//黑体中文
-// static FIL file_24_ht_en;		//黑体英文
-// static FIL file_24_st_ch; 		//宋体中文
-// static FIL file_24_st_en;		//宋体英文
-
-// //32号字体
-// static FIL file_32_ht_ch; 		//黑体中文
-// static FIL file_32_ht_en;		//黑体英文
-// static FIL file_32_st_ch; 		//宋体中文
-// static FIL file_32_st_en;		//宋体英文
-
-
-
 typedef struct
 {
    uint8_t scan;
@@ -827,6 +817,79 @@ void lcd_draw24x24(uint16_t x,uint16_t y,uint16_t fc,uint16_t bc,uint8_t *buff)
 	}  
 }
 
+#if 0
+	/**********************************************************************
+	functionName:FRESULT lcd_font24(uint16_t x,uint16_t y,uint16_t fc,uint16_t bc,char *s,char *font)
+	description: 显示24点阵的中英文混合字
+	**********************************************************************/
+	FRESULT lcd_font24(uint16_t x,uint16_t y,uint16_t fc,uint16_t bc,const char *const s,const char *const font)
+	{
+		uint8_t qh=0,wh=0;
+		uint32_t offset; 
+		char path[20];
+		uint32_t br; 
+		uint8_t font_buff[73];
+		const char *sc = s;
+		uint8_t open[2] = {0};	
+		fresult = FR_OK;
+		
+		while(*sc) 
+		{
+			if(*sc<=127)
+			{
+				if ( !open[FONT_ENGLISH] )
+				{					
+					usprintf(path,"asc/%s",font);
+					fresult=f_open(&english_obj,path,FA_READ);
+					if(fresult!=FR_OK)
+					break; 
+					
+					open[FONT_ENGLISH] = 1;
+				}
+					
+				offset=(uint16_t)(*sc)*48;
+				f_lseek(&english_obj,offset); 
+				f_read(&english_obj,font_buff,48,&br); 
+				lcd_draw24x12(x,y,fc,bc,font_buff);
+				sc++;
+				x+=12;
+			}	
+			else
+			{
+				if ( !open[FONT_CHINESE] )
+				{								
+					usprintf(path,"hz/%s",font);
+					fresult=f_open(&chinese_obj,path,FA_READ);
+					if(fresult!=FR_OK)
+					break;
+					
+					open[FONT_CHINESE] = 1;
+				}
+				
+				qh=sc[0]-0xa0;
+				wh=sc[1]-0xa0;
+				offset=(94*(qh-1)+wh-1)*72;		//得到偏移地址
+				f_lseek(&chinese_obj,offset); 
+				f_read(&chinese_obj,font_buff,72,&br);
+				lcd_draw24x24(x,y,fc,bc,font_buff);
+				sc+=2;
+				x+=24; 
+			}	
+		}
+		
+		if ( open[FONT_ENGLISH] )
+		{
+			f_close(&english_obj);
+		}
+		if ( open[FONT_CHINESE] )
+		{
+			f_close(&chinese_obj);
+		}
+		
+		return fresult;
+	}
+#endif
+	
 /**********************************************************************
 functionName:FRESULT lcd_font24(uint16_t x,uint16_t y,uint16_t fc,uint16_t bc,char *s,char *font)
 description: 显示24点阵的中英文混合字
@@ -835,70 +898,37 @@ FRESULT lcd_font24(uint16_t x,uint16_t y,uint16_t fc,uint16_t bc,const char *con
 {
 	uint8_t qh=0,wh=0;
 	uint32_t offset; 
-	char path[20];
-	uint32_t br; 
 	uint8_t font_buff[73];
 	const char *sc = s;
-	uint8_t open[2] = {0};	
 	fresult = FR_OK;
 	
 	while(*sc) 
 	{
 		if(*sc<=127)
-		{
-			if ( !open[FONT_ENGLISH] )
-			{					
-				usprintf(path,"asc/%s",font);
-				fresult=f_open(&english_obj,path,FA_READ);
-				if(fresult!=FR_OK)
-				break; 
-				
-				open[FONT_ENGLISH] = 1;
-			}
-				
+		{				
 			offset=(uint16_t)(*sc)*48;
-			f_lseek(&english_obj,offset); 
-			f_read(&english_obj,font_buff,48,&br); 
+			
+			sf_ReadBuffer(font_buff,SONG24_FONT_ENG_ADDR+offset,48); 
+			
 			lcd_draw24x12(x,y,fc,bc,font_buff);
 			sc++;
 			x+=12;
 		}	
 		else
-		{
-			if ( !open[FONT_CHINESE] )
-			{								
-				usprintf(path,"hz/%s",font);
-				fresult=f_open(&chinese_obj,path,FA_READ);
-				if(fresult!=FR_OK)
-				break;
-				
-				open[FONT_CHINESE] = 1;
-			}
-			
+		{			
 			qh=sc[0]-0xa0;
 			wh=sc[1]-0xa0;
 			offset=(94*(qh-1)+wh-1)*72;		//得到偏移地址
-			f_lseek(&chinese_obj,offset); 
-			f_read(&chinese_obj,font_buff,72,&br);
+			
+			sf_ReadBuffer(font_buff,SONG24_FONT_HZ_ADDR+offset,72);
 			lcd_draw24x24(x,y,fc,bc,font_buff);
 			sc+=2;
 			x+=24; 
 		}	
 	}
 	
-	if ( open[FONT_ENGLISH] )
-	{
-		f_close(&english_obj);
-	}
-	if ( open[FONT_CHINESE] )
-	{
-		f_close(&chinese_obj);
-	}
-	
 	return fresult;
-}
-
-
+}	
 
 /**********************************************************************
 functionName:void lcd_draw32x16(uint16_t x, uint16_t y,uint16_t fc,uint16_t bc,char c,uint8_t *buff)
@@ -1504,12 +1534,8 @@ functionName:void bsp_InitFont( void )
 description:字体加载初始化
 **********************************************************************/
 void bsp_InitFont( void )
-{
-//	char path[20];	
-		
-	f_mount(&fs,"0:/",1);	/* 注册设备 */
-	
-	fresult = lcd_font16(0,0,BLACK,BLACK," ","song16.zk");
+{		
+	fresult = f_mount(&fs,"0:/",1);	/* 注册设备 */
 	
 	if (fresult != FR_OK)
 	{
@@ -1517,55 +1543,6 @@ void bsp_InitFont( void )
 		
 		while (1);
 	}
-// 	
-// 	//打开黑体16号字体
-// 	usprintf(path,"hz/%s","heiti16.zk");
-// 	fresult = f_open(&file_16_ht_ch,path,FA_READ);	
-// 	usprintf(path,"asc/%s","heiti16.zk");
-// 	fresult = f_open(&file_16_ht_en,path,FA_READ);
-// 	
-// 	//打开黑体24号字体
-// 	usprintf(path,"hz/%s","heiti24.zk");
-// 	fresult = f_open(&file_24_ht_ch,path,FA_READ);	
-// 	usprintf(path,"asc/%s","heiti24.zk");
-// 	fresult = f_open(&file_24_ht_en,path,FA_READ);
-// 	
-// 	//打开黑体32号字体
-// 	usprintf(path,"hz/%s","heiti32.zk");
-// 	fresult = f_open(&file_32_ht_ch,path,FA_READ);	
-// 	usprintf(path,"asc/%s","heiti32.zk");
-// 	fresult = f_open(&file_32_ht_en,path,FA_READ);
-// 	
-// 	//打开宋体16号字体
-// 	usprintf(path,"hz/%s","song16.zk");
-// 	fresult = f_open(&file_16_st_ch,path,FA_READ);	
-// 	usprintf(path,"asc/%s","song16.zk");
-// 	fresult = f_open(&file_16_st_en,path,FA_READ);
-// 	
-// 	//打开宋体20号字体
-// 	usprintf(path,"hz/%s","song20.zk");
-// 	fresult = f_open(&file_20_st_ch,path,FA_READ);	
-// 	usprintf(path,"asc/%s","song20.zk");
-// 	fresult = f_open(&file_20_st_en,path,FA_READ);
-// 	
-// 	//打开宋体24号字体
-// 	usprintf(path,"hz/%s","song24.zk");
-// 	fresult = f_open(&file_24_st_ch,path,FA_READ);	
-// 	usprintf(path,"asc/%s","song24.zk");
-// 	fresult = f_open(&file_24_st_en,path,FA_READ);
-// 	
-// 	//打开宋体32号字体
-// 	usprintf(path,"hz/%s","song32.zk");
-// 	fresult = f_open(&file_32_st_ch,path,FA_READ);	
-// 	usprintf(path,"asc/%s","song32.zk");
-// 	fresult = f_open(&file_32_st_en,path,FA_READ);
-	
-// 	if (fresult != FR_OK)
-// 	{
-// 		lcd_mem_err(400-16*5,240-16,RED,BLACK);
-// 		
-// 		while ( 1 );
-// 	}
 }
 
 
@@ -1595,6 +1572,132 @@ void lcd_date_display(uint16_t x, uint16_t y,uint16_t fc,uint16_t bc)
 	lcd_font16(x,y,fc,bc,c,"song16.zk");
 } 
 
+/*------------------------------------------------------------
+ * Function Name  : UpdateFlashFont
+ * Description    : 更新FLASH字库
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+FRESULT UpdateFlashFont( const char *const pFont )
+{
+	FRESULT fresult;
+	FIL file_obj;  
+	uint32_t br = 0; 
+	char pathFile[30];
+	const uint16_t ONCE_READ_SIZE = 1024;
+	uint8_t fileBuff[ONCE_READ_SIZE];
+	uint32_t writeAddr = 0;
+	uint32_t totalReadSize = 0;
+	uint32_t totalWriteSize = 0;
+	const char *pFontPath = NULL;
+	const char *pFontName = NULL;
+	
+	if (strcmp("hz_song24",pFont) == 0)
+	{
+		writeAddr = SONG24_FONT_HZ_ADDR;
+		pFontPath = SD_FONT_HZ_PATH;
+		pFontName = "song24.zk";
+	}
+	else if (strcmp("eng_song24",pFont) == 0)
+	{
+		writeAddr = SONG24_FONT_ENG_ADDR;
+		pFontPath = SD_FONT_ENG_PATH;
+		pFontName = "song24.zk";
+	}
+	else
+	{
+		return FR_NO_FILE;
+	}
+	
+	usprintf(pathFile,"%s%s",pFontPath,pFontName);   	
+	fresult = f_open(&file_obj,pathFile,FA_OPEN_EXISTING|FA_READ); 	
+	if (fresult != FR_OK)
+	{
+		f_close(&file_obj);
+		
+		return fresult;
+	}
+	
+	totalReadSize = file_obj.fsize;
+	
+	do{
+		fresult = f_read(&file_obj,fileBuff,ONCE_READ_SIZE,&br);  
+		if (fresult != FR_OK)
+		{
+			break;
+		}
+		
+		if (sf_WriteBuffer(fileBuff,writeAddr,br) == 0)
+		{
+			fresult = FR_DISK_ERR;
+			break;
+		}
+		
+		totalWriteSize += br;
+		writeAddr += br;		
+	} while (br != 0);
+	
+	f_close(&file_obj);
+	
+	if (fresult != FR_OK)
+	{
+		return fresult;
+	}
+	
+	if (totalReadSize != totalWriteSize)
+	{
+		return FR_DISK_ERR;
+	}
+	
+	return FR_OK;
+}
 
+/*------------------------------------------------------------
+ * Function Name  : FlashFontIsExist
+ * Description    : 检测FLASH字库是否存在
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+BoolStatus FlashFontIsExist( void )
+{
+	uint32_t readFontPassword = 0;
+	
+	sf_ReadBuffer((uint8_t *)&readFontPassword,FONT_PASSWORD_ADDR,4);
+	
+	if (readFontPassword == FLASH_FONT_PASSWORD)
+	{
+		return YES;
+	}
+	else
+	{
+		return NO;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : WriteFlashFontPassword
+ * Description    :	写入FLASH字库密码
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+ErrorStatus WriteFlashFontPassword( void )
+{
+	uint32_t writeFontPassword = FLASH_FONT_PASSWORD;
+	uint32_t readFontPassword = 0;
+	
+	if ( sf_WriteBuffer((uint8_t *)&writeFontPassword,FONT_PASSWORD_ADDR,4) == 1)
+	{
+		sf_ReadBuffer((uint8_t *)&readFontPassword,FONT_PASSWORD_ADDR,4);
+		if (readFontPassword == FLASH_FONT_PASSWORD)
+		{
+			return SUCCESS;
+		}
+	}
+	
+	return ERROR;
+}
 
 /******************* (C) COPYRIGHT 2012 XinGao Tech *****END OF FILE****/  

@@ -51,7 +51,11 @@ enum
 	CL_BLUE1        = RGB(  0,  0, 240),		/* 深蓝色 */
 	CL_BLUE2        = RGB(  0,  0, 128),		/* 深蓝色 */
 	CL_BLUE3        = RGB(  68, 68, 255),		/* 浅蓝色1 */
-	CL_BLUE4        = RGB(  0, 64, 128),		/* 浅蓝色1 */
+	CL_BLUE4        = RGB(  0, 64, 128),		/* 浅蓝色1 */	
+	
+	CL_GREEN1		= RGB(  0x21, 0x88, 0x68),	/* 浅绿色1 */
+	
+	CL_BROWN1		= RGB(  0x8B, 0x86, 0x4E),	/* 浅棕色1 */
 
 	/* UI 界面 Windows控件常用色 */
 	CL_BTN_FACE		= RGB(236, 233, 216),	/* 按钮表面颜色(灰) */
@@ -215,6 +219,10 @@ void bsp_InitFont( void );
 
 void disp_syn(uint8_t chn);			//显示同步,当切换到显示值的界面时，需要重新刷新显示缓冲，不然显示最左边的数字会出现不更新的问题
 void disp_value(float val,uint8_t chn,uint16_t x,uint16_t y,uint16_t fc,uint16_t bc,uint8_t int_len,uint8_t dec_len);  	//显示主界面采集到的负荷/位移/变形数据，整形显示n位，小数点后显示n位
+
+BoolStatus FlashFontIsExist( void );
+ErrorStatus WriteFlashFontPassword( void );
+FRESULT UpdateFlashFont( const char *const pFont );
 
 #endif
 

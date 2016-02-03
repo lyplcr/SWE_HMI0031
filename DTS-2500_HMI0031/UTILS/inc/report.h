@@ -151,9 +151,12 @@ FRESULT SetCurveSaveTime(uint8_t sourcePdrv, uint8_t targetPdrv, uint8_t testTyp
 FRESULT SaveCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, \
 			const char * const pSerial, const COORDINATE_POINT_TypeDef * const pCoordinate );
 FRESULT ReadCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, \
-			const char * const pSerial, COORDINATE_POINT_TypeDef * const pCoordinate );
-			
-FRESULT DeleteCoordinateFolder( uint8_t pdrv, uint8_t testType, const char * const pSerial );			
+			const char * const pSerial, COORDINATE_POINT_TypeDef * const pCoordinate );			
+FRESULT DeleteCoordinateFolder( uint8_t pdrv, uint8_t testType, const char * const pSerial );	
+
+ErrorStatus CopyFileFromDevices( const char * const pSourcePath, const char * const pTargetPath );
+ErrorStatus CopyFolderFromDevices( const char * const pSourceFolderPath, const char * const pTargetFolderPath );
+
 #endif
 
 

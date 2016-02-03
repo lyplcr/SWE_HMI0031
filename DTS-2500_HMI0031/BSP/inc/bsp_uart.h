@@ -68,7 +68,7 @@ typedef enum
 #endif
 
 #if UART6_FIFO_EN == 1
-	#define UART6_BAUD			19200L
+	#define UART6_BAUD			115200L
 	#define UART6_TX_BUF_SIZE	1*500
 	#define UART6_RX_BUF_SIZE	1*100
 #endif
@@ -77,6 +77,9 @@ typedef enum
 void bsp_InitCOM(void);														//BSP串口初始化
 uint8_t ComSend(COM_PORT_E _ucPort, uint8_t *_ucaBuf, uint16_t _usLen);		//COM口发送函数 
 uint8_t ComGet(COM_PORT_E _ucPort, uint8_t *_pByte);						//COM口接收函数
+
+float GetReceiveBuffUnreadPercentage( COM_PORT_E _ucPort );
+float GetSendBuffUnwritePercentage( COM_PORT_E _ucPort );
  
 
 #endif

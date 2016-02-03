@@ -64,10 +64,6 @@ void pcm_read(void)
 	#elif 	defined USE_PCM_OUTSIDE_FLASH_SAVE
 		sf_ReadBuffer(pcm_ram,PCM_DATA_BASE,PCM_MEM_SIZE); 
 	#endif		
-	
-//	eep_read(pcm_ram,PCM_DATA_BASE,PCM_MEM_SIZE); 
-//	pcm_read_sd();	
-//	sf_ReadBuffer(pcm_ram,PCM_DATA_BASE,PCM_MEM_SIZE); 
 }
 
 
@@ -84,10 +80,6 @@ void pcm_save(void)
 	#elif 	defined USE_PCM_OUTSIDE_FLASH_SAVE
 		sf_WriteBuffer(pcm_ram,PCM_DATA_BASE,PCM_MEM_SIZE);
 	#endif
-	
-//	eep_write(pcm_ram,PCM_DATA_BASE,PCM_MEM_SIZE);	
-//	pcm_save_sd();
-//	sf_WriteBuffer(pcm_ram,PCM_DATA_BASE,PCM_MEM_SIZE);
 }
 
 #define		SAVE_SD_BUF_SIZE		64
@@ -403,48 +395,6 @@ FRESULT PcmBackupWithDate( void )
 	f_write(&file_obj,pcm_ram,PCM_MEM_SIZE,&br);
 
 	f_close(&file_obj);
-	
-// 	usprintf(file_name,"%04d%02d%02d",t.usYear, t.ucMon, t.ucMday);
-// 	
-// 	fresult = f_open(&file_obj,"sys/log.bin",FA_CREATE_NEW|FA_READ); 	//用于测试是否存在log.bin文件
-// 	if (FR_OK == fresult)	//SD卡没有对应的文件
-// 	{
-// 		sys_log.index = 0;
-// 		sys_log.num = 1;
-// 				
-// 		strcpy(sys_log.f_name[0],file_name);
-// 	     
-// 		for (i=1;i<10;i++)
-// 		{
-// 			sys_log.f_name[i][0] = '\0'; 
-// 		}
-// 	}
-// 	else
-// 	{
-// 		fresult = f_open(&file_obj,"sys/log.bin",FA_OPEN_ALWAYS|FA_READ); 		//读
-// 	
-// 		if(fresult == FR_OK)	//改
-// 		{
-// 			f_read(&file_obj,&sys_log,sizeof(SYS_BACKUP_LOG_TypeDef),&br);
-
-// 			sys_log.num++;
-// 			sys_log.index++;		
-// 			if (sys_log.index >= 10)
-// 			{
-// 				sys_log.index = 0;
-// 			}
-// 			
-// 			strcpy(sys_log.f_name[sys_log.index],file_name);
-// 		}
-// 	}		
-// 	
-// 	f_close(&file_obj);	
-// 	
-// 	fresult = f_open(&file_obj,"sys/log.bin",FA_CREATE_ALWAYS|FA_WRITE);			//写
-// 	
-// 	f_write(&file_obj,&sys_log,sizeof(SYS_BACKUP_LOG_TypeDef),&br);  
-// 	  
-// 	f_close(&file_obj);
 	
 	return FR_OK;
 }

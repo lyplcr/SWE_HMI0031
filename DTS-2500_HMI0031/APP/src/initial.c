@@ -179,6 +179,73 @@ static BoolStatus CheckSystemParameterIsNull( void )
 }	
 
 /*------------------------------------------------------------
+ * Function Name  : UpdateFlashFontBody
+ * Description    : 更新FLASH字库
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static ErrorStatus UpdateFlashFontBody( void )
+{
+	FRESULT result;
+	
+	result = UpdateFlashFont("hz_song24");
+	if (result != FR_OK)
+	{
+		return ERROR;
+	}
+	
+	result = UpdateFlashFont("eng_song24");
+	if (result != FR_OK)
+	{
+		return ERROR;
+	}
+	
+	return SUCCESS;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : UpdateFlashFontTask
+ * Description    : 更新FLASH字库任务
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void UpdateFlashFontTask( void )
+{
+	uint16_t x = 336;
+	uint16_t y = 232;
+
+	if (FlashFontIsExist() == YES)
+	{
+		return;
+	}
+	
+	GUI_DispStr16At(x,y,COLOR_POINT,COLOR_BACK,"正在写入字库，请稍后...");
+	
+	if (UpdateFlashFontBody() == SUCCESS)
+	{
+		lcd_fill(0,y,LCD_LENTH_X,16,COLOR_BACK);			
+		GUI_DispStr16At(x,y,COLOR_POINT,COLOR_BACK,"字库更新成功！");
+		bsp_DelayMS(1000);
+		
+		if (WriteFlashFontPassword() == SUCCESS)
+		{
+			lcd_fill(0,y,LCD_LENTH_X,16,COLOR_BACK);			
+			GUI_DispStr16At(x,y,COLOR_POINT,COLOR_BACK,"写入字体钥匙成功！");
+			bsp_DelayMS(1000);
+			
+			return;
+		}
+	}
+
+	lcd_fill(0,y,LCD_LENTH_X,16,COLOR_BACK);
+	GUI_DispStr16At(x,y,COLOR_POINT,COLOR_BACK,"字库更新失败！");
+	
+	while (1);		
+}
+
+/*------------------------------------------------------------
  * Function Name  : FormateSystemParameter
  * Description    : 格式化系统参数
  * Input          : None
@@ -328,6 +395,9 @@ void LoadSystemSetupPage( void )
 	pcm_read();								
 	prm_read();							
 	prv_read();	
+	
+	/* 更新字库 */
+	UpdateFlashFontTask();
 	
 	/* 擦除系统参数 */
 	FormateSystemParameter();

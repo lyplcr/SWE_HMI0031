@@ -386,7 +386,7 @@ const char * const pStatusBarTitleName[] =
 const char * const pMainPageWarning[] = 
 {
 	"当前处于脱机状态！",			//0
-	"试块个数不能为0！",				//1
+	"试块个数超出范围！",			//1
 	"试验保存失败！",				//2
 	"发送负荷通道清零命令失败！",		//3
 	"一组试验未完成，不能进入",		//4
@@ -477,7 +477,17 @@ static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest );
  * Return         : None
  *------------------------------------------------------------*/
 void LoadMainPage( void )
-{	
+{			
+	ErrorStatus result[6];
+	
+	result[0] = CopyFolderFromDevices("0:/asc","1:/asc");
+//	result[1] = CopyFolderFromDevices("0:/curve","1:/curve");
+//	result[2] = CopyFolderFromDevices("0:/hz","1:/hz");
+//	result[3] = CopyFolderFromDevices("0:/image","1:/image");
+//	result[4] = CopyFolderFromDevices("0:/sys","1:/sys");
+//	result[5] = CopyFolderFromDevices("0:/test","1:/test");
+
+	
 	/* 关闭屏幕 */
 	SetBackLightEffectClose(COLOR_BACK);
 
@@ -2882,8 +2892,8 @@ static void GUI_MainPageDrawCoordinate( uint32_t maxForce, uint32_t maxTime )
 	pCoordinate->columnFieldNum = 5;
 	pCoordinate->mainBackColor = COLOR_BACK;
 	pCoordinate->windowsBackColor = COLOR_BACK;
-	pCoordinate->rowLineColor = GREEN_LITTLE1;
-	pCoordinate->columnLineColor = BROWN_LITTLE1;
+	pCoordinate->rowLineColor = CL_GREEN1;//GREEN_LITTLE1;
+	pCoordinate->columnLineColor = CL_BROWN1;//BROWN_LITTLE1;
 	pCoordinate->fontPointColor = ORANGE;
 	pCoordinate->fontBackColor = COLOR_BACK;
 	pCoordinate->xLinePointColor = FRESH_GREEN;
@@ -4165,7 +4175,7 @@ static FunctionalState MainPageAllowRunTest( void )
 	}
 	
 	/* 检测试块个数 */
-	if (g_mainPage.sumSampleNum == 0)
+	if ((g_mainPage.sumSampleNum<1) || (g_mainPage.sumSampleNum>20))
 	{
 		SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[1]);
 		
@@ -4509,7 +4519,6 @@ static float MainPageGetDeform( void )
 static void KL_TestCheckPeakCycle( void )
 {
 	static float s_recordPeak = 0;
-
 	float peak = GetPeakValue(SMPL_FH_NUM);		
 	float deform = MainPageGetDeform();
 	

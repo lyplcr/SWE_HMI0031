@@ -1668,8 +1668,12 @@ CMD_STATUS_TypeDef comm_cycle( void )
 {
 	uint16_t rxCmd = 0;
 	
+//	ECHO(DEBUG_COMM_BUFF,"未读取 %f %%\r\n",GetReceiveBuffUnreadPercentage(COM1));
+//	ECHO(DEBUG_COMM_BUFF,"未发送 %f %%\r\n",GetSendBuffUnwritePercentage(COM1));
+	
 	g_cmdMutual.isRxReply = NO;
 	
+	/* 读空串口缓存数据包 */
 	while ( Uart_GetPackageCycle() == YES )
 	{
 		if (ERROR == uart_check() )
@@ -1683,12 +1687,16 @@ CMD_STATUS_TypeDef comm_cycle( void )
 		
 		if ( (rxCmd==RTM_SAMPLE_VALUE) || (rxCmd==RTM_SAMPLE_CODE) || (rxCmd==RTM_SAMPLE_RCODE) )	
 		{
+			ECHO(DEBUG_CMD,"收到实时数据！\r\n\r\n");
+			
 			g_linkMutual.keepLiveCount = 0;
 			
 			sample_cycle();
 		}
 		else		
 		{
+			ECHO(DEBUG_CMD,"收到命令！\r\n\r\n");
+			
 			g_cmdMutual.isRxReply = YES;
 			
 			SetCommucationLampStart();
@@ -2038,6 +2046,7 @@ LINK_STATUS_TypeDef link_cycle( void )
 	
 	g_linkMutual.isRxReply = NO;
 	
+	/* 读空串口缓存数据包 */
 	while ( Uart_GetPackageCycle() == YES )
 	{
 		rxCmd = uart_get_cmd();
