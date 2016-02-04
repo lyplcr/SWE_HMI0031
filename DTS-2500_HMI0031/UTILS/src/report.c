@@ -740,6 +740,7 @@ FRESULT SaveCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, 
 				break;
 			default:
 				f_close(&file_obj);
+			
 				return FR_INVALID_DRIVE;
 		}
 		 	

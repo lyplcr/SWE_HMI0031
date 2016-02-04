@@ -477,17 +477,7 @@ static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest );
  * Return         : None
  *------------------------------------------------------------*/
 void LoadMainPage( void )
-{			
-	ErrorStatus result[6];
-	
-	result[0] = CopyFolderFromDevices("0:/asc","1:/asc");
-//	result[1] = CopyFolderFromDevices("0:/curve","1:/curve");
-//	result[2] = CopyFolderFromDevices("0:/hz","1:/hz");
-//	result[3] = CopyFolderFromDevices("0:/image","1:/image");
-//	result[4] = CopyFolderFromDevices("0:/sys","1:/sys");
-//	result[5] = CopyFolderFromDevices("0:/test","1:/test");
-
-	
+{				
 	/* ¹Ø±ÕÆÁÄ» */
 	SetBackLightEffectClose(COLOR_BACK);
 
@@ -5453,6 +5443,7 @@ static void MainPageSaveCoordinateCurveToSD( void )
 		if (result != FR_OK)
 		{
 			SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[19]);
+			PopWindowsProcessCycle();
 			
 			ECHO(DEBUG_TEST_LOAD,"±£´æÇúÏßÊ§°Ü£¡\r\n");
 		}
