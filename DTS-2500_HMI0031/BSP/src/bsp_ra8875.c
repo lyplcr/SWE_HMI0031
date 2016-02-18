@@ -80,7 +80,7 @@ description:写寄存器地址函数/写寄存器地址函数、指令写入
 void WriteCommand(uint16_t index)
 { 
 	  *(__IO uint16_t *) (LCD_COMM_ADD)= index;
-	  RA8875_WAITSTATUS(); 
+//	  RA8875_WAITSTATUS(); 
 }
  
 

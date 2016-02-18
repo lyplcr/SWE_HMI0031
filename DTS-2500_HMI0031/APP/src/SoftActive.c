@@ -78,6 +78,7 @@ const char * const ActiveStatusWarn[] =
 	"产品激活成功！",			//6
 	"激活密码错误！",			//7
 	"激活密码过期！",			//8
+	"产品编号设置错误！",		//9
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -168,6 +169,41 @@ static void SoftActiveInit( void )
 	g_softActive.refreshShortcut = ENABLE;
 	g_softActive.leavePage.flagLeavePage = RESET;
 	g_softActive.leavePage.flagSaveData = RESET;
+	
+	/* 检测激活状态 */
+	{
+		int32_t remainDay = 0;
+		EXPIRE_STATUS_TypeDef activeStatus;
+		
+		activeStatus = JudgeActiveStatus(&remainDay);
+		
+		switch ( activeStatus )
+		{
+			case EXPIRE_NONE:
+				ECHO(DEBUG_ACTIVE,"已激活！\r\n");
+				break;
+			case EXPIRE_DATE_ERR:	
+				ECHO(DEBUG_ACTIVE,"时间设置错误！\r\n");
+				break; 
+			case EXPIRE_NEAR:
+				ECHO(DEBUG_ACTIVE,"激活将要到期！\r\n");
+				break;
+			case EXPIRE_ACTIVE_DATE_ERR:	
+				ECHO(DEBUG_ACTIVE,"激活日期错误！\r\n");
+				break; 
+			case EXPIRE_ACTIVE_DAY_ERR:		
+				ECHO(DEBUG_ACTIVE,"激活时间错误！\r\n");
+				break; 
+			case EXPIRE:
+				ECHO(DEBUG_ACTIVE,"激活已到期！\r\n");
+				break; 
+			default:
+				ECHO(DEBUG_ACTIVE,"未知状态！\r\n");
+				break;
+		}
+		
+		ECHO(DEBUG_ACTIVE,"激活剩余天数：%d\r\n",remainDay);
+	}
 }
 
 /*------------------------------------------------------------
@@ -198,8 +234,8 @@ static void SoftActiveParameterConfig( void )
 	g_softActive.pTitle = "软件激活设置";
 	
 	/* 数据保存类型 */
-	g_softActive.oneLevelMenu[INDEX_FACTORY_SERIAL].saveType 		= TYPE_INT;
-	g_softActive.oneLevelMenu[INDEX_ACTIVE_PASSWORD].saveType 		= TYPE_INT;
+	g_softActive.oneLevelMenu[INDEX_FACTORY_SERIAL].saveType 		= TYPE_CHAR;
+	g_softActive.oneLevelMenu[INDEX_ACTIVE_PASSWORD].saveType 		= TYPE_CHAR;
 	g_softActive.oneLevelMenu[INDEX_CURRENT_DATE].saveType			= TYPE_INT;
 	g_softActive.oneLevelMenu[INDEX_ACTIVE_DATE].saveType 			= TYPE_INT;
 }
@@ -240,33 +276,19 @@ static void SoftActiveReadParameter( void )
 	uint32_t ID = 0;
 	char ID_buff[9] = {0};
 	uint8_t index = 0;
-	uint8_t bit = 0;
-	uint8_t increaseFactor = '0';
-	ErrorStatus errStatus;
-	
-	ID = GetDeviceID();
-	
-	hex2str_32(ID,ID_buff);
-	
-	while (FindStrNotIncludeNumBit(ID_buff,&bit) == SET)
-	{
-		ID_buff[bit] = increaseFactor++;
-	}
-	
-	errStatus = dvc_product_id_set(ID_buff);
-	
-	errStatus = dvc_product_id_get(&ID,ID_buff);
 	
 	index = GetSoftActiveIndex(OBJECT_FACTORY_SERIAL);
 	if (index != 0xff)
 	{
-		if (errStatus == ERROR)
+		ErrorStatus errStatus = dvc_product_id_get(&ID,ID_buff);
+		
+		if (errStatus == SUCCESS)
 		{
-			strcpy(g_softActive.parameterData[index],"--------");
+			strcpy(g_softActive.parameterData[index],ID_buff);
 		}
 		else
 		{
-			strcpy(g_softActive.parameterData[index],ID_buff);
+			strcpy(g_softActive.parameterData[index],"--------");
 		}
 	}
 	
@@ -274,12 +296,6 @@ static void SoftActiveReadParameter( void )
 	if (index != 0xff)
 	{
 		g_softActive.parameterData[index][0] = NULL;
-	}
-
-	index = GetSoftActiveIndex(OBJECT_ACTIVE_PASSWORD);
-	if (index != 0xff)
-	{
-		g_softActive.nowIndex = index;
 	}
 }
 
@@ -423,7 +439,7 @@ static void GUI_SoftActiveTimeCue( void )
 		GUI_ShowActiveDate(x,y,pointColor,backColor);
 	}
 }
-
+#if 0
 /*------------------------------------------------------------
  * Function Name  : GUI_SoftActiveProductSerialCue
  * Description    : 产品编号提示信息
@@ -446,7 +462,7 @@ static void GUI_SoftActiveProductSerialCue( void )
 		GUI_DispStr24At(x,y,pointColor,backColor,g_softActive.parameterData[index]);
 	}	
 }
-	
+#endif	
 /*------------------------------------------------------------
  * Function Name  : GUI_SoftActive
  * Description    : 界面GUI
@@ -464,7 +480,9 @@ static void GUI_SoftActive( void )
 	
 	GUI_SoftActiveOneLevelMenu();
 	
-	GUI_SoftActiveProductSerialCue();
+	#if 0
+		GUI_SoftActiveProductSerialCue();
+	#endif
 	
 	GUI_SoftActiveTimeCue();	
 }
@@ -500,6 +518,12 @@ static void Show_SoftActiveOneRowOneLevelMenuContent( uint8_t index )
 static void Traverse_SoftActive( void )
 {
 	uint8_t index = 0;
+	
+	index = GetSoftActiveIndex(OBJECT_FACTORY_SERIAL);
+	if (index != 0xff)
+	{
+		Show_SoftActiveOneRowOneLevelMenuContent(index);
+	}
 	
 	index = GetSoftActiveIndex(OBJECT_ACTIVE_PASSWORD);
 	if (index != 0xff)
@@ -577,8 +601,18 @@ static void SoftActiveShortcutCycleTask( void )
  * Return         : None
  *------------------------------------------------------------*/
 static void SoftActiveMoveIndexProcess( void )
-{	
+{		
+	INDEX_MANAGE_TypeDef indexObj;
+	
 	g_softActive.isIndexMove = NO;
+	
+	indexObj.enableMoveIndex = ENABLE;
+	indexObj.rowNum = g_softActive.curParameterNum;
+	indexObj.colNum = 1;
+	indexObj.sumNum = g_softActive.curParameterNum;
+	indexObj.pNowIndex = &g_softActive.nowIndex;
+		
+	KeyIndexManage(&indexObj);
 	
 	if (g_softActive.nowIndex != g_softActive.recordIndex)
 	{		
@@ -628,9 +662,23 @@ static void SoftActiveMoveCursorProcess( void )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
+static void SoftActiveUpdateIndex( void )
+{
+	g_softActive.nowIndex++;
+	
+	g_softActive.nowIndex %= g_softActive.curParameterNum;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SoftActiveUpdateStatus
+ * Description    : 更新状态
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
 static void SoftActiveUpdateStatus( void )
 {
-	g_softActive.recordIndex = 0xff;
+	SoftActiveUpdateIndex();
 	
 	g_softActive.refreshShortcut = ENABLE;
 }
@@ -716,7 +764,23 @@ static void SoftActiveKeyProcess( void )
 									strcpy(g_softActive.parameterData[index],GetPutinCharDataAddr());
 								}
 								break;
-						}	
+						}
+						
+						{
+							index = GetSoftActiveIndex(OBJECT_FACTORY_SERIAL);
+							if (index != 0xff)
+							{
+								ErrorStatus errStatus = dvc_product_id_set(g_softActive.parameterData[index]);
+								
+								if (errStatus == ERROR)
+								{
+									SetPopWindowsInfomation(POP_PCM_CUE,1,&ActiveStatusWarn[9]);
+									
+									g_softActive.leavePage.flagLeavePage = SET;
+									g_softActive.leavePage.flagSaveData = RESET;
+								}
+							}
+						}
 						break;						
 					
 					default:
@@ -749,7 +813,7 @@ static void SoftActiveKeyProcess( void )
 			case KEY_F3:
 				index = GetSoftActiveIndex(OBJECT_ACTIVE_PASSWORD);
 				if (index != 0xff)
-				{
+				{							
 					SoftActiveActiveProcess(g_softActive.parameterData[index]);
 					g_softActive.leavePage.flagLeavePage = SET;
 					g_softActive.leavePage.flagSaveData = SET;	

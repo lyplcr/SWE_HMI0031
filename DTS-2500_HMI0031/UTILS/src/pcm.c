@@ -389,6 +389,8 @@ FRESULT PcmBackupWithDate( void )
 
 	if(FR_OK != fresult)	
 	{
+		f_close(&file_obj);
+		
 		return fresult;
 	} 
 

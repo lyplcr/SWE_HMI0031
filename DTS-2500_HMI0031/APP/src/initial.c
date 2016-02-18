@@ -33,6 +33,7 @@ const char * const pInitialPageCue[] =
 	"格式化后,所有的参数将被擦除!",	//1
 	"擦除系统参数成功！",			//2
 	"与下位机通讯失败！",			//3
+	"自动备份参数失败！",			//4
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -282,6 +283,7 @@ static void AutoBackUpSystem( void )
 {
 	char time_buff[12];
 	tTime t;
+	FRESULT fresult[3];
 	static uint16_t x = 336;
 	static uint16_t y = 232;
 	
@@ -294,11 +296,19 @@ static void AutoBackUpSystem( void )
 	{	
 		GUI_DispStr16At(x,y,COLOR_POINT,COLOR_BACK,"正在自动备份...");
 		
-		PcmBackupWithDate();
-		PrmBackupWithDate();
-		PrvBackupWithDate();
+		fresult[0] = PcmBackupWithDate();
+		fresult[1] = PrmBackupWithDate();
+		fresult[2] = PrvBackupWithDate();
 		
-		GUI_DispStr16At(x,y,COLOR_BACK,COLOR_BACK,"                ");
+		if ((fresult[0]==FR_OK) && (fresult[1]==FR_OK) && (fresult[2]==FR_OK))
+		{
+			GUI_DispStr16At(x,y,COLOR_BACK,COLOR_BACK,"                ");
+		}
+		else
+		{
+			SetPopWindowsInfomation(POP_PCM_CUE,1,&pInitialPageCue[4]);		
+			PopWindowsProcessCycle();
+		}
 	}
 }
 

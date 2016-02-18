@@ -1593,6 +1593,8 @@ FRESULT PrmBackupWithDate(void)
 		
 	if(FR_OK != fresult)	
 	{
+		f_close(&file_obj);
+		
 		return fresult;
 	}
 	   
@@ -1646,6 +1648,8 @@ FRESULT PrvBackupWithDate(void)
 		
 	if(FR_OK != fresult)	
 	{
+		f_close(&file_obj);
+		
 		return fresult;
 	}
  
