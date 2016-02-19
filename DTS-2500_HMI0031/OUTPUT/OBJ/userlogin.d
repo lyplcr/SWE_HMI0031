@@ -65,6 +65,7 @@
 ..\output\obj\userlogin.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\userlogin.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\userlogin.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\userlogin.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\userlogin.o: ..\UTILS\inc\cmd.h
 ..\output\obj\userlogin.o: ..\UTILS\inc\typewrite.h
 ..\output\obj\userlogin.o: ..\UTILS\inc\gui.h

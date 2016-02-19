@@ -64,6 +64,7 @@
 ..\output\obj\active.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\active.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\active.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\active.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\active.o: ..\UTILS\inc\active.h
 ..\output\obj\active.o: ..\UTILS\inc\prm_struct.h
 ..\output\obj\active.o: ..\UTILS\inc\prm.h

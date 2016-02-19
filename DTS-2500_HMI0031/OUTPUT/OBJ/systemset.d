@@ -65,6 +65,7 @@
 ..\output\obj\systemset.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\systemset.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\systemset.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\systemset.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\systemset.o: ..\UTILS\inc\cmd.h
 ..\output\obj\systemset.o: ..\UTILS\inc\typewrite.h
 ..\output\obj\systemset.o: ..\UTILS\inc\gui.h

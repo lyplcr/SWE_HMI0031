@@ -8,8 +8,10 @@
   * @Chip    STM32F407VET6
   * @brief   底层驱动文件
   ******************************************************************************
-  * @attention
+  * 版本号  日期        作者         说明       
   *
+  *	V1.0.1 	2016-2-19	SY			增加计算函数运行时间的函数，ResetFunctionRunTime()、
+  *									GetFunctionRunTime()、PrintFunctionRunTime()
   * 
   ******************************************************************************
   */
@@ -49,6 +51,22 @@ void BSP_Init( void )
 	#ifdef ENABLE_BEEP
 		BEEP_START();
 	#endif
+}
+
+/*------------------------------------------------------------
+ * Function Name  : BSP_CPU_ClkFreq
+ * Description    : 获取时钟频率
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+uint32_t  BSP_CPU_ClkFreq (void)
+{
+    RCC_ClocksTypeDef  rcc_clocks;
+
+    RCC_GetClocksFreq(&rcc_clocks);
+	
+    return ((uint32_t)rcc_clocks.HCLK_Frequency);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

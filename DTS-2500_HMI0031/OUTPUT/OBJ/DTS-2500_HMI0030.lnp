@@ -52,6 +52,7 @@
 "..\output\obj\usbh_it.o"
 "..\output\obj\usbh_usr.o"
 "..\output\obj\bsp_rtc.o"
+"..\output\obj\bsp_dwt.o"
 "..\output\obj\global.o"
 "..\output\obj\typewrite.o"
 "..\output\obj\gui.o"

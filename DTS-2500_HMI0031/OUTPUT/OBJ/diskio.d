@@ -64,6 +64,7 @@
 ..\output\obj\diskio.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\diskio.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\diskio.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\diskio.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\diskio.o: ..\USB\USB_APP\usbh_bsp_msc.h
 ..\output\obj\diskio.o: ..\USB\USB_APP\usb_conf.h
 ..\output\obj\diskio.o: ..\USB\Libraries\STM32_USB_OTG_Driver\inc\usb_bsp.h

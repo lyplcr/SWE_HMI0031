@@ -65,6 +65,7 @@
 ..\output\obj\initial.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\initial.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\initial.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\initial.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\initial.o: ..\UTILS\inc\cmd.h
 ..\output\obj\initial.o: ..\UTILS\inc\typewrite.h
 ..\output\obj\initial.o: ..\UTILS\inc\gui.h

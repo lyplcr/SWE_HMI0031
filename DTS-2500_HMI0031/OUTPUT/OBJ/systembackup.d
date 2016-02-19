@@ -65,6 +65,7 @@
 ..\output\obj\systembackup.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\systembackup.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\systembackup.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\systembackup.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\systembackup.o: ..\UTILS\inc\cmd.h
 ..\output\obj\systembackup.o: ..\UTILS\inc\typewrite.h
 ..\output\obj\systembackup.o: ..\UTILS\inc\gui.h

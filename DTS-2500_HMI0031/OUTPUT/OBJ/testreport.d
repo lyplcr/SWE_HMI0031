@@ -65,6 +65,7 @@
 ..\output\obj\testreport.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\testreport.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\testreport.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\testreport.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\testreport.o: ..\UTILS\inc\cmd.h
 ..\output\obj\testreport.o: ..\UTILS\inc\typewrite.h
 ..\output\obj\testreport.o: ..\UTILS\inc\gui.h

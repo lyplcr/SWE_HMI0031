@@ -64,6 +64,7 @@
 ..\output\obj\netconf.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\netconf.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\netconf.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\netconf.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\netconf.o: ..\BSP\inc\netconf.h
 ..\output\obj\netconf.o: ..\LWIP-1.3.1\src\include\lwip/memp.h
 ..\output\obj\netconf.o: ..\LWIP-1.3.1\src\include\lwip/opt.h

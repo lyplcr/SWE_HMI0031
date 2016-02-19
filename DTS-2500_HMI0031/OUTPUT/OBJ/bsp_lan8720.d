@@ -64,6 +64,7 @@
 ..\output\obj\bsp_lan8720.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\bsp_lan8720.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\bsp_lan8720.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\bsp_lan8720.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\bsp_lan8720.o: ..\FWLIB\inc\stm32f4x7_eth.h
 ..\output\obj\bsp_lan8720.o: ..\FWLIB\inc\stm32f4x7_eth_conf.h
 ..\output\obj\bsp_lan8720.o: ..\BSP\inc\netconf.h

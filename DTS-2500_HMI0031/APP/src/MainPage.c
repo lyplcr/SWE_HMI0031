@@ -5346,14 +5346,10 @@ static float GetDownYieldForce( void )
 	{
 		float tempf = 0;
 		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
-		uint32_t num = (g_klTestBody.maxForceIndex - g_klTestBody.upYieldForceIndex) + 1;		
-		
-//		SetTime(0);
+		uint32_t num = (g_klTestBody.maxForceIndex - g_klTestBody.upYieldForceIndex) + 1;				
 		
 		SortBubble((void *)&(pDrawLine->force[g_klTestBody.upYieldForceIndex]),\
 			num,&tempf,compFloatData);
-		
-//		GetTime(0);
 		
 		return pDrawLine->force[g_klTestBody.upYieldForceIndex];
 	}
@@ -5466,9 +5462,7 @@ static void MainPageExecuteEndOnePieceProcess( void )
 		ECHO(DEBUG_TEST_LOAD,"一块试块结束！\r\n");	
 		ECHO(DEBUG_TEST_LOAD,"保存曲线...\r\n");
 
-//		SetTime(0);
 		MainPageSaveCoordinateCurveToSD();
-//		GetTime(0);
 		
 		g_testBody.isExecuteEndGroup = YES;
 		
@@ -5980,8 +5974,6 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 	}	
 	pDrawLine->baseIndex = 0;
 	
-//	GetTime(0);
-//	SetTime(0);
 	/* 记录力值信息 */
 	pDrawLine->nowTimePoint++;
 	if (IsCoordinateRecordPointOverflow(pDrawLine) == YES)

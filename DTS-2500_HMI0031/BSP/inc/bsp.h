@@ -34,7 +34,7 @@
 #include "bsp_lan8720.h"
 #include "bsp_print.h"
 #include "bsp_rtc.h"
-
+#include "bsp_dwt.h"
 
 /* Exported define -----------------------------------------------------------*/
 #define BEEP_RING_ONE()  				SetBeep(10,5,1) 	//按键声
@@ -53,6 +53,55 @@
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void BSP_Init( void );
+uint32_t  BSP_CPU_ClkFreq (void);
+
+/*
+*********************************************************************************************************
+*	函 数 名: ResetFunctionRunTime
+*	功能说明: 复位函数运行时间
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+__STATIC_INLINE void ResetFunctionRunTime( void )
+{
+	DWT_CYCCNT = (unsigned int)0u;			
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: GetFunctionRunTime
+*	功能说明: 获取函数运行时间（单位：us）
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+__STATIC_INLINE float GetFunctionRunTime( void )
+{
+	uint32_t cycCnt = DWT_CYCCNT;
+	float runTimeUS = 0;
+	uint32_t systemClock = BSP_CPU_ClkFreq();
+	const float FUNCTION_RUN_TIME = 0.029762;	//函数本身运行时间（实测）
+	
+	runTimeUS = cycCnt / (systemClock / 1000000.0f) - FUNCTION_RUN_TIME;
+	
+	return runTimeUS;			
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: PrintFunctionRunTime
+*	功能说明: 打印函数运行时间
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+__STATIC_INLINE void PrintFunctionRunTime( void )
+{
+	float runTimeUS = GetFunctionRunTime();
+	
+	printf("runTimeUS: %f\r\n",runTimeUS);		
+}
 
 #endif
 

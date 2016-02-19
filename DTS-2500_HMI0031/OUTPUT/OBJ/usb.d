@@ -64,6 +64,7 @@
 ..\output\obj\usb.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\usb.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\usb.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\usb.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\usb.o: ..\UTILS\inc\usb.h
 ..\output\obj\usb.o: ..\USB\USB_APP\usbh_bsp_msc.h
 ..\output\obj\usb.o: ..\USB\USB_APP\usb_conf.h

@@ -64,4 +64,5 @@
 ..\output\obj\report.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\report.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\report.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\report.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\report.o: ..\UTILS\inc\report.h

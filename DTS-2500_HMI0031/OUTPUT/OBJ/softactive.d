@@ -65,6 +65,7 @@
 ..\output\obj\softactive.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\softactive.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\softactive.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\softactive.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\softactive.o: ..\UTILS\inc\cmd.h
 ..\output\obj\softactive.o: ..\UTILS\inc\typewrite.h
 ..\output\obj\softactive.o: ..\UTILS\inc\gui.h

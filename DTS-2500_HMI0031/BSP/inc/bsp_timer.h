@@ -76,12 +76,12 @@ uint32_t bsp_GetRunTime(void);
 void bsp_StartTimeUS(uint8_t _id);
 uint32_t bsp_GetTimeUS(uint8_t _id);
 
-static __INLINE void SetTime( uint8_t id )
+__STATIC_INLINE void SetTime( uint8_t id )
 {
 	bsp_StartTimeUS(id);
 }
 
-static __INLINE uint32_t GetTime( uint8_t id )
+__STATIC_INLINE uint32_t GetTime( uint8_t id )
 {
 	uint32_t timing = bsp_GetTimeUS(id);
 	

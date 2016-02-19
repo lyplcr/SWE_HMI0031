@@ -64,6 +64,7 @@
 ..\output\obj\usb_bsp.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\usb_bsp.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\usb_bsp.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\usb_bsp.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\usb_bsp.o: ..\USB\Libraries\STM32_USB_OTG_Driver\inc\usb_bsp.h
 ..\output\obj\usb_bsp.o: ..\USB\Libraries\STM32_USB_OTG_Driver\inc\usb_core.h
 ..\output\obj\usb_bsp.o: ..\USB\USB_APP\usb_conf.h

@@ -64,4 +64,5 @@
 ..\output\obj\pcm.o: ..\BSP\inc\bsp_lan8720.h
 ..\output\obj\pcm.o: ..\BSP\inc\bsp_print.h
 ..\output\obj\pcm.o: ..\BSP\inc\bsp_rtc.h
+..\output\obj\pcm.o: ..\BSP\inc\bsp_dwt.h
 ..\output\obj\pcm.o: ..\UTILS\inc\pcm.h
