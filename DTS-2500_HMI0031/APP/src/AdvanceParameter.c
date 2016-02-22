@@ -23,7 +23,7 @@
 #define COLOR_POINT						WHITE
 #define	COLOR_BACK						BLACK
 
-#define ADVANCE_PARAMETER_MENU_CNT		6
+#define ADVANCE_PARAMETER_MENU_CNT		7
 
 /* Private typedef -----------------------------------------------------------*/
 typedef enum
@@ -33,6 +33,7 @@ typedef enum
 	OBJECT_BACKUP_FACTORY,
 	OBJECT_RESTORE_FACTORY,
 	OBJECT_SYSTEM_INFOMATION,
+	OBJECT_FILE_MANAGER,
 	OBJECT_FIRMWARE_UPDATE,
 }OBJECT_ADVANCE_PARAMETER_TypeDef;
 
@@ -43,6 +44,7 @@ typedef enum
 	INDEX_BACKUP_FACTORY,
 	INDEX_RESTORE_FACTORY,
 	INDEX_SYSTEM_INFOMATION,
+	INDEX_FILE_MANAGER,
 	INDEX_FIRMWARE_UPDATE,
 }INDEX_ADVANCE_PARAMETER_TypeDef;
 
@@ -68,7 +70,8 @@ const char * const pAdvanceParameterName[] =
 	"3、系统备份",
 	"4、系统还原",
 	"5、系统信息",
-	"6、固件升级",
+	"6、文件管理",
+	"7、固件升级",
 };
 
 const char * const pFirmwareUpdateWarn[] =
@@ -177,6 +180,7 @@ static void AdvanceParameterConfig( void )
 	g_advanceParameter.indexArray[INDEX_BACKUP_FACTORY] 	= OBJECT_BACKUP_FACTORY;		
 	g_advanceParameter.indexArray[INDEX_RESTORE_FACTORY] 	= OBJECT_RESTORE_FACTORY;			
 	g_advanceParameter.indexArray[INDEX_SYSTEM_INFOMATION] 	= OBJECT_SYSTEM_INFOMATION;
+	g_advanceParameter.indexArray[INDEX_FILE_MANAGER] 		= OBJECT_FILE_MANAGER;
 	g_advanceParameter.indexArray[INDEX_FIRMWARE_UPDATE] 	= OBJECT_FIRMWARE_UPDATE;
 	
 	/* 名称 */
@@ -185,7 +189,8 @@ static void AdvanceParameterConfig( void )
 	g_advanceParameter.pParameterNameArray[INDEX_BACKUP_FACTORY] 		= pAdvanceParameterName[2];		
 	g_advanceParameter.pParameterNameArray[INDEX_RESTORE_FACTORY] 		= pAdvanceParameterName[3];			
 	g_advanceParameter.pParameterNameArray[INDEX_SYSTEM_INFOMATION] 	= pAdvanceParameterName[4];
-	g_advanceParameter.pParameterNameArray[INDEX_FIRMWARE_UPDATE] 		= pAdvanceParameterName[5];
+	g_advanceParameter.pParameterNameArray[INDEX_FILE_MANAGER] 			= pAdvanceParameterName[5];
+	g_advanceParameter.pParameterNameArray[INDEX_FIRMWARE_UPDATE] 		= pAdvanceParameterName[6];
 	
 	/* 标题 */
 	g_advanceParameter.pTitle = "高级参数";
@@ -432,6 +437,12 @@ static void AdvanceParameterLeavePageCheckCycle( void )
 					break;
 				case OBJECT_SYSTEM_INFOMATION:
 					SetPage(SYSTEM_INFOMATION_PAGE);
+					break;
+				case OBJECT_FILE_MANAGER:
+					SetPasswordType(MANAGER_PASSWORD);
+					SetPasswordPutinSourcePage(ADVANCE_PARAMETER_SET_PAGE);
+					SetPasswordPutinTargetPage(FILE_MANAGER_PAGE);
+					SetPage(USER_LOGIN_PAGE);
 					break;
 				case OBJECT_FIRMWARE_UPDATE:
 					LoadFirmwareUpdatePage();

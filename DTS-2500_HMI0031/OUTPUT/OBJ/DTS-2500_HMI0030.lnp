@@ -30,6 +30,7 @@
 "..\output\obj\channelselect.o"
 "..\output\obj\testtypeselect.o"
 "..\output\obj\curveshow.o"
+"..\output\obj\filemanager.o"
 "..\output\obj\bsp.o"
 "..\output\obj\bsp_assert.o"
 "..\output\obj\bsp_timer.o"

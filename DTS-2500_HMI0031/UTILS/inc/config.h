@@ -32,13 +32,13 @@
 #define		FLASH_FONT_PASSWORD		0x2F8E4A7D							//FLASH字库密码
 
 #define		SYSTEM_MODEL			"SWE"								//系统型号
-#define		SOFT_VERSION			"1.0.1.0"							//上位机软件版本	
+#define		SOFT_VERSION			"1.1.3.0"							//上位机软件版本	
 #define		PCB_VERSION				"HMI0031"							//上位机PCB版本
 
 #define 	CLI()     			 	__disable_irq()
 #define 	SEI()      				__enable_irq()
 
-/* 访问SD卡，使用DMA传输，要求4字节对齐 */
+/* 访问SD卡，使用DMA传输，要求变量4字节对齐 */
 #if defined   (__CC_ARM)      /* ARM Compiler */
   #define __ALIGN_RAM    __align(4)  
 #elif defined (__ICCARM__)    /* IAR Compiler */

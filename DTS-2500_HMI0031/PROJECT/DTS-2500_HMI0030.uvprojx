@@ -636,6 +636,11 @@
               <FileType>1</FileType>
               <FilePath>..\APP\src\CurveShow.c</FilePath>
             </File>
+            <File>
+              <FileName>FileManager.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\src\FileManager.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

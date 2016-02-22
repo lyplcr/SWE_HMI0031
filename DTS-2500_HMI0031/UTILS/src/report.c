@@ -992,7 +992,7 @@ ErrorStatus CopyFileFromDevices( const char * const pSourcePath, const char * co
 	FIL sourceFileObj; 
 	FIL targetFileObj; 
 	uint32_t br; 
-	const uint16_t ONCE_READ_SIZE = 1024;
+	const uint16_t ONCE_READ_SIZE = 512;
 	uint8_t fileBuff[ONCE_READ_SIZE];
 	uint32_t totalReadSize = 0;
 	uint32_t totalWriteSize = 0;
@@ -1120,7 +1120,7 @@ static ErrorStatus CopyFileBody( const char * const pSourceFolderPath, const cha
  * Return         : None
  *------------------------------------------------------------*/
 static ErrorStatus CopyFolderBody( const char * const pSourceFolderPath, const char * const pTargetFolderPath,\
-				const char * const pSourceFolderName )
+				const char * const pSourceFolderName, void (*GUI_CallBack)( const char *FolderNamePtr, const char *FileNamePtr ) )
 {
 	const uint8_t FILE_PATH_MAX_LEN = 100;
 	char sourcePathName[FILE_PATH_MAX_LEN];
@@ -1147,7 +1147,7 @@ static ErrorStatus CopyFolderBody( const char * const pSourceFolderPath, const c
 	strcat(targetPathName,"/");
 	strcat(targetPathName,pSourceFolderName);
 
-	if (ERROR == CopyFolderFromDevices(sourcePathName,targetPathName) )
+	if (ERROR == CopyFolderFromDevices(sourcePathName,targetPathName,GUI_CallBack) )
 	{
 		return ERROR;
 	}
@@ -1157,12 +1157,13 @@ static ErrorStatus CopyFolderBody( const char * const pSourceFolderPath, const c
 
 /*------------------------------------------------------------
  * Function Name  : CopyFolderFromDevices
- * Description    : 从设备拷贝文件夹
- * Input          : None
+ * Description    : 从设备拷贝文件夹（路径不能以'/'结尾）
+ * Input          : pSourceFolderPath：源文件夹路径，pTargetFolderPath：目标文件夹路径，GUI_CallBack：回调函数
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-ErrorStatus CopyFolderFromDevices( const char * const pSourceFolderPath, const char * const pTargetFolderPath )
+ErrorStatus CopyFolderFromDevices( const char * const pSourceFolderPath, const char * const pTargetFolderPath, \
+				void (*GUI_CallBack)( const char *FolderNamePtr, const char *FileNamePtr ) )
 {
 	DIR dir_object;  
 	FILINFO sourceFileInfo; 
@@ -1206,18 +1207,197 @@ ErrorStatus CopyFolderFromDevices( const char * const pSourceFolderPath, const c
 			else
 			{
 				pName = sourceFileInfo.fname;
-			}
+			}			
 			
 			if (sourceFileInfo.fattrib & AM_ARC)		//是个文件
-			{						
+			{		
+				/* 回调函数，执行用户程序 */
+				GUI_CallBack(NULL,pName);	
+				
 				if ( CopyFileBody(pSourceFolderPath,pTargetFolderPath,pName) == ERROR)
 				{
 					return ERROR;
 				}
 			}
 			else if (sourceFileInfo.fattrib & AM_DIR)		//是个文件夹
+			{		
+				/* 回调函数，执行用户程序 */
+				GUI_CallBack(pName,NULL);
+				
+				if ( CopyFolderBody(pSourceFolderPath,pTargetFolderPath,pName,GUI_CallBack) == ERROR)
+				{
+					return ERROR;
+				}
+			}
+		}
+	}
+	
+	return SUCCESS;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : DeleteFileFromDevices
+ * Description    : 从设备删除文件
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+ErrorStatus DeleteFileFromDevices( const char * const pTargetPath )
+{
+	FRESULT fresult = f_unlink(pTargetPath); 	
+	
+	if (fresult == FR_OK)
+	{
+		return SUCCESS;
+	}
+	else
+	{
+		return ERROR;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : DeleteFileBody
+ * Description    : 从设备删除文件体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static ErrorStatus DeleteFileBody( const char * const pTargetFolderPath,\
+						const char * const pTargetFileName )
+{
+	const uint8_t FILE_PATH_MAX_LEN = 100;
+	char targetPathName[FILE_PATH_MAX_LEN];
+	uint16_t pathLen = 0;
+	
+	pathLen = strlen(pTargetFolderPath) + strlen(pTargetFileName) + 1;	//+1：中间有一个'/'符号
+	if (pathLen >= FILE_PATH_MAX_LEN)
+	{
+		return ERROR; 
+	}
+	
+	strcpy(targetPathName,pTargetFolderPath);
+	strcat(targetPathName,"/");
+	strcat(targetPathName,pTargetFileName);
+
+	if (ERROR == DeleteFileFromDevices(targetPathName) )
+	{
+		return ERROR;
+	}
+	
+	return SUCCESS;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : DeleteFolderBody
+ * Description    : 从设备删除文件夹体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static ErrorStatus DeleteFolderBody( const char * const pTargetFolderPath,\
+				const char * const pTargetFolderName, void (*GUI_CallBack)( const char *FolderNamePtr, const char *FileNamePtr ) )
+{
+	const uint8_t FILE_PATH_MAX_LEN = 100;
+	char targetPathName[FILE_PATH_MAX_LEN];
+	uint16_t pathLen = 0;
+	
+	pathLen = strlen(pTargetFolderPath) + strlen(pTargetFolderName) + 1;	//+1：中间有一个'/'符号
+	if (pathLen >= FILE_PATH_MAX_LEN)
+	{
+		return ERROR; 
+	}
+	
+	strcpy(targetPathName,pTargetFolderPath);
+	strcat(targetPathName,"/");
+	strcat(targetPathName,pTargetFolderName);
+
+	if (ERROR == DeleteFolderFromDevices(targetPathName,GUI_CallBack) )
+	{
+		return ERROR;
+	}
+	
+	return SUCCESS;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : DeleteFolderFromDevices
+ * Description    : 从设备删除文件夹（路径不能以'/'结尾）
+ * Input          : pSourceFolderPath：源文件夹路径，pTargetFolderPath：目标文件夹路径，GUI_CallBack：回调函数
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+ErrorStatus DeleteFolderFromDevices( const char * const pTargetFolderPath, \
+				void (*GUI_CallBack)( const char *FolderNamePtr, const char *FileNamePtr ) )
+{
+	DIR dir_object;  
+	FILINFO targetFileInfo; 
+	FRESULT fresult;
+	FlagStatus flagLongFileName = RESET;
+	
+	#if _USE_LFN								
+		targetFileInfo.lfname = Lfname;
+		targetFileInfo.lfsize = sizeof(Lfname);
+    #endif
+	
+	fresult = f_opendir(&dir_object,pTargetFolderPath); 	
+	if (fresult != FR_OK)
+	{
+		return ERROR; 
+	}
+	
+	for (;;)
+	{
+		fresult = f_readdir(&dir_object,&targetFileInfo);		
+		if (fresult != FR_OK)
+		{
+			return ERROR; 
+		}
+		
+		/* 文件夹内文件读取完毕 */
+		if ( !targetFileInfo.fname[0] )	
+		{	
+			/* 0表示根目录，不能删除 */
+			if (dir_object.sclust != 0)
+			{
+				if (DeleteFileFromDevices(pTargetFolderPath) == ERROR)
+				{
+					return ERROR;
+				}
+			}					
+			break;	
+		}
+		
+		flagLongFileName = (targetFileInfo.lfname[0] == 0) ? RESET : SET;	//判断是否是长文件名
+		
+		{
+			const char *pName = NULL;
+			
+			if (flagLongFileName == SET)
+			{
+				pName = targetFileInfo.lfname;
+			}
+			else
+			{
+				pName = targetFileInfo.fname;
+			}
+			
+			if (targetFileInfo.fattrib & AM_ARC)		//是个文件
 			{			
-				if ( CopyFolderBody(pSourceFolderPath,pTargetFolderPath,pName) == ERROR)
+				/* 回调函数，执行用户程序 */
+				GUI_CallBack(NULL,pName);
+				
+				if ( DeleteFileBody(pTargetFolderPath,pName) == ERROR)
+				{
+					return ERROR;
+				}
+			}
+			else if (targetFileInfo.fattrib & AM_DIR)		//是个文件夹
+			{	
+				/* 回调函数，执行用户程序 */
+				GUI_CallBack(pName,NULL);
+				
+				if ( DeleteFolderBody(pTargetFolderPath,pName,GUI_CallBack) == ERROR)
 				{
 					return ERROR;
 				}

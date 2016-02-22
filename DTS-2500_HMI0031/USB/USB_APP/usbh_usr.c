@@ -89,7 +89,6 @@ const char *MSG_ROOT_CONT        = "> Exploring disk flash ...\r\n";
 const char *MSG_WR_PROTECT       = "> The disk is write protected\r\n";
 const char *MSG_UNREC_ERROR      = "> UNRECOVERED ERROR STATE\r\n";
 
-static uint8_t status_usb_insert = 0;
 
 /**
 * @}
@@ -109,16 +108,6 @@ static uint8_t status_usb_insert = 0;
 * @{
 */
 
-//获取USB插入状态
-ErrorStatus Get_USB_Status( void )
-{
-	if ( status_usb_insert )
-	{
-		return SUCCESS;
-	}
-	return ERROR;
-}
-
 
 /**
 * @brief  USBH_USR_Init
@@ -128,21 +117,14 @@ ErrorStatus Get_USB_Status( void )
 */
 void USBH_USR_Init(void)
 {
-	static uint8_t startup = 0;
-
-	if(startup == 0 )
-	{
-		startup = 1;
-		
-		#ifdef USE_USB_OTG_HS
-			ECHO(DEBUG_USB,"> USB OTG HS MSC Host\r\n");
-		#else
-			ECHO(DEBUG_USB,"> USB OTG FS MSC Host\r\n");
-		#endif
-		
-		ECHO(DEBUG_USB,"> USB Host library started\r\n");
-		ECHO(DEBUG_USB,"> USB Host Library v2.1.0\r\n" );	
-	}
+	#ifdef USE_USB_OTG_HS
+		ECHO(DEBUG_USB,"> USB OTG HS MSC Host\r\n");
+	#else
+		ECHO(DEBUG_USB,"> USB OTG FS MSC Host\r\n");
+	#endif
+	
+	ECHO(DEBUG_USB,"> USB Host library started\r\n");
+	ECHO(DEBUG_USB,"> USB Host Library v2.1.0\r\n" );
 }
 
 /**
@@ -177,8 +159,6 @@ void USBH_USR_UnrecoveredError (void)
 void USBH_USR_DeviceDisconnected (void)
 {	
 	ECHO(DEBUG_USB,"> Device Disconnected\r\n");
-	
-	status_usb_insert = 0;
 }
 /**
 * @brief  USBH_USR_ResetUSBDevice
@@ -245,26 +225,6 @@ void USBH_USR_DeviceAddressAssigned(void)
 
 }
 
-/*------------------------------------------------------------
- * Function Name  : USB_ReadyCycle
- * Description    : USB准备
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-void USB_ReadyCycle( void )
-{
-	uint32_t num = 0;
-	const uint32_t USB_STATUS_CYCLE_NUM = 50000;		//USB循环体必须达到此次数才能操作
-	
-	while (num < USB_STATUS_CYCLE_NUM)
-	{
-		num++;
-		
-		USBH_Process(&USB_OTG_Core, &USB_Host);	//执行一定次数才可以改变读写U盘状态位
-	}
-}
-
 /**
 * @brief  USBH_USR_Conf_Desc
 *         Displays the message on LCD for configuration descriptor
@@ -287,8 +247,6 @@ void USBH_USR_Configuration_DescAvailable(USBH_CfgDesc_TypeDef * cfgDesc,
 	{	
 		ECHO(DEBUG_USB,"> HID device connected\r\n");		
 	}
-	
-	status_usb_insert = 1;
 }
 
 /**

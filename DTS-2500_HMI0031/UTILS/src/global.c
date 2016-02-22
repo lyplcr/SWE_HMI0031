@@ -156,6 +156,7 @@ const char * const pTwoLevelMenu[] =
 	" 进入标定 ",		//84
 	"写入标定表",		//85
 	" 查看曲线 ",		//86
+	"  导  入  ",		//87
 };
 
 const char * const pUnitType[] = 

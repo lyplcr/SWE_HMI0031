@@ -47,6 +47,7 @@ void BSP_Init( void )
 	bsp_InitUSB();				/* 初始化USB			*/
 	bsp_InitLCD();				/* 初始化LCD			*/
 	bsp_InitFont();				/* 初始化字体		*/
+	bsp_InitDWT();				/* 初始化DWT 		*/
 	
 	#ifdef ENABLE_BEEP
 		BEEP_START();

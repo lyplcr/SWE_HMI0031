@@ -47,6 +47,7 @@ typedef enum
 	CHANNEL_SELECT_PAGE,			//通道选择		[32]
 	TEST_TYPE_SELECT_PAGE,			//试验类型选择	[33]
 	CURVE_SHOW_PAGE,				//曲线显示页		[34]
+	FILE_MANAGER_PAGE,				//文件管理页		[35]
 }PAGE_NAME_TypeDef;
 
 

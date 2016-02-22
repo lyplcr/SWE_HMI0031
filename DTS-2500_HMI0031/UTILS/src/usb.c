@@ -27,6 +27,7 @@
 /* Private variables ---------------------------------------------------------*/
 static FATFS fs;            // Work area (file system object) for logical drive 
 
+static void USB_ReadyCycle( void );
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -74,7 +75,40 @@ void LinkUSBCycle( void )
 	USBH_Process(&USB_OTG_Core, &USB_Host);
 }
 
+/*------------------------------------------------------------
+ * Function Name  : Get_USB_Status
+ * Description    : 获取USB插入状态
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+ErrorStatus Get_USB_Status( void )
+{
+	if ( HCD_IsDeviceConnected(&USB_OTG_Core) )
+	{
+		return SUCCESS;
+	}
+	return ERROR;
+}
 
-
+/*------------------------------------------------------------
+ * Function Name  : USB_ReadyCycle
+ * Description    : USB准备
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void USB_ReadyCycle( void )
+{
+	uint32_t num = 0;
+	const uint32_t USB_STATUS_CYCLE_NUM = 50000;		//USB循环体必须达到此次数才能操作
+	
+	while (num < USB_STATUS_CYCLE_NUM)
+	{
+		num++;
+		
+		USBH_Process(&USB_OTG_Core, &USB_Host);	//执行一定次数才可以改变读写U盘状态位
+	}
+}
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

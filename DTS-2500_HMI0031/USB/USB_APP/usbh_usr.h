@@ -118,8 +118,6 @@ void USBH_USR_DeviceNotSupported(void);
 void USBH_USR_UnrecoveredError(void);
 int USBH_USR_MSC_Application(void);
 
-void USB_ReadyCycle( void );
-
 /**
   * @}
   */ 

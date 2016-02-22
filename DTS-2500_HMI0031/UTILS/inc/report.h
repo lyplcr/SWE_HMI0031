@@ -155,7 +155,11 @@ FRESULT ReadCoordinatePoint( uint8_t pdrv, uint8_t testType, uint8_t sampleNum, 
 FRESULT DeleteCoordinateFolder( uint8_t pdrv, uint8_t testType, const char * const pSerial );	
 
 ErrorStatus CopyFileFromDevices( const char * const pSourcePath, const char * const pTargetPath );
-ErrorStatus CopyFolderFromDevices( const char * const pSourceFolderPath, const char * const pTargetFolderPath );
+ErrorStatus CopyFolderFromDevices( const char * const pSourceFolderPath, const char * const pTargetFolderPath, \
+				void (*GUI_CallBack)( const char *FolderNamePtr, const char *FileNamePtr ) );
+ErrorStatus DeleteFileFromDevices( const char * const pTargetPath );
+ErrorStatus DeleteFolderFromDevices( const char * const pTargetFolderPath, \
+				void (*GUI_CallBack)( const char *FolderNamePtr, const char *FileNamePtr ) );
 
 #endif
 
