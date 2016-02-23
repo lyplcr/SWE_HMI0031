@@ -62,7 +62,7 @@ typedef struct
 const char * const pSoftActiveName[] =
 {
 	"产品编号：",
-	"激活密码：",
+	"输入密码：",
 	"当前日期：",
 	"激活日期：",
 };
@@ -79,6 +79,8 @@ const char * const ActiveStatusWarn[] =
 	"激活密码错误！",			//7
 	"激活密码过期！",			//8
 	"产品编号设置错误！",		//9
+	"管理员密码输入错误！",		//10
+	"产品编号设置成功！",		//11
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -583,9 +585,10 @@ static void SoftActiveShortcutCycleTask( void )
 	{
 		g_softActive.refreshShortcut = DISABLE;
 			
-		pShortCut->status = SHOW_F3 | SHOW_F4;
+		pShortCut->status = SHOW_F1 | SHOW_F3 | SHOW_F4;
 		pShortCut->pointColor = COLOR_SHORTCUT_POINT;
 		pShortCut->backColor = COLOR_SHORTCUT_BACK;
+		pShortCut->pContent[0] = pTwoLevelMenu[5];
 		pShortCut->pContent[2] = pTwoLevelMenu[40];
 		pShortCut->pContent[3] = pTwoLevelMenu[58];
 		
@@ -764,23 +767,7 @@ static void SoftActiveKeyProcess( void )
 									strcpy(g_softActive.parameterData[index],GetPutinCharDataAddr());
 								}
 								break;
-						}
-						
-						{
-							index = GetSoftActiveIndex(OBJECT_FACTORY_SERIAL);
-							if (index != 0xff)
-							{
-								ErrorStatus errStatus = dvc_product_id_set(g_softActive.parameterData[index]);
-								
-								if (errStatus == ERROR)
-								{
-									SetPopWindowsInfomation(POP_PCM_CUE,1,&ActiveStatusWarn[9]);
-									
-									g_softActive.leavePage.flagLeavePage = SET;
-									g_softActive.leavePage.flagSaveData = RESET;
-								}
-							}
-						}
+						}	
 						break;						
 					
 					default:
@@ -808,6 +795,44 @@ static void SoftActiveKeyProcess( void )
 					default:						
 						break;
 				}		
+				break;
+				
+			case KEY_F1:
+				{
+					uint8_t index = GetSoftActiveIndex(OBJECT_ACTIVE_PASSWORD);
+							
+					if (index != 0xff)
+					{
+						char *passwordPtr = g_softActive.parameterData[index];					
+					
+						if (TestManagerPassword(passwordPtr) == PASSED)
+						{
+							uint8_t index = GetSoftActiveIndex(OBJECT_FACTORY_SERIAL);
+							
+							if (index != 0xff)
+							{
+								char *serialPtr = g_softActive.parameterData[index];
+								ErrorStatus errStatus = dvc_product_id_set(serialPtr);
+									
+								if (errStatus == SUCCESS)
+								{
+									SetPopWindowsInfomation(POP_PCM_CUE,1,&ActiveStatusWarn[11]);
+								}
+								else
+								{
+									SetPopWindowsInfomation(POP_PCM_CUE,1,&ActiveStatusWarn[9]);															
+								}														
+							}
+						}
+						else
+						{
+							SetPopWindowsInfomation(POP_PCM_CUE,1,&ActiveStatusWarn[10]);
+						}
+						
+						g_softActive.leavePage.flagLeavePage = SET;
+						g_softActive.leavePage.flagSaveData = RESET;		
+					}						
+				}
 				break;
 				
 			case KEY_F3:

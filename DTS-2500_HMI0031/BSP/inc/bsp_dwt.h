@@ -17,6 +17,11 @@
 	
 void bsp_InitDWT(void);
 
+void MeasureFunctionRunTimeStart( void );
+void MeasureFunctionRunTimeStop( void );
+uint32_t GetFunctionRunTimeUS( void );
+void PrintFunctionRunTimeUS( void );
+void PrintFunctionRunColokCnt( void );
 
 
 #endif

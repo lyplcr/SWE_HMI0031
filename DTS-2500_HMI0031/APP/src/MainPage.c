@@ -477,7 +477,7 @@ static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest );
  * Return         : None
  *------------------------------------------------------------*/
 void LoadMainPage( void )
-{				
+{		
 	/* ¹Ø±ÕÆÁÄ» */
 	SetBackLightEffectClose(COLOR_BACK);
 

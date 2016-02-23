@@ -3,7 +3,7 @@
 <title>Static Call Graph - [..\OUTPUT\OBJ\DTS-2500_HMI0030.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image ..\OUTPUT\OBJ\DTS-2500_HMI0030.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060020: Last Updated: Mon Feb 22 17:02:14 2016
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060020: Last Updated: Tue Feb 23 13:50:33 2016
 <BR><P>
 <H3>Maximum Stack Usage =       3052 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -624,12 +624,12 @@ Global Symbols
 <LI><a href="#[3c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GUI_TestTypeSelectDrawOneRectangleFrame
 <LI><a href="#[135]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GUI_ChannelSelectDrawOneRectangleFrame
 <LI><a href="#[289]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FefreshFlickerStatus
-<LI><a href="#[5ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RemoveStrChar
-<LI><a href="#[320]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GUI_DrawRectangleFrameWithTitle
 <LI><a href="#[23b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DeleteFolderBody
 <LI><a href="#[239]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DeleteFileBody
 <LI><a href="#[1fb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CopyFolderBody
 <LI><a href="#[1f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CopyFileBody
+<LI><a href="#[5ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RemoveStrChar
+<LI><a href="#[320]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GUI_DrawRectangleFrameWithTitle
 <LI><a href="#[37e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GUI_SelectWindowsDrawOneRowOneLevelMenu
 <LI><a href="#[1cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ConfigSelectWindowsCoordinate
 <LI><a href="#[804]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ustrstr
@@ -650,9 +650,9 @@ Global Symbols
 <LI><a href="#[677]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show_TestParameterOneRowOneLevelMenuUnit
 <LI><a href="#[65e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show_MainPageKLTestOneRowOneLevelMenuUnit
 <LI><a href="#[5aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TestUserPassword
-<LI><a href="#[5a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TestManagerPassword
 <LI><a href="#[4da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemPasswordKeyProcess
 <LI><a href="#[699]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemPasswordCheckDataCycle
+<LI><a href="#[5a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TestManagerPassword
 <LI><a href="#[4c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SoftActiveKeyProcess
 <LI><a href="#[49a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OnlineParameterKeyProcess
 <LI><a href="#[1bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Show_ConfigMachineParameterOneRowOneLevelMenuUnit
@@ -1484,8 +1484,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[20a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;assert_failed
 <LI><a href="#[268]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_GetClocksFreq
 <LI><a href="#[269]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ETH_ReadPHYRegister
-<LI><a href="#[26b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ETH_Delay
 <LI><a href="#[26a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ETH_WritePHYRegister
+<LI><a href="#[26b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ETH_Delay
 </UL>
 <BR>[Called By]<UL><LI><a href="#[26d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ETH_MACDMA_Config
 </UL>
@@ -5952,6 +5952,7 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
 </UL>
 <BR>[Called By]<UL><LI><a href="#[699]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemPasswordCheckDataCycle
+<LI><a href="#[4c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SoftActiveKeyProcess
 <LI><a href="#[69f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemRestoreCheckSystemPasswordProcess
 <LI><a href="#[69e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemRestoreCheckManagerPasswordProcess
 <LI><a href="#[68b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemBackupCheckSystemPasswordProcess
@@ -7034,9 +7035,9 @@ Global Symbols
 <LI><a href="#[5c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB3PeriphClockCmd
 <LI><a href="#[287]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FSMC_NORSRAMInit
 <LI><a href="#[288]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FSMC_NORSRAMCmd
+<LI><a href="#[263]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphResetCmd
 <LI><a href="#[5c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_APB2PeriphResetCmd
 <LI><a href="#[5c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_APB1PeriphResetCmd
-<LI><a href="#[263]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphResetCmd
 <LI><a href="#[26a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ETH_WritePHYRegister
 <LI><a href="#[273]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ETH_MACTransmissionCmd
 <LI><a href="#[272]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ETH_MACReceptionCmd
@@ -7846,7 +7847,7 @@ Global Symbols
 <LI><a href="#[4ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SoftActiveReadParameter
 </UL>
 
-<P><STRONG><a name="[683]"></a>dvc_product_id_set</STRONG> (Thumb, 48 bytes, Stack size 24 bytes, active.o(i.dvc_product_id_set))
+<P><STRONG><a name="[684]"></a>dvc_product_id_set</STRONG> (Thumb, 48 bytes, Stack size 24 bytes, active.o(i.dvc_product_id_set))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1404<LI>Call Chain = dvc_product_id_set &rArr; prm_save &rArr; sf_WriteBuffer &rArr; sf_AutoWritePage &rArr; sf_PageWrite &rArr; sf_WriteEnable &rArr; sf_SendByte &rArr; SPI_I2S_SendData &rArr; assert_failed &rArr; GUI_DispStr20At &rArr; lcd_font20 &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write &rArr; USBH_MSC_HandleBOTXfer &rArr; USBH_BulkSendData &rArr; HCD_SubmitRequest &rArr; USB_OTG_HC_StartXfer &rArr; USB_OTG_WritePacket
 </UL>
 <BR>[Calls]<UL><LI><a href="#[130]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prm_save
@@ -8374,7 +8375,7 @@ Global Symbols
 <P><STRONG><a name="[151]"></a>get_prm</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, prm.o(i.get_prm))
 <BR><BR>[Called By]<UL><LI><a href="#[2d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;FormateSystemParameterExecuteBody
 <LI><a href="#[14e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CheckSystemParameterIsNull
-<LI><a href="#[683]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_product_id_set
+<LI><a href="#[684]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_product_id_set
 <LI><a href="#[685]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_product_id_get
 <LI><a href="#[79f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_test_active
 <LI><a href="#[753]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_preuse_date_set
@@ -9680,7 +9681,7 @@ Global Symbols
 <LI><a href="#[1dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ControlParameterWriteParameter
 <LI><a href="#[2b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ForceCalibrationChangeCalibrationTableProcess
 <LI><a href="#[42b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;expire_judge
-<LI><a href="#[683]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_product_id_set
+<LI><a href="#[684]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_product_id_set
 <LI><a href="#[682]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;active_product
 <LI><a href="#[59a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OnlineParameterWriteParameter
 <LI><a href="#[592]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SaveDefaultParameter
@@ -10109,7 +10110,7 @@ Global Symbols
 <P><STRONG><a name="[79e]"></a>str2bcd_32</STRONG> (Thumb, 62 bytes, Stack size 8 bytes, ustring.o(i.str2bcd_32))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = str2bcd_32
 </UL>
-<BR>[Called By]<UL><LI><a href="#[683]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_product_id_set
+<BR>[Called By]<UL><LI><a href="#[684]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_product_id_set
 </UL>
 
 <P><STRONG><a name="[1d4]"></a>str2float</STRONG> (Thumb, 214 bytes, Stack size 40 bytes, ustring.o(i.str2float))
@@ -14966,8 +14967,8 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LoadSoftActivePage
 </UL>
 
-<P><STRONG><a name="[4c0]"></a>SoftActiveKeyProcess</STRONG> (Thumb, 430 bytes, Stack size 24 bytes, softactive.o(i.SoftActiveKeyProcess))
-<BR><BR>[Stack]<UL><LI>Max Depth = 1532<LI>Call Chain = SoftActiveKeyProcess &rArr; SoftActiveActiveProcess &rArr; active_product &rArr; prm_save &rArr; sf_WriteBuffer &rArr; sf_AutoWritePage &rArr; sf_PageWrite &rArr; sf_WriteEnable &rArr; sf_SendByte &rArr; SPI_I2S_SendData &rArr; assert_failed &rArr; GUI_DispStr20At &rArr; lcd_font20 &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write &rArr; USBH_MSC_HandleBOTXfer &rArr; USBH_BulkSendData &rArr; HCD_SubmitRequest &rArr; USB_OTG_HC_StartXfer &rArr; USB_OTG_WritePacket
+<P><STRONG><a name="[4c0]"></a>SoftActiveKeyProcess</STRONG> (Thumb, 514 bytes, Stack size 40 bytes, softactive.o(i.SoftActiveKeyProcess))
+<BR><BR>[Stack]<UL><LI>Max Depth = 1548<LI>Call Chain = SoftActiveKeyProcess &rArr; SoftActiveActiveProcess &rArr; active_product &rArr; prm_save &rArr; sf_WriteBuffer &rArr; sf_AutoWritePage &rArr; sf_PageWrite &rArr; sf_WriteEnable &rArr; sf_SendByte &rArr; SPI_I2S_SendData &rArr; assert_failed &rArr; GUI_DispStr20At &rArr; lcd_font20 &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write &rArr; USBH_MSC_HandleBOTXfer &rArr; USBH_BulkSendData &rArr; HCD_SubmitRequest &rArr; USB_OTG_HC_StartXfer &rArr; USB_OTG_WritePacket
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetPopWindowsInfomation
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetPage
@@ -14979,8 +14980,9 @@ Local Symbols
 <LI><a href="#[1b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;floattochar
 <LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;IsPressKey
 <LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GetKeyVal
-<LI><a href="#[683]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_product_id_set
-<LI><a href="#[684]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SoftActiveUpdateStatus
+<LI><a href="#[684]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dvc_product_id_set
+<LI><a href="#[5a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TestManagerPassword
+<LI><a href="#[683]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SoftActiveUpdateStatus
 <LI><a href="#[681]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SoftActiveActiveProcess
 <LI><a href="#[38b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GetSoftActiveIndex
 <LI><a href="#[13c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcpy
@@ -15033,7 +15035,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LoadSoftActivePage
 </UL>
 
-<P><STRONG><a name="[4be]"></a>SoftActiveShortcutCycleTask</STRONG> (Thumb, 64 bytes, Stack size 8 bytes, softactive.o(i.SoftActiveShortcutCycleTask))
+<P><STRONG><a name="[4be]"></a>SoftActiveShortcutCycleTask</STRONG> (Thumb, 70 bytes, Stack size 8 bytes, softactive.o(i.SoftActiveShortcutCycleTask))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1500<LI>Call Chain = SoftActiveShortcutCycleTask &rArr; ShortcutMenuTask &rArr; GUI_DispStr24At &rArr; lcd_font24 &rArr; sf_ReadBuffer &rArr; sf_SendByte &rArr; SPI_I2S_SendData &rArr; assert_failed &rArr; GUI_DispStr20At &rArr; lcd_font20 &rArr; f_open &rArr; dir_register &rArr; dir_find &rArr; dir_next &rArr; create_chain &rArr; put_fat &rArr; move_window &rArr; sync_window &rArr; disk_write &rArr; USBH_MSC_HandleBOTXfer &rArr; USBH_BulkSendData &rArr; HCD_SubmitRequest &rArr; USB_OTG_HC_StartXfer &rArr; USB_OTG_WritePacket
 </UL>
 <BR>[Calls]<UL><LI><a href="#[110]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ShortcutMenuTask
@@ -15043,10 +15045,10 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[686]"></a>SoftActiveUpdateIndex</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, softactive.o(i.SoftActiveUpdateIndex))
-<BR><BR>[Called By]<UL><LI><a href="#[684]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SoftActiveUpdateStatus
+<BR><BR>[Called By]<UL><LI><a href="#[683]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SoftActiveUpdateStatus
 </UL>
 
-<P><STRONG><a name="[684]"></a>SoftActiveUpdateStatus</STRONG> (Thumb, 16 bytes, Stack size 8 bytes, softactive.o(i.SoftActiveUpdateStatus))
+<P><STRONG><a name="[683]"></a>SoftActiveUpdateStatus</STRONG> (Thumb, 16 bytes, Stack size 8 bytes, softactive.o(i.SoftActiveUpdateStatus))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = SoftActiveUpdateStatus
 </UL>
 <BR>[Calls]<UL><LI><a href="#[686]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SoftActiveUpdateIndex
@@ -15133,8 +15135,8 @@ Local Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetPopWindowsInfomation
 <LI><a href="#[5aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TestUserPassword
-<LI><a href="#[5a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TestManagerPassword
 <LI><a href="#[69a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GetSystemPasswordIndex
+<LI><a href="#[5a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TestManagerPassword
 <LI><a href="#[1b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
 </UL>
 <BR>[Called By]<UL><LI><a href="#[4da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemPasswordKeyProcess
