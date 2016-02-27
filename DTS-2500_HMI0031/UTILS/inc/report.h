@@ -103,12 +103,12 @@ typedef struct
 
 typedef struct
 {
-	uint8_t xType;						//X轴类型（0：时间）
-	uint8_t yType;						//Y轴类型（0：力值，1：位移，2：变形）
+	uint8_t xType;						//X轴类型
+	uint8_t yType;						//Y轴类型
 	uint8_t xUint;						//X轴单位（0：s，1：ms）
 	uint8_t yUint;						//Y轴单位（0：kN，1：N）	
-	uint32_t maxValueX;					//最大X轴值
-	float maxValueY;					//最大Y轴值
+	float xMaxValue;					//X轴最大值
+	float yMaxValue;					//Y轴最大值
 	float systemMaxForce;				//系统最大力值
 	uint16_t recordPointFreq;			//记录每个点频率
 	uint32_t nowUsePointNum;			//已使用的点数
@@ -116,6 +116,7 @@ typedef struct
 	float xScalingCoefficient;			//缩放系数（将X轴当前值按照缩放系数修饰）
 	float yScalingCoefficient;			//缩放系数（将Y轴当前值按照缩放系数修饰）	
 	float force[DECORD_COORDINATE_FORCE_NUM];
+	float deform[DECORD_COORDINATE_FORCE_NUM];
 }COORDINATE_POINT_TypeDef;
     
 #pragma pack()     

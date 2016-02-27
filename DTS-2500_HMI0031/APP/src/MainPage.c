@@ -448,7 +448,7 @@ static void MainPageConfig( void );
 static void MainPageReadParameter( void );
 static void GUI_MainPage( void );
 static void MainPageCtrlCoreCycle( void );
-static void GUI_MainPageDrawCoordinate( uint32_t maxForce, uint32_t maxTime );
+static void GUI_MainPageDrawCoordinate( uint8_t xType, uint8_t yType, void *xMaxValuePtr, void *yMaxValuePtr );
 static void Traverse_TestResultTable( void );
 static void MainPageClearCursor( uint8_t nowSampleSerial );
 static void MainPageLoadCursor( uint8_t nowSampleSerial );
@@ -458,7 +458,6 @@ static void MainPageShortcutCycleTask( void );
 static void InitMainPageCoordinateDrawLine( void );
 static TestStatus MainPageCheckSerialRepeat( void );
 static void SetTestStatus( TEST_STATUS_TypeDef testStatus );
-static void InitMainPageCoordinateDrawLineIndex( void );
 
 #if 0
 	static void InitKL_TestProgress( void );
@@ -2376,20 +2375,47 @@ static void GUI_MainPageLoadPageInfomation( void )
  *------------------------------------------------------------*/
 static void LoadDefaultCoordinate( void )
 {
-	uint32_t maxForce = 0,maxTime = 0;
+	float maxTime = 0;
+	float maxForce = 0;
+	float maxDeform = 0;
+	void *xMaxValuePtr = NULL;
+	void *yMaxValuePtr = NULL;
+	uint8_t xType = 0;
+	uint8_t yType = 0;
 	
-	maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
-	
+	maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);	
 	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 	{
 		maxForce /= 1000;
+	}	
+	maxForce /= 2;
+	
+	switch ( g_mainPage.testAttribute )
+	{
+		case COMPRESSION_TEST:
+		case BENDING_TEST:
+			xType = COORDINATE_USE_TIME;
+			yType = COORDINATE_USE_FORCE;	
+			maxTime = 20.0f;
+			xMaxValuePtr = &maxTime;		
+			yMaxValuePtr = &maxForce;
+			break;
+		case STRETCH_TEST:	
+			xType = COORDINATE_USE_DEFORM;
+			yType = COORDINATE_USE_FORCE;
+			maxDeform = 10.0f;
+			xMaxValuePtr = &maxDeform;		
+			yMaxValuePtr = &maxForce;
+			break;
+		case INVALID_TEST:
+			xType = COORDINATE_USE_TIME;
+			yType = COORDINATE_USE_TIME;		
+			break;
+		default:
+			break;
 	}
 	
-	maxForce >>= 1;
-	
-	maxTime = 20;
-	
-	GUI_MainPageDrawCoordinate(maxForce,maxTime);
+	GUI_MainPageDrawCoordinate(xType,yType,xMaxValuePtr,yMaxValuePtr);
 	
 	InitMainPageCoordinateDrawLine();
 }
@@ -2865,10 +2891,12 @@ static void ClearMainPageCoordinate( uint16_t color )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static void GUI_MainPageDrawCoordinate( uint32_t maxForce, uint32_t maxTime )
+static void GUI_MainPageDrawCoordinate( uint8_t xType, uint8_t yType, void *xMaxValuePtr, void *yMaxValuePtr )
 {
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
+	pCoordinate->xUseType = xType;
+	pCoordinate->yUseType = yType;	
 	pCoordinate->x = 75;
 	pCoordinate->y = 120;
 	pCoordinate->rowSpace = 50;
@@ -2889,17 +2917,43 @@ static void GUI_MainPageDrawCoordinate( uint32_t maxForce, uint32_t maxTime )
 	pCoordinate->xLinePointColor = FRESH_GREEN;
 	pCoordinate->yLinePointColor = FRESH_GREEN;
 	
-	pCoordinate->maxForce = maxForce;
-	pCoordinate->maxTime = maxTime;
-	pCoordinate->pXUnit = "(S)";
-	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+	switch ( pCoordinate->xUseType )
 	{
-		pCoordinate->pYUnit = "(kN)";
+		case COORDINATE_USE_TIME:
+			pCoordinate->pXUnit = " (S)";
+			pCoordinate->xMaxValue = *(float *)xMaxValuePtr;
+			break;
+		case COORDINATE_USE_DEFORM:
+			pCoordinate->pXUnit = "(mm)";
+			pCoordinate->xMaxValue = *(float *)xMaxValuePtr;
+			break;
+		case INVALID_TEST:
+			pCoordinate->pXUnit = "ERROR";
+			break;
+		default:
+			break;
 	}
-	else
+	
+	switch ( pCoordinate->yUseType )
 	{
-		pCoordinate->pYUnit = "(N)";
+		case COORDINATE_USE_FORCE:
+			pCoordinate->yMaxValue = *(float *)yMaxValuePtr;
+			if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+			{
+				pCoordinate->pYUnit = "(kN)";
+			}
+			else
+			{
+				pCoordinate->pYUnit = "(N)";
+			}
+			break;
+		case INVALID_TEST:
+			pCoordinate->pYUnit = "ERROR";
+			break;
+		default:
+			break;
 	}
+	
 	ClearMainPageCoordinate(COLOR_BACK);
 	
 	GUI_DrawCoordinate(pCoordinate);
@@ -3910,7 +3964,6 @@ static void MainPageKeyProcess( void )
 				else
 				{
 					g_klTestBody.originalDisplacemen = 0.0f;
-					g_klTestBody.originalDeform = 0.0f;
 				}
 				break;
 			case KEY_DEFORMATE_TARE:
@@ -3920,6 +3973,10 @@ static void MainPageKeyProcess( void )
 			
 					g_mainPage.leavePage.flagLeavePage = SET;
 					g_mainPage.leavePage.flagSaveData = RESET;
+				}
+				else
+				{
+					g_klTestBody.originalDeform = 0.0f;
 				}
 				break;
 			case KEY_DISPLACE_DEFORMATE:
@@ -4267,10 +4324,11 @@ static void KL_TestJumpTestResultPage( void )
  *------------------------------------------------------------*/
 static void MainPageExecuteTestStartBody( void )
 {
+	/* 初始化采样过程 */
+	InitSampleProcess(SMPL_FH_NUM);
+	
 	/* 初始化判破 */
 	InitJudgeBreakPoint();
-	
-	InitMainPageCoordinateDrawLineIndex();
 	
 	switch ( g_mainPage.testAttribute )
 	{
@@ -4450,7 +4508,7 @@ static void MainPageJudgeBreakCoreCycle( void )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static float AccordDispalcementGetDeformIncrement( float dispalcement )
+static float AccordDispalcementGetDeformIncrement( float originalDispalcement, float nowDispalcement )
 {
 	float originalGauge = GetOriginalGauge();
 	float extensometerGauge = GetExtensometerGauge();
@@ -4462,7 +4520,7 @@ static float AccordDispalcementGetDeformIncrement( float dispalcement )
 		originalGauge = 1;
 	}
 	
-	deformIncrement = COF * (extensometerGauge / originalGauge) * (dispalcement - g_klTestBody.originalDisplacemen);
+	deformIncrement = COF * (extensometerGauge / originalGauge) * (nowDispalcement - originalDispalcement);
 	
 	ECHO_ASSERT(fabs(originalGauge)>MIN_FLOAT_PRECISION_DIFF_VALUE,"原始标距除零错误！\r\n");
 	
@@ -4487,7 +4545,8 @@ static float MainPageGetDeform( void )
 	
 	if (GetDisplacementOrDeformShow() == SHOW_DISPLACEMENT)
 	{
-		deform = g_klTestBody.originalDeform + AccordDispalcementGetDeformIncrement( get_smpl_value(SMPL_WY_NUM) );
+		deform = g_klTestBody.originalDeform + AccordDispalcementGetDeformIncrement(g_klTestBody.originalDisplacemen,\
+													get_smpl_value(SMPL_WY_NUM));
 	}
 	else
 	{
@@ -5423,14 +5482,14 @@ static void MainPageSaveCoordinateCurveToSD( void )
 	{
 		pCoordinatePoint->yUint = 1;
 	}
-	pCoordinatePoint->maxValueX = pDrawLine->maxTime;
-	pCoordinatePoint->maxValueY = pDrawLine->maxForce;
+	pCoordinatePoint->xMaxValue = pDrawLine->xMaxValue;
+	pCoordinatePoint->yMaxValue = pDrawLine->yMaxValue;
 	pCoordinatePoint->systemMaxForce = smpl_ctrl_full_p_get(g_mainPage.fhChannelUnit);
 	pCoordinatePoint->recordPointFreq = RECORD_COORDINATE_FREQ;
 	pCoordinatePoint->nowUsePointNum = pDrawLine->nowTimePoint;
 	pCoordinatePoint->maxPointNum = DECORD_COORDINATE_FORCE_NUM;
-	pCoordinatePoint->xScalingCoefficient = pDrawLine->timeScalingCoefficient;
-	pCoordinatePoint->yScalingCoefficient = pDrawLine->forceScalingCoefficient;
+	pCoordinatePoint->xScalingCoefficient = pDrawLine->xScalingCoefficient;
+	pCoordinatePoint->yScalingCoefficient = pDrawLine->yScalingCoefficient;
 	memcpy(pCoordinatePoint->force,pDrawLine->force,sizeof(float) * DECORD_COORDINATE_FORCE_NUM);
 	
 	{
@@ -5657,6 +5716,27 @@ static void MainPageTestExecuteCoreCycle( void )
 	float force = get_smpl_value(SMPL_FH_NUM);
 	float startLoadForce = smpl_ctrl_entry_get(SMPL_FH_NUM);
 	
+	/* 保证采样完成后，才进行业务逻辑处理 */
+	switch ( GetTestStatus() )
+	{	
+		case TEST_LOAD:
+		case TEST_KEEP:
+		case TEST_YIELD:
+		case TEST_DEFORM:
+			if (GetSampleCompleteFlag(SMPL_FH_NUM) == RESET)
+			{
+				return;
+			}
+			break;
+		case TEST_IDLE:
+		case TEST_BREAK:
+		case TEST_UNLOAD:	
+		case TEST_SAVE:				
+			break;
+		default:
+			return;
+	}
+		
 	switch ( GetTestStatus() )
 	{
 		case TEST_IDLE:
@@ -5684,7 +5764,7 @@ static void MainPageTestExecuteCoreCycle( void )
 				
 				ECHO(DEBUG_TEST_LOAD,"试验停止！\r\n");
 			}
-			
+		
 			switch ( g_mainPage.testAttribute )
 			{
 				case COMPRESSION_TEST:
@@ -5781,20 +5861,6 @@ static void MainPageCheckWarn( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : InitMainPageCoordinateDrawLineIndex
- * Description    : 初始化坐标系画线索引值
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static void InitMainPageCoordinateDrawLineIndex( void )
-{
-	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
-	
-	pDrawLine->baseIndex = 0;
-}
-
-/*------------------------------------------------------------
  * Function Name  : InitMainPageCoordinateDrawLine
  * Description    : 初始化坐标系画线
  * Input          : None
@@ -5805,10 +5871,9 @@ static void InitMainPageCoordinateDrawLine( void )
 {
 	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
-	uint32_t maxForce = 0;
 	
-	maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
-	
+	pDrawLine->xUseType = pCoordinate->xUseType;
+	pDrawLine->yUseType = pCoordinate->yUseType;
 	pDrawLine->baseIndex = 0;
 	pDrawLine->status = STATUS_DRAW_LINE_IDLE;
 	pDrawLine->start = RESET;
@@ -5817,23 +5882,68 @@ static void InitMainPageCoordinateDrawLine( void )
 	pDrawLine->originY = pCoordinate->y + pCoordinate->yLenth;
 	pDrawLine->lenthX = pCoordinate->xLenth;
 	pDrawLine->lenthY = pCoordinate->yLenth;
-	pDrawLine->maxForce = (maxForce >> 1);
-	pDrawLine->maxTime = pCoordinate->maxTime * 1000;
 	pDrawLine->nowTimePoint = 0;
 	pDrawLine->lineColor = CRIMSON;
-	pDrawLine->timeScalingCoefficient = 0.001;
-	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+	switch ( pCoordinate->xUseType )
 	{
-		pDrawLine->forceScalingCoefficient = 0.001;
+		case COORDINATE_USE_TIME:
+			{
+				uint8_t BASE_TIME = 20;	//单位：S
+				
+				pDrawLine->xScalingCoefficient = 0.001f;
+				pDrawLine->xMaxValue = BASE_TIME * 1000;
+				pDrawLine->xIncrease = BASE_TIME * 1000;
+			}
+			break;
+		case COORDINATE_USE_DEFORM:
+			{
+				float BASE_DEFORM = 10.0f;
+				
+				pDrawLine->xScalingCoefficient = 1.0f;
+				pDrawLine->xMaxValue = BASE_DEFORM;
+				pDrawLine->xIncrease = BASE_DEFORM;
+			}
+			break;
+		case INVALID_TEST:
+			pDrawLine->xScalingCoefficient = 0;
+			pDrawLine->xMaxValue = 0;
+			pDrawLine->xIncrease = 0;
+			break;
+		default:
+			break;
 	}
-	else
+	switch ( pCoordinate->yUseType )
 	{
-		pDrawLine->forceScalingCoefficient = 1;
+		case COORDINATE_USE_FORCE:
+			{
+				float maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
+				
+				if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+				{
+					pDrawLine->yScalingCoefficient = 0.001;
+				}
+				else
+				{
+					pDrawLine->yScalingCoefficient = 1;
+				}
+				pDrawLine->yMaxValue = (maxForce/2);
+				pDrawLine->yIncrease = (maxForce/10);
+			}
+			break;
+		case INVALID_TEST:
+			pDrawLine->yScalingCoefficient = 0;
+			pDrawLine->yMaxValue = 0;
+			pDrawLine->yIncrease = 0;
+			break;
+		default:
+			break;
 	}
+	
 	pDrawLine->recordPointFreq = RECORD_COORDINATE_FREQ;
 	pDrawLine->pDrawCoordinate = GUI_MainPageDrawCoordinate;
 		
 	memset(pDrawLine->force,0x00,sizeof(float)*DECORD_COORDINATE_FORCE_NUM);	
+	memset(pDrawLine->deform,0x00,sizeof(float)*DECORD_COORDINATE_FORCE_NUM);
 }
 
 /*------------------------------------------------------------
@@ -5853,12 +5963,7 @@ static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeD
 	{
 		case STATUS_DRAW_LINE_IDLE:
 			if (force > curveShowStartForce)
-			{		
-				/* 保证采样点索引值与判破点索引值始终保持一致，
-				 * 这样，系统进行判破，屈服点操作，获取的值相同
-				 */
-				InitJudgeBreakPointIndex(SMPL_FH_NUM,1);
-				
+			{						
 				LoadDefaultCoordinate();
 				
 				pDrawLine->start = SET;
@@ -5914,32 +6019,59 @@ static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeD
  *------------------------------------------------------------*/
 static void MainPageCoordinateDrawLineRedrawJudgeCondition( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
-	float force = 0;
-	uint32_t maxForce = 0;
-	float checkForce = 0;
 	uint32_t checkTime = 0;
 	uint32_t curTime = 0;
-	const uint8_t ONCE_LOAD_SECOND = 20;
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
-	force = get_smpl_value(SMPL_FH_NUM);
-	maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
-	
-	checkForce = pDrawLine->maxForce * ((float)(pCoordinate->rowFieldNum - 1) / pCoordinate->rowFieldNum);
-	checkTime = pDrawLine->maxTime * ((float)(pCoordinate->columnFieldNum - 1) / pCoordinate->columnFieldNum);
-	
-	if (force > checkForce)
+	switch ( pCoordinate->xUseType )
 	{
-		pDrawLine->maxForce += maxForce / 10;
-		pDrawLine->enableRedraw = ENABLE;
+		case COORDINATE_USE_TIME:
+			checkTime = pDrawLine->xMaxValue * ((float)(pCoordinate->columnFieldNum - 1) / pCoordinate->columnFieldNum);
+			curTime = pDrawLine->nowTimePoint * RECORD_COORDINATE_PERIOD;
+	
+			if (curTime > checkTime)
+			{
+				pDrawLine->xMaxValue += pDrawLine->xIncrease;
+				pDrawLine->enableRedraw = ENABLE;
+			}
+			break;
+		case COORDINATE_USE_DEFORM:
+			{
+				float checkDeform = pDrawLine->xMaxValue * ((float)(pCoordinate->columnFieldNum - 1) / pCoordinate->columnFieldNum);	
+				float curDeform = MainPageGetDeform();
+				
+				if (curDeform > checkDeform)
+				{
+					pDrawLine->xMaxValue += pDrawLine->xIncrease;
+					pDrawLine->enableRedraw = ENABLE;
+				}
+			}
+			break;
+		case INVALID_TEST:			
+			break;
+		default:
+			break;
 	}
 	
-	curTime = pDrawLine->nowTimePoint * RECORD_COORDINATE_PERIOD;
-	
-	if (curTime > checkTime)
+	switch ( pCoordinate->yUseType )
 	{
-		pDrawLine->maxTime += ONCE_LOAD_SECOND * 1000;
-		pDrawLine->enableRedraw = ENABLE;
+		case COORDINATE_USE_FORCE:
+			{
+				float force = get_smpl_value(SMPL_FH_NUM);		
+				uint32_t maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
+				float checkForce = pDrawLine->yMaxValue * ((float)(pCoordinate->rowFieldNum - 1) / pCoordinate->rowFieldNum);
+				
+				if (force > checkForce)
+				{
+					pDrawLine->yMaxValue += pDrawLine->yIncrease;
+					pDrawLine->enableRedraw = ENABLE;
+				}
+			}
+			break;
+		case INVALID_TEST:			
+			break;
+		default:
+			break;
 	}
 }	
 
@@ -5953,7 +6085,6 @@ static void MainPageCoordinateDrawLineRedrawJudgeCondition( COORDINATE_DRAW_LINE
 static void MainPageCoordinateDrawLineBodyCycle( void )
 {
 	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
-	float force = 0;
 
 	/* 画线判断条件 */
 	MainPageCoordinateDrawLineJudgeCondition(pDrawLine);
@@ -5963,17 +6094,15 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 		return;
 	}
 	
-	/* 画线周期 */
-	ECHO(DEBUG_COORDINATE_DRAW_LINE,"画线索引：%d\r\n",pDrawLine->baseIndex);
-	
-	pDrawLine->baseIndex++;
-	
-	if (pDrawLine->baseIndex < (uint16_t)(CTRL_FREQ/RECORD_COORDINATE_FREQ))
+	if (GetSampleCompleteFlag(SMPL_FH_NUM) == RESET)
 	{
 		return;
-	}	
-	pDrawLine->baseIndex = 0;
-	
+	}
+	else
+	{
+		ECHO(DEBUG_COORDINATE_DRAW_LINE,"打点!\r\n");
+	}
+
 	/* 记录力值信息 */
 	pDrawLine->nowTimePoint++;
 	if (IsCoordinateRecordPointOverflow(pDrawLine) == YES)
@@ -5983,12 +6112,15 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 		return;
 	}
 	
-	force = get_smpl_value(SMPL_FH_NUM);
+	{
+		float force = get_smpl_value(SMPL_FH_NUM);
 	
-	pDrawLine->force[pDrawLine->nowTimePoint] = force;
+		pDrawLine->force[pDrawLine->nowTimePoint] = force;
+		pDrawLine->deform[pDrawLine->nowTimePoint] = MainPageGetDeform();
 	
-	ECHO(DEBUG_COORDINATE_DRAW_LINE,"画线时间：%d\r\n",pDrawLine->nowTimePoint);
-	ECHO(DEBUG_COORDINATE_DRAW_LINE,"画线力值：%f\r\n",force);
+		ECHO(DEBUG_COORDINATE_DRAW_LINE,"打点时间：%d\r\n",pDrawLine->nowTimePoint);
+		ECHO(DEBUG_COORDINATE_DRAW_LINE,"打点力值：%f\r\n",force);
+	}
 	
 	/* 重新画线判断条件 */
 	MainPageCoordinateDrawLineRedrawJudgeCondition(pDrawLine);
@@ -6254,6 +6386,9 @@ static void MainPageCtrlCoreCycle( void )
 	/* 采样点循环体 */
 	MainPageSamplePointCycle();
 	
+	/* 试验执行 */
+	MainPageTestExecuteCoreCycle();
+	
 	/* 画坐标系 */
 	MainPageCoordinateDrawLineBodyCycle();
 	
@@ -6262,9 +6397,6 @@ static void MainPageCtrlCoreCycle( void )
 	
 	/* 刷新动态内容 */
 	RefreshDynamicContent();
-	
-	/* 试验执行 */
-	MainPageTestExecuteCoreCycle();
 	
 	/* 系统警告检测 */
 	MainPageCheckWarn();

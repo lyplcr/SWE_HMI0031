@@ -1212,7 +1212,10 @@ ErrorStatus CopyFolderFromDevices( const char * const pSourceFolderPath, const c
 			if (sourceFileInfo.fattrib & AM_ARC)		//是个文件
 			{		
 				/* 回调函数，执行用户程序 */
-				GUI_CallBack(NULL,pName);	
+				if (GUI_CallBack != NULL)
+				{
+					GUI_CallBack(NULL,pName);	
+				}
 				
 				if ( CopyFileBody(pSourceFolderPath,pTargetFolderPath,pName) == ERROR)
 				{
@@ -1222,7 +1225,10 @@ ErrorStatus CopyFolderFromDevices( const char * const pSourceFolderPath, const c
 			else if (sourceFileInfo.fattrib & AM_DIR)		//是个文件夹
 			{		
 				/* 回调函数，执行用户程序 */
-				GUI_CallBack(pName,NULL);
+				if (GUI_CallBack != NULL)
+				{
+					GUI_CallBack(pName,NULL);
+				}
 				
 				if ( CopyFolderBody(pSourceFolderPath,pTargetFolderPath,pName,GUI_CallBack) == ERROR)
 				{
@@ -1385,7 +1391,10 @@ ErrorStatus DeleteFolderFromDevices( const char * const pTargetFolderPath, \
 			if (targetFileInfo.fattrib & AM_ARC)		//是个文件
 			{			
 				/* 回调函数，执行用户程序 */
-				GUI_CallBack(NULL,pName);
+				if (GUI_CallBack != NULL)
+				{
+					GUI_CallBack(NULL,pName);
+				}
 				
 				if ( DeleteFileBody(pTargetFolderPath,pName) == ERROR)
 				{
@@ -1395,7 +1404,10 @@ ErrorStatus DeleteFolderFromDevices( const char * const pTargetFolderPath, \
 			else if (targetFileInfo.fattrib & AM_DIR)		//是个文件夹
 			{	
 				/* 回调函数，执行用户程序 */
-				GUI_CallBack(pName,NULL);
+				if (GUI_CallBack != NULL)
+				{
+					GUI_CallBack(pName,NULL);
+				}
 				
 				if ( DeleteFolderBody(pTargetFolderPath,pName,GUI_CallBack) == ERROR)
 				{

@@ -127,33 +127,6 @@ typedef struct
 
 typedef struct
 {
-	uint16_t x;					//左上角起始坐标
-	uint16_t y;					//左上角起始坐标
-	uint16_t rowSpace;			//行间距
-	uint16_t columnSpace;		//列间距
-	uint16_t xLenth;			//X轴线长
-	uint16_t yLenth;			//Y轴线长
-	uint16_t fillFieldLenth;	//填充段长度
-	uint16_t emptyFieldLenth;	//空白区域长度
-	uint16_t lineWidth;			//线宽
-	uint8_t rowFieldNum;		//行分段数
-	uint8_t columnFieldNum;		//列分段数
-	uint16_t mainBackColor;		//主体背景色
-	uint16_t windowsBackColor;	//窗体背景色
-	uint16_t rowLineColor;		//框线行线颜色
-	uint16_t columnLineColor;	//框线列线颜色
-	uint16_t fontPointColor;	//字体前景色
-	uint16_t fontBackColor;		//字体背景色
-	uint16_t xLinePointColor;	//X轴线前景色
-	uint16_t yLinePointColor;	//Y轴线前景色
-	float maxForce;				//最大力
-	uint32_t maxTime;			//最大时间
-	const char *pXUnit;			//X轴单位
-	const char *pYUnit;			//Y轴单位
-}COORDINATE_TypeDef;
-
-typedef struct
-{
 	uint16_t x;
 	uint16_t y;
 	uint16_t lenth;
@@ -178,8 +151,47 @@ typedef enum
 	STATUS_DRAW_LINE_END,
 }STATUS_COORDINATE_DRAW_LINE_TypeDef;
 
+/* 坐标系 */
+enum
+{
+	COORDINATE_USE_TIME = 0,
+	COORDINATE_USE_DEFORM,
+	COORDINATE_USE_FORCE,
+};
+
 typedef struct
 {
+	uint16_t x;					//左上角起始坐标
+	uint16_t y;					//左上角起始坐标
+	uint16_t rowSpace;			//行间距
+	uint16_t columnSpace;		//列间距
+	uint16_t xLenth;			//X轴线长
+	uint16_t yLenth;			//Y轴线长
+	uint16_t fillFieldLenth;	//填充段长度
+	uint16_t emptyFieldLenth;	//空白区域长度
+	uint16_t lineWidth;			//线宽
+	uint8_t rowFieldNum;		//行分段数
+	uint8_t columnFieldNum;		//列分段数
+	uint16_t mainBackColor;		//主体背景色
+	uint16_t windowsBackColor;	//窗体背景色
+	uint16_t rowLineColor;		//框线行线颜色
+	uint16_t columnLineColor;	//框线列线颜色
+	uint16_t fontPointColor;	//字体前景色
+	uint16_t fontBackColor;		//字体背景色
+	uint16_t xLinePointColor;	//X轴线前景色
+	uint16_t yLinePointColor;	//Y轴线前景色
+	float xMaxValue;				
+	float yMaxValue;
+	uint8_t xUseType;			//X轴类型
+	uint8_t yUseType;			//Y轴类型
+	const char *pXUnit;			//X轴单位
+	const char *pYUnit;			//Y轴单位 
+}COORDINATE_TypeDef;
+
+typedef struct
+{
+	uint8_t xUseType;				//X轴类型
+	uint8_t yUseType;				//Y轴类型
 	uint8_t baseIndex;				//基准索引值
 	STATUS_COORDINATE_DRAW_LINE_TypeDef status;
 	FlagStatus start;
@@ -187,16 +199,19 @@ typedef struct
 	uint16_t originX;				//坐标原点
 	uint16_t originY;
 	uint16_t lenthX;
-	uint16_t lenthY;
-	float maxForce;					//单位：N
-	uint32_t maxTime;				//单位：ms
-	uint32_t nowTimePoint;			//当前画线的时间点
+	uint16_t lenthY;			
+	float xMaxValue;				
+	float yMaxValue;
+	float xIncrease;			//X轴重新加载一次增量
+	float yIncrease;			//Y轴重新加载一次增量
+	uint32_t nowTimePoint;		//当前画线的时间点
 	uint16_t lineColor;
-	float timeScalingCoefficient;	//缩放系数（将当前值按照缩放系数修饰）
-	float forceScalingCoefficient;	//缩放系数（将当前值按照缩放系数修饰）
-	uint16_t recordPointFreq;		//记录每个点频率
-	void (*pDrawCoordinate)( uint32_t maxForce, uint32_t maxTime );	//画坐标系
+	float xScalingCoefficient;	//缩放系数（将当前值按照缩放系数修饰）
+	float yScalingCoefficient;	//缩放系数（将当前值按照缩放系数修饰）
+	uint16_t recordPointFreq;	//记录每个点频率
+	void (*pDrawCoordinate)( uint8_t xType, uint8_t yType, void *xMaxValuePtr, void *yMaxValuePtr );	//画坐标系
 	float force[DECORD_COORDINATE_FORCE_NUM];
+	float deform[DECORD_COORDINATE_FORCE_NUM];
 }COORDINATE_DRAW_LINE_TypeDef;
 
 typedef enum
@@ -293,6 +308,12 @@ typedef enum
 	STRETCH_TEST,			/* 拉伸试验 */
 	INVALID_TEST,			/* 无效试验 */
 }TEST_ATTRIBUTE_TypeDef;
+
+typedef struct
+{
+	uint8_t index;				
+	FlagStatus completeSignal;
+}SAMPLE_PROCESS_TypeDef;
 
 typedef void (*pFunctionDevide)(void *);
 
@@ -408,7 +429,8 @@ float GetCurveShowStartValue( SMPL_NAME_TypeDef channel );
 void DrawCircleMark( DRAW_CIRCLE_MARK_TypeDef *pDrawCircle );
 
 void InitJudgeBreakPoint( void );
-void InitJudgeBreakPointIndex( uint8_t chn, uint8_t initValue );
+void InitSampleProcess( uint8_t chn );
+FlagStatus GetSampleCompleteFlag( uint8_t chn );
 void JudgeBreakCalculateCycle( uint8_t chn );
 float GetWithMaxForceDifference( SMPL_NAME_TypeDef channel );
 float GetAdjoinTwoPointDifference( SMPL_NAME_TypeDef channel );

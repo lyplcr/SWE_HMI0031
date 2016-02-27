@@ -76,19 +76,11 @@ uint32_t bsp_GetRunTime(void);
 void bsp_StartTimeUS(uint8_t _id);
 uint32_t bsp_GetTimeUS(uint8_t _id);
 
-__STATIC_INLINE void SetTime( uint8_t id )
-{
-	bsp_StartTimeUS(id);
-}
+void TimerStart( uint8_t id );
+uint32_t TimerEnd( uint8_t id );
+void TimerPrintf( uint8_t id );
 
-__STATIC_INLINE uint32_t GetTime( uint8_t id )
-{
-	uint32_t timing = bsp_GetTimeUS(id);
-	
-	ECHO(DEBUG_PRINTF_TIMING,"ID£º%d ,ºÄÊ±£º%d \r\n",id,timing);
-	
-	return timing;
-}
+
 
 #endif
 

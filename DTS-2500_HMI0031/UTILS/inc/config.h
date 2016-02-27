@@ -29,6 +29,8 @@
 #define		VALVE_RESET_DEGREE		-6400								//阀口复位开度
 #define 	CTRL_FREQ				50									//控制频率
 #define 	CTRL_PERIOD				(1000/CTRL_FREQ)					//控制周期
+#define		SAMPLE_FREQ				10									//采样频率
+#define 	SAMPLE_PERIOD			(1000/SAMPLE_FREQ)					//采样周期
 #define		FLASH_FONT_PASSWORD		0x2F8E4A7D							//FLASH字库密码
 
 #define		SYSTEM_MODEL			"SWE"								//系统型号

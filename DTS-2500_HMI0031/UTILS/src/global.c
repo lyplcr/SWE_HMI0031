@@ -222,6 +222,7 @@ TEST_TypeDef *pTest = NULL;			//试验参数
 	static SYSTEM_PROTECT_TypeDef g_systemProtect;
 	static LSSUED_PARAMETER_TypeDef g_lssuedParameter;
 	static JUDGE_BREAK_TypeDef g_judgeBreak;	//判破点
+	static SAMPLE_PROCESS_TypeDef g_sampleProcess[SMPL_NUM];
 #pragma arm section
 
 __ALIGN_RAM COORDINATE_POINT_TypeDef g_coordinatePoint;
@@ -1359,7 +1360,7 @@ BoolStatus GetInterfaceElementEthernetConnectStatus( void )
 COORDINATE_TypeDef * GetCoordinateDataAddr( void )
 {
 	return &g_drawCoordinate;
-}	
+}
 
 /*------------------------------------------------------------
  * Function Name  : GUI_DrawCoordinate
@@ -1371,13 +1372,6 @@ COORDINATE_TypeDef * GetCoordinateDataAddr( void )
 void GUI_DrawCoordinate( COORDINATE_TypeDef *pCoordinate )
 {
 	tDashedFrameObject dashed_frame;
-	uint8_t i;
-	uint32_t averageTime = 0;
-	uint32_t curTime = 0;
-	float averageForce = 0;
-	uint32_t curForce = 0;
-	char showBuff[10];
-	uint8_t bit = 0;
 	
 	//定义画虚线框的各个属性
 	dashed_frame.x 				= pCoordinate->x;					//起点X坐标
@@ -1409,55 +1403,42 @@ void GUI_DrawCoordinate( COORDINATE_TypeDef *pCoordinate )
 	//			pCoordinate->yLinePointColor);
 	}
 	
-	/* 限制条件 */
-	if (pCoordinate->maxTime < 20)
- 	{
- 		pCoordinate->maxTime = 20;	
- 	}
+	/* 显示 X/Y轴数据点 */
+	{
+		uint8_t i;
+		uint32_t averageValue = 0;
+		uint32_t curValue = 0;
+		char showBuff[20];
+		uint8_t bit = 0;
 
-	if (pCoordinate->maxForce < 100)
-	{
-		pCoordinate->maxForce = 100;
-	}
-	
-	/* 显示 X轴 时间 */
-	averageTime = pCoordinate->maxTime / pCoordinate->columnFieldNum;
-	
-	for (i=0; i<=pCoordinate->columnFieldNum; ++i)
-	{
-		curTime = averageTime * i;
-		usprintf(showBuff,"%d",curTime);
-		
-		if (i == 0)			//显示原点
+		averageValue = pCoordinate->xMaxValue / pCoordinate->columnFieldNum;	
+		for (i=0; i<=pCoordinate->columnFieldNum; ++i)
 		{
-			bit = 0;	
-		}	
-		else 
-		{
-			bit = GetIntBit(curTime);
+			curValue = averageValue * i;
+			usprintf(showBuff,"%d",curValue);
+			
+			bit = GetIntBit(curValue);
+			
+			GUI_DispStr16At(pCoordinate->x+i*pCoordinate->columnSpace-bit*4,\
+								pCoordinate->y+pCoordinate->yLenth+8,pCoordinate->fontPointColor,\
+								pCoordinate->fontBackColor,showBuff);
 		}
-		
-		GUI_DispStr16At(pCoordinate->x+i*pCoordinate->columnSpace-bit*4,\
-							pCoordinate->y+pCoordinate->yLenth+8,pCoordinate->fontPointColor,\
-							pCoordinate->fontBackColor,showBuff);
-	}
 	
-	/* 显示 Y轴 力值 */
-	averageForce = pCoordinate->maxForce / pCoordinate->rowFieldNum;
-	
-	for (i=1; i<=pCoordinate->rowFieldNum; ++i)
-	{
-		curForce = averageForce * i;
-		usprintf(showBuff,"%d",curForce);
-		
-		bit = GetIntBit(curForce);
-		
-		GUI_DispStr16At(pCoordinate->x-bit*8-8,pCoordinate->y+pCoordinate->yLenth-i*pCoordinate->rowSpace-8,\
-							pCoordinate->fontPointColor,pCoordinate->fontBackColor,showBuff);
-	}
+		averageValue = pCoordinate->yMaxValue / pCoordinate->rowFieldNum;	
+		for (i=0; i<=pCoordinate->rowFieldNum; ++i)
+		{
+			curValue = averageValue * i;
+			usprintf(showBuff,"%d",curValue);
+			
+			bit = GetIntBit(curValue);
+			
+			GUI_DispStr16At(pCoordinate->x-bit*8-8,pCoordinate->y+pCoordinate->yLenth-i*pCoordinate->rowSpace-8,\
+						pCoordinate->fontPointColor,pCoordinate->fontBackColor,showBuff);
+		}	
+	}	
 	
 	/* 显示单位 */
-	GUI_DispStr16At(pCoordinate->x+pCoordinate->xLenth-24,\
+	GUI_DispStr16At(pCoordinate->x+pCoordinate->xLenth-36,\
 					pCoordinate->y+pCoordinate->yLenth-18,pCoordinate->fontPointColor,\
 					pCoordinate->fontBackColor,pCoordinate->pXUnit);
 	GUI_DispStr16At(pCoordinate->x+3,pCoordinate->y+2,pCoordinate->fontPointColor,\
@@ -1981,6 +1962,29 @@ float GetDrawLineSomeTimePointForce( uint32_t nowTimePoint )
 }	
 
 /*------------------------------------------------------------
+ * Function Name  : IsCoordinateDrawLinePointOutOfRange
+ * Description    : 坐标系画线点超出范围
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+__STATIC_INLINE BoolStatus IsCoordinateDrawLinePointOutOfRange( COORDINATE_DRAW_LINE_TypeDef *pDrawLine, \
+						uint16_t curPointX, uint16_t curPointY )
+{
+	if (curPointX < pDrawLine->originX)
+	{
+		return YES;
+	}
+	
+	if (curPointY > pDrawLine->originY)
+	{
+		return YES;
+	}
+	
+	return NO;
+}
+
+/*------------------------------------------------------------
  * Function Name  : CoordinateDrawLine
  * Description    : 坐标系画线
  * Input          : None
@@ -1989,29 +1993,74 @@ float GetDrawLineSomeTimePointForce( uint32_t nowTimePoint )
  *------------------------------------------------------------*/
 static void CoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
-	uint32_t lastTime = 0,nowTime = 0;
-	float lastForce = 0,nowForce = 0;
-	uint16_t lastTimeCoordinate = 0,nowTimeCoordinate = 0;
-	uint16_t lastForceCoordinate = 0,nowForceCoordinate = 0;
+	uint16_t lastXCoordinate = 0,nowXCoordinate = 0;
+	uint16_t lastYCoordinate = 0,nowYCoordinate = 0;
 	
 	if (pDrawLine->nowTimePoint == 0)
 	{
 		return;
 	}
 	
-	lastTime = (pDrawLine->nowTimePoint - 1) * RECORD_COORDINATE_PERIOD;
-	nowTime = pDrawLine->nowTimePoint * RECORD_COORDINATE_PERIOD;
+	switch ( pDrawLine->xUseType )
+	{
+		case COORDINATE_USE_TIME:
+			{
+				uint32_t lastX = 0,nowX = 0;
+				
+				lastX = (pDrawLine->nowTimePoint - 1) * RECORD_COORDINATE_PERIOD;
+				nowX = pDrawLine->nowTimePoint * RECORD_COORDINATE_PERIOD;
+					
+				lastXCoordinate = pDrawLine->originX + (float)lastX / \
+									pDrawLine->xMaxValue * pDrawLine->lenthX;
+				nowXCoordinate = pDrawLine->originX + (float)nowX / \
+									pDrawLine->xMaxValue * pDrawLine->lenthX;
+			}
+			break;
+		case COORDINATE_USE_DEFORM:
+			{			
+				float lastX = pDrawLine->deform[pDrawLine->nowTimePoint-1];
+				float nowX = pDrawLine->deform[pDrawLine->nowTimePoint];
+					
+				lastXCoordinate = pDrawLine->originX + (float)lastX / \
+									pDrawLine->xMaxValue * pDrawLine->lenthX;
+				nowXCoordinate = pDrawLine->originX + (float)nowX / \
+									pDrawLine->xMaxValue * pDrawLine->lenthX;
+			}	
+			break;
+		case INVALID_TEST:			
+			break;
+		default:
+			break;
+	}
 	
-	lastTimeCoordinate = pDrawLine->originX + (float)lastTime / pDrawLine->maxTime * pDrawLine->lenthX;
-	nowTimeCoordinate = pDrawLine->originX + (float)nowTime / pDrawLine->maxTime * pDrawLine->lenthX;
+	switch ( pDrawLine->yUseType )
+	{
+		case COORDINATE_USE_FORCE:
+			{		
+				float lastY = pDrawLine->force[pDrawLine->nowTimePoint-1];
+				float nowY = pDrawLine->force[pDrawLine->nowTimePoint];
+				
+				lastYCoordinate = pDrawLine->originY - lastY / pDrawLine->yMaxValue * pDrawLine->lenthY;
+				nowYCoordinate = pDrawLine->originY - nowY / pDrawLine->yMaxValue * pDrawLine->lenthY;
+			}
+			break;
+		case INVALID_TEST:			
+			break;
+		default:
+			break;
+	}
 	
-	lastForce = pDrawLine->force[pDrawLine->nowTimePoint - 1];
-	nowForce = pDrawLine->force[pDrawLine->nowTimePoint];
+	if (IsCoordinateDrawLinePointOutOfRange(pDrawLine,lastXCoordinate,lastYCoordinate) == YES)
+	{
+		return;
+	}
 	
-	lastForceCoordinate = pDrawLine->originY - lastForce / pDrawLine->maxForce * pDrawLine->lenthY;
-	nowForceCoordinate = pDrawLine->originY - nowForce / pDrawLine->maxForce * pDrawLine->lenthY;
-	
-	lcd_draw_line(lastTimeCoordinate,lastForceCoordinate,nowTimeCoordinate,nowForceCoordinate,pDrawLine->lineColor);
+	if (IsCoordinateDrawLinePointOutOfRange(pDrawLine,nowXCoordinate,nowYCoordinate) == YES)
+	{
+		return;
+	}
+
+	lcd_draw_line(lastXCoordinate,lastYCoordinate,nowXCoordinate,nowYCoordinate,pDrawLine->lineColor);
 }
 
 /*------------------------------------------------------------
@@ -2023,7 +2072,12 @@ static void CoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
  *------------------------------------------------------------*/
 void ReloadCoordinate( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
-	pDrawLine->pDrawCoordinate(pDrawLine->maxForce * pDrawLine->forceScalingCoefficient,pDrawLine->maxTime * pDrawLine->timeScalingCoefficient);
+	float xMaxValue = pDrawLine->xMaxValue * pDrawLine->xScalingCoefficient;
+	float yMaxValue = pDrawLine->yMaxValue * pDrawLine->yScalingCoefficient;
+	uint8_t xType = pDrawLine->xUseType;
+	uint8_t yType = pDrawLine->yUseType;
+	
+	pDrawLine->pDrawCoordinate(xType,yType,(void *)&xMaxValue,(void *)&yMaxValue);
 }	
 
 /*------------------------------------------------------------
@@ -2035,27 +2089,74 @@ void ReloadCoordinate( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
  *------------------------------------------------------------*/
 void CoordinateRedrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
-	uint32_t lastTime = 0,nowTime = 0;
-	float lastForce = 0,nowForce = 0;
-	uint16_t lastTimeCoordinate = 0,nowTimeCoordinate = 0;
-	uint16_t lastForceCoordinate = 0,nowForceCoordinate = 0;
-	uint32_t timeIndex = 0;
+	uint32_t lastTime = 0;
+	uint32_t nowTime = 0;
+	float lastX_f = 0,nowX_f = 0;
+	float lastY_f = 0,nowY_f = 0;
+	uint16_t lastXCoordinate = 0,nowXCoordinate = 0;
+	uint16_t lastYCoordinate = 0,nowYCoordinate = 0;
+	uint32_t index = 0;
 	
-	for (timeIndex=0; timeIndex<=pDrawLine->nowTimePoint; ++timeIndex)
+	for (index=0; index<=pDrawLine->nowTimePoint; ++index)
 	{	
-		lastTime = nowTime;
-		nowTime += 1000 / pDrawLine->recordPointFreq;
+		switch ( pDrawLine->xUseType )
+		{
+			case COORDINATE_USE_TIME:
+				{										
+					lastTime = nowTime;
+					nowTime += 1000 / pDrawLine->recordPointFreq;
+						
+					lastXCoordinate = pDrawLine->originX + (float)lastTime / \
+										pDrawLine->xMaxValue * pDrawLine->lenthX;
+					nowXCoordinate = pDrawLine->originX + (float)nowTime / \
+										pDrawLine->xMaxValue * pDrawLine->lenthX;
+				}
+				break;
+			case COORDINATE_USE_DEFORM:
+				{										
+					lastX_f = nowX_f;
+					nowX_f = pDrawLine->deform[index];
+						
+					lastXCoordinate = pDrawLine->originX + (float)lastX_f / \
+										pDrawLine->xMaxValue * pDrawLine->lenthX;
+					nowXCoordinate = pDrawLine->originX + (float)nowX_f / \
+										pDrawLine->xMaxValue * pDrawLine->lenthX;
+				}	
+				break;
+			case INVALID_TEST:			
+				break;
+			default:
+				break;
+		}
 		
-		lastTimeCoordinate = pDrawLine->originX + (float)lastTime / pDrawLine->maxTime * pDrawLine->lenthX;
-		nowTimeCoordinate = pDrawLine->originX + (float)nowTime / pDrawLine->maxTime * pDrawLine->lenthX;
+		switch ( pDrawLine->yUseType )
+		{
+			case COORDINATE_USE_FORCE:
+				{					
+					lastY_f = nowY_f;
+					nowY_f = pDrawLine->force[index];
+					
+					lastYCoordinate = pDrawLine->originY - lastY_f / pDrawLine->yMaxValue * pDrawLine->lenthY;
+					nowYCoordinate = pDrawLine->originY - nowY_f / pDrawLine->yMaxValue * pDrawLine->lenthY;
+				}
+				break;
+			case INVALID_TEST:			
+				break;
+			default:
+				break;
+		}
 		
-		lastForce = nowForce;
-		nowForce = pDrawLine->force[timeIndex];
+		if (IsCoordinateDrawLinePointOutOfRange(pDrawLine,lastXCoordinate,lastYCoordinate) == YES)
+		{
+			continue;
+		}
 		
-		lastForceCoordinate = pDrawLine->originY - lastForce / pDrawLine->maxForce * pDrawLine->lenthY;
-		nowForceCoordinate = pDrawLine->originY - nowForce / pDrawLine->maxForce * pDrawLine->lenthY;
-		
-		lcd_draw_line(lastTimeCoordinate,lastForceCoordinate,nowTimeCoordinate,nowForceCoordinate,pDrawLine->lineColor);
+		if (IsCoordinateDrawLinePointOutOfRange(pDrawLine,nowXCoordinate,nowYCoordinate) == YES)
+		{
+			continue;
+		}
+	
+		lcd_draw_line(lastXCoordinate,lastYCoordinate,nowXCoordinate,nowYCoordinate,pDrawLine->lineColor);				
 	}
 }	
 
@@ -2619,18 +2720,40 @@ void InitJudgeBreakPoint( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : InitJudgeBreakPointIndex
- * Description    : 初始化判破点索引值
+ * Function Name  : InitSampleProcess
+ * Description    : 初始化采样过程
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-void InitJudgeBreakPointIndex( uint8_t chn, uint8_t initValue )
+void InitSampleProcess( uint8_t chn )
 {
 	if (chn < SMPL_NUM)
 	{
-		g_judgeBreak.index[chn] = initValue;	
+		SAMPLE_PROCESS_TypeDef *samplePtr = &g_sampleProcess[chn];
+		
+		samplePtr->index = 0;
+		samplePtr->completeSignal = RESET;	
 	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetSampleCompleteFlag
+ * Description    : 获取采样完成标识
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+FlagStatus GetSampleCompleteFlag( uint8_t chn )
+{
+	if (chn < SMPL_NUM)
+	{
+		SAMPLE_PROCESS_TypeDef *samplePtr = &g_sampleProcess[chn];
+		
+		return samplePtr->completeSignal;	
+	}
+	
+	return RESET;
 }
 
 /*------------------------------------------------------------
@@ -2642,17 +2765,25 @@ void InitJudgeBreakPointIndex( uint8_t chn, uint8_t initValue )
  *------------------------------------------------------------*/
 void JudgeBreakCalculateCycle( uint8_t chn )
 {
-	const uint8_t ADJOIN_DOWN_POINT_NUM = 5;	//每20ms一个点
+	const uint8_t INDEX_MAX = SAMPLE_PERIOD / CTRL_PERIOD;
 	const uint16_t MAX_DOWN_POINT_NUM = 100;
+	SAMPLE_PROCESS_TypeDef *samplePtr = &g_sampleProcess[chn];
 
-	ECHO(DEBUG_COORDINATE_DRAW_LINE,"判破索引：%d\r\n",g_judgeBreak.index[chn]);
+	if (chn >= SMPL_NUM)
+	{
+		return;
+	}
 	
-	g_judgeBreak.index[chn]++;
+	ECHO(DEBUG_COORDINATE_DRAW_LINE,"采样索引：%d\r\n",samplePtr->index);
+	
+	samplePtr->index++;
+	samplePtr->completeSignal = RESET;
 	
 	/* 100ms采样一个点 */
-	if (g_judgeBreak.index[chn] >= ADJOIN_DOWN_POINT_NUM)	
-	{
-		g_judgeBreak.index[chn] = 0;
+	if (samplePtr->index >= INDEX_MAX)	
+	{		
+		samplePtr->index = 0;
+		samplePtr->completeSignal = SET;
 		
 		g_judgeBreak.lastForcePoint[chn] = g_judgeBreak.nowForcePoint[chn];
 		g_judgeBreak.nowForcePoint[chn] = get_smpl_value(chn);
@@ -2715,7 +2846,7 @@ void JudgeBreakCalculateCycle( uint8_t chn )
 			ECHO(DEBUG_SAMPLE_FH,"相邻点差值：%f\r\n",g_judgeBreak.adjoinPointDiff[SMPL_FH_NUM]);
 		}
 		
-		ECHO(DEBUG_COORDINATE_DRAW_LINE,"判破力值：%f\r\n",g_judgeBreak.nowForcePoint[chn]);
+		ECHO(DEBUG_SAMPLE_FH,"判破力值：%f\r\n",g_judgeBreak.nowForcePoint[chn]);
 	}
 }
 

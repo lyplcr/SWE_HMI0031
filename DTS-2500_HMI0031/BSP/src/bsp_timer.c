@@ -508,6 +508,42 @@ void TIM3_IRQHandler(void)
 	}	  
 } 
 
+/*------------------------------------------------------------
+ * Function Name  : SetTimerStart
+ * Description    :	开始计时
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void TimerStart( uint8_t id )
+{
+	bsp_StartTimeUS(id);
+}
 
+/*------------------------------------------------------------
+ * Function Name  : TimerEnd
+ * Description    :	结束计时
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+uint32_t TimerEnd( uint8_t id )
+{
+	return bsp_GetTimeUS(id);
+}
+
+/*------------------------------------------------------------
+ * Function Name  : TimerPrintf
+ * Description    :	打印计时
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void TimerPrintf( uint8_t id )
+{
+	uint32_t timing = TimerEnd(id);
+
+	printf("ID：%d ,耗时(us)：%d \r\n",id,timing);
+}
 
 /***************************** 杭州鑫高科技 www.hzxingao.com (END OF FILE) *********************************/

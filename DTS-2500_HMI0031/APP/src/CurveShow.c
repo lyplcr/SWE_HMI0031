@@ -202,6 +202,9 @@ static void GUI_CurveShowDrawCoordinate( void )
 {
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
+	pCoordinate->xUseType = pCurve->xType;
+	pCoordinate->yUseType = pCurve->yType;
+	
 	pCoordinate->x = 120;
 	pCoordinate->y = 70;
 	pCoordinate->rowSpace = 50;
@@ -222,8 +225,8 @@ static void GUI_CurveShowDrawCoordinate( void )
 	pCoordinate->xLinePointColor = FRESH_GREEN;
 	pCoordinate->yLinePointColor = FRESH_GREEN;
 	
-	pCoordinate->maxForce = pCurve->maxValueY * pCurve->yScalingCoefficient;
-	pCoordinate->maxTime = pCurve->maxValueX * pCurve->xScalingCoefficient;
+	pCoordinate->xMaxValue = pCurve->xMaxValue * pCurve->xScalingCoefficient;
+	pCoordinate->yMaxValue = pCurve->yMaxValue * pCurve->yScalingCoefficient;
 	
 	switch (pCurve->xUint)
 	{
@@ -268,15 +271,16 @@ static void InitCurveShowCoordinateDrawLine( void )
 	pDrawLine->originY = pCoordinate->y + pCoordinate->yLenth;
 	pDrawLine->lenthX = pCoordinate->xLenth;
 	pDrawLine->lenthY = pCoordinate->yLenth;
-	pDrawLine->maxForce = pCurve->maxValueY;
-	pDrawLine->maxTime = pCurve->maxValueX;
+	pDrawLine->xMaxValue = pCurve->xMaxValue;
+	pDrawLine->yMaxValue = pCurve->yMaxValue;
 	pDrawLine->nowTimePoint = pCurve->nowUsePointNum;
 	pDrawLine->lineColor = CRIMSON;
-	pDrawLine->timeScalingCoefficient = pCurve->xScalingCoefficient;
-	pDrawLine->forceScalingCoefficient = pCurve->yScalingCoefficient;
+	pDrawLine->xScalingCoefficient = pCurve->xScalingCoefficient;
+	pDrawLine->yScalingCoefficient = pCurve->yScalingCoefficient;
 	pDrawLine->recordPointFreq = pCurve->recordPointFreq;
 	pDrawLine->pDrawCoordinate = NULL;	
 	memset(pDrawLine->force,0x00,sizeof(float)*pCurve->maxPointNum);
+	memset(pDrawLine->deform,0x00,sizeof(float)*pCurve->maxPointNum);
 	
 	{
 		uint32_t i;
@@ -284,6 +288,7 @@ static void InitCurveShowCoordinateDrawLine( void )
 		for (i=0; i<pCurve->maxPointNum; ++i)
 		{
 			pDrawLine->force[i] = pCurve->force[i];
+			pDrawLine->deform[i] = pCurve->deform[i];
 		}
 	}
 }
