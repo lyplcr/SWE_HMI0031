@@ -182,16 +182,16 @@ typedef struct
 	uint16_t yLinePointColor;	//Y轴线前景色
 	float xMaxValue;				
 	float yMaxValue;
-	uint8_t xUseType;			//X轴类型
-	uint8_t yUseType;			//Y轴类型
+	uint8_t xType;				//X轴类型
+	uint8_t yType;				//Y轴类型
 	const char *pXUnit;			//X轴单位
 	const char *pYUnit;			//Y轴单位 
 }COORDINATE_TypeDef;
 
 typedef struct
 {
-	uint8_t xUseType;				//X轴类型
-	uint8_t yUseType;				//Y轴类型
+	uint8_t xType;					//X轴类型
+	uint8_t yType;					//Y轴类型
 	uint8_t baseIndex;				//基准索引值
 	STATUS_COORDINATE_DRAW_LINE_TypeDef status;
 	FlagStatus start;
@@ -322,6 +322,8 @@ typedef void (*pFunctionDevide)(void *);
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
+#define IS_FLOAT_EQUAL(x1,x2)		( (fabs(x1-x2) < 0.0001f) ? 1 : 0 )
+
 /* Exported variables --------------------------------------------------------*/
 extern HMI_TypeDef *pHmi;
 extern TEST_TypeDef *pTest;

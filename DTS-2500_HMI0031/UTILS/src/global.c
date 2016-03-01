@@ -1971,12 +1971,12 @@ float GetDrawLineSomeTimePointForce( uint32_t nowTimePoint )
 __STATIC_INLINE BoolStatus IsCoordinateDrawLinePointOutOfRange( COORDINATE_DRAW_LINE_TypeDef *pDrawLine, \
 						uint16_t curPointX, uint16_t curPointY )
 {
-	if (curPointX < pDrawLine->originX)
+	if ( (curPointX<pDrawLine->originX) || (curPointX>pDrawLine->originX+pDrawLine->lenthX) )
 	{
 		return YES;
 	}
 	
-	if (curPointY > pDrawLine->originY)
+	if ( (curPointY>pDrawLine->originY) || (curPointY<pDrawLine->originY-pDrawLine->lenthY) )
 	{
 		return YES;
 	}
@@ -2001,14 +2001,12 @@ static void CoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 		return;
 	}
 	
-	switch ( pDrawLine->xUseType )
+	switch ( pDrawLine->xType )
 	{
 		case COORDINATE_USE_TIME:
-			{
-				uint32_t lastX = 0,nowX = 0;
-				
-				lastX = (pDrawLine->nowTimePoint - 1) * RECORD_COORDINATE_PERIOD;
-				nowX = pDrawLine->nowTimePoint * RECORD_COORDINATE_PERIOD;
+			{	
+				float lastX = (pDrawLine->nowTimePoint - 1) * RECORD_COORDINATE_PERIOD;
+				float nowX = pDrawLine->nowTimePoint * RECORD_COORDINATE_PERIOD;
 					
 				lastXCoordinate = pDrawLine->originX + (float)lastX / \
 									pDrawLine->xMaxValue * pDrawLine->lenthX;
@@ -2033,7 +2031,7 @@ static void CoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 			break;
 	}
 	
-	switch ( pDrawLine->yUseType )
+	switch ( pDrawLine->yType )
 	{
 		case COORDINATE_USE_FORCE:
 			{		
@@ -2074,8 +2072,8 @@ void ReloadCoordinate( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
 	float xMaxValue = pDrawLine->xMaxValue * pDrawLine->xScalingCoefficient;
 	float yMaxValue = pDrawLine->yMaxValue * pDrawLine->yScalingCoefficient;
-	uint8_t xType = pDrawLine->xUseType;
-	uint8_t yType = pDrawLine->yUseType;
+	uint8_t xType = pDrawLine->xType;
+	uint8_t yType = pDrawLine->yType;
 	
 	pDrawLine->pDrawCoordinate(xType,yType,(void *)&xMaxValue,(void *)&yMaxValue);
 }	
@@ -2099,7 +2097,7 @@ void CoordinateRedrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 	
 	for (index=0; index<=pDrawLine->nowTimePoint; ++index)
 	{	
-		switch ( pDrawLine->xUseType )
+		switch ( pDrawLine->xType )
 		{
 			case COORDINATE_USE_TIME:
 				{										
@@ -2129,7 +2127,7 @@ void CoordinateRedrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 				break;
 		}
 		
-		switch ( pDrawLine->yUseType )
+		switch ( pDrawLine->yType )
 		{
 			case COORDINATE_USE_FORCE:
 				{					

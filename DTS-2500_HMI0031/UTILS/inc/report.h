@@ -101,11 +101,13 @@ typedef struct
 #define RECORD_COORDINATE_TIME_SECOND	(5 * 60)			//5分钟	
 #define DECORD_COORDINATE_FORCE_NUM		(RECORD_COORDINATE_TIME_SECOND * RECORD_COORDINATE_FREQ) 
 
+
+/* X、Y类型：0-时间，1-变形，2-力值 */
 typedef struct
 {
 	uint8_t xType;						//X轴类型
 	uint8_t yType;						//Y轴类型
-	uint8_t xUint;						//X轴单位（0：s，1：ms）
+	uint8_t xUint;						//X轴单位（0：s，1：ms，2，mm）
 	uint8_t yUint;						//Y轴单位（0：kN，1：N）	
 	float xMaxValue;					//X轴最大值
 	float yMaxValue;					//Y轴最大值

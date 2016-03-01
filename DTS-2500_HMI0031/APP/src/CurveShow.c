@@ -151,8 +151,7 @@ static void CurveShowReadParameter( void )
 		g_curveShow.leavePage.flagLeavePage = SET;
 		SetPage(DETAIL_REPORT_PAGE);
 		
-		SetPopWindowsInfomation(POP_PCM_CUE,1,&pCurveShowCue[0]);
-			
+		SetPopWindowsInfomation(POP_PCM_CUE,1,&pCurveShowCue[0]);			
 		PopWindowsProcessCycle();
 		
 		return;
@@ -185,8 +184,6 @@ static void CurveShowReadParameter( void )
 			SetPopWindowsInfomation(POP_PCM_CUE,1,&pCurveShowCue[1]);
 			
 			PopWindowsProcessCycle();
-			
-			return;
 		}
 	}
 }
@@ -202,8 +199,8 @@ static void GUI_CurveShowDrawCoordinate( void )
 {
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
-	pCoordinate->xUseType = pCurve->xType;
-	pCoordinate->yUseType = pCurve->yType;
+	pCoordinate->xType = pCurve->xType;
+	pCoordinate->yType = pCurve->yType;
 	
 	pCoordinate->x = 120;
 	pCoordinate->y = 70;

@@ -245,7 +245,7 @@ typedef struct
 	FlagStatus flagCancelLastPiece;					//撤销上一块
 	FlagStatus flagHandEndOneGroup;					//结束一组
 	FlagStatus flagAutoUpdateSerial;				//自动更新试件编号
-	FlagStatus flagStartJudgeBreak;					//开始判破
+	FlagStatus flagStartJudgeBreak;					//起始判破标识
 	FlagStatus startTest;							//开始标志
 	FlagStatus endTest;								//结束标志
 	uint8_t curCompletePieceSerial;					//当前已做完的试块编号
@@ -292,6 +292,8 @@ typedef struct
 
 typedef struct
 {
+	FlagStatus flagStartJudgeYield;		//起始判断屈服标识
+	
 	float maxForce;						//最大力
 	float maxStrength;					//最大强度
 	float upYieldForce;					//上屈服力
@@ -302,8 +304,9 @@ typedef struct
 	float maxForceSumElongation;		//最大力总伸长率
 	
 	/* 计算最大力总延伸 */
-	float originalDisplacemen;			//原始位移
-	float originalDeform;				//原始变形
+	float recordDisplacemen;			//记录上一次位移
+	float recordDeform;					//记录上一次变形
+	float nowDeform;					//当前变形
 	
 	/* 计算屈服点、最大力 */
 	uint32_t upYieldForceIndex;
@@ -433,9 +436,6 @@ const char * const pKLTestProgressName[] =
 #pragma arm section rwdata = "RAM_MAIN_PAGE",zidata = "RAM_MAIN_PAGE"
 	static MAIN_PAGE_TypeDef g_mainPage;
 	static TEST_BODY_TypeDef g_testBody;
-	#if 0
-		static KL_TEST_PROGRESS_TypeDef g_klTestProgress;
-	#endif
 	static KL_TEST_BODY_TypeDef	g_klTestBody;
 #pragma arm section
 
@@ -458,12 +458,6 @@ static void MainPageShortcutCycleTask( void );
 static void InitMainPageCoordinateDrawLine( void );
 static TestStatus MainPageCheckSerialRepeat( void );
 static void SetTestStatus( TEST_STATUS_TypeDef testStatus );
-
-#if 0
-	static void InitKL_TestProgress( void );
-	static void SetKL_TestProgress( STATUS_KL_TEST_PROGRESS_TypeDef status );
-#endif
-
 static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest );
 
 
@@ -2895,8 +2889,8 @@ static void GUI_MainPageDrawCoordinate( uint8_t xType, uint8_t yType, void *xMax
 {
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
-	pCoordinate->xUseType = xType;
-	pCoordinate->yUseType = yType;	
+	pCoordinate->xType = xType;
+	pCoordinate->yType = yType;	
 	pCoordinate->x = 75;
 	pCoordinate->y = 120;
 	pCoordinate->rowSpace = 50;
@@ -2917,7 +2911,7 @@ static void GUI_MainPageDrawCoordinate( uint8_t xType, uint8_t yType, void *xMax
 	pCoordinate->xLinePointColor = FRESH_GREEN;
 	pCoordinate->yLinePointColor = FRESH_GREEN;
 	
-	switch ( pCoordinate->xUseType )
+	switch ( pCoordinate->xType )
 	{
 		case COORDINATE_USE_TIME:
 			pCoordinate->pXUnit = " (S)";
@@ -2934,7 +2928,7 @@ static void GUI_MainPageDrawCoordinate( uint8_t xType, uint8_t yType, void *xMax
 			break;
 	}
 	
-	switch ( pCoordinate->yUseType )
+	switch ( pCoordinate->yType )
 	{
 		case COORDINATE_USE_FORCE:
 			pCoordinate->yMaxValue = *(float *)yMaxValuePtr;
@@ -3963,7 +3957,7 @@ static void MainPageKeyProcess( void )
 				}
 				else
 				{
-					g_klTestBody.originalDisplacemen = 0.0f;
+					g_klTestBody.recordDisplacemen = 0.0f;
 				}
 				break;
 			case KEY_DEFORMATE_TARE:
@@ -3976,7 +3970,7 @@ static void MainPageKeyProcess( void )
 				}
 				else
 				{
-					g_klTestBody.originalDeform = 0.0f;
+					g_klTestBody.recordDeform = 0.0f;
 				}
 				break;
 			case KEY_DISPLACE_DEFORMATE:
@@ -3988,12 +3982,12 @@ static void MainPageKeyProcess( void )
 						SetDisplacementOrDeformShow(SHOW_DEFORM);
 					}
 					else
-					{
-						g_klTestBody.originalDisplacemen = get_smpl_value(SMPL_WY_NUM);
-						g_klTestBody.originalDeform = get_smpl_value(SMPL_BX_NUM);
-						
+					{												
 						SetDisplacementOrDeformShow(SHOW_DISPLACEMENT);
 					}
+					g_klTestBody.recordDisplacemen = get_smpl_value(SMPL_WY_NUM);
+					g_klTestBody.recordDeform = get_smpl_value(SMPL_BX_NUM);
+					
 					MainPageConfig();
 					index = GetMainPageIndicateWindowsFieldIndex(OBJECT_WINDOWS_DISPLACEMENT);
 					if (index != 0xff)
@@ -4316,6 +4310,75 @@ static void KL_TestJumpTestResultPage( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : AccordDispalcementGetDeformIncrement
+ * Description    : 获取变形增量
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static float AccordDispalcementGetDeformIncrement( float originalDispalcement, float nowDispalcement )
+{
+	float originalGauge = GetOriginalGauge();
+	float extensometerGauge = GetExtensometerGauge();
+	float deformIncrement = 0;
+	const float COF = 1.0f;
+	
+	if (fabs(originalGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+	{
+		originalGauge = 1;
+	}
+	
+	deformIncrement = COF * (extensometerGauge / originalGauge) * (nowDispalcement - originalDispalcement);
+	
+	ECHO_ASSERT(fabs(originalGauge)>MIN_FLOAT_PRECISION_DIFF_VALUE,"原始标距除零错误！\r\n");
+	
+	return deformIncrement;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageCalculateDeformCycle
+ * Description    : 计算变形量循环体（该函数需要周期性调用，如果当前显示位移，则变形值通过位移推算，
+ *                : 当前变形值都在上一次计算的变形值基础上，加上变形值增量。）
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageCalculateDeformCycle( void )
+{
+	float deform = 0;
+	
+	if (GetDisplacementOrDeformShow() == SHOW_DISPLACEMENT)
+	{
+		float nowDisplacemen = get_smpl_value(SMPL_WY_NUM);
+		
+		deform = g_klTestBody.recordDeform + AccordDispalcementGetDeformIncrement(g_klTestBody.recordDisplacemen,nowDisplacemen);
+		
+		g_klTestBody.recordDeform = deform;
+		g_klTestBody.recordDisplacemen = nowDisplacemen;
+	}
+	else
+	{
+		deform = get_smpl_value(SMPL_BX_NUM);
+	}
+	
+	ECHO(DEBUG_DEFORM_SHOW,"deform： %f \r\n",deform);
+	
+	g_klTestBody.nowDeform = deform;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : CountSampleValueCycle
+ * Description    : 计算采样值循环
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void CountSampleValueCycle( void )
+{
+	MainPageCalculateDeformCycle();
+}
+
+/*------------------------------------------------------------
  * Function Name  : MainPageExecuteTestStartBody
  * Description    : 试验开始
  * Input          : None
@@ -4343,17 +4406,10 @@ static void MainPageExecuteTestStartBody( void )
 			/* 初始化抗拉试验 */
 			InitKL_TestBody(&g_klTestBody);
 		
+			CountSampleValueCycle();
+		
 			/* 跳转到试验结果页 */
 			KL_TestJumpTestResultPage();
-			
-			#if 0
-				InitKL_TestProgress();
-				SetKL_TestProgress(STATUS_KL_PROGRESS_IDLE);
-				SetKL_TestProgress(STATUS_KL_PROGRESS_ELASTIC_DEFORMATION);
-		
-				/* 此时菜单栏正在显示进度，不能刷新 */
-				g_mainPage.refreshShortcut = DISABLE;
-			#endif
 			break;
 		case INVALID_TEST:
 			break;
@@ -4370,6 +4426,8 @@ static void MainPageExecuteTestStartBody( void )
 	
 	g_testBody.breakPeak = 0;
 	g_testBody.breakStrength = 0;
+	
+	g_klTestBody.flagStartJudgeYield = RESET;
 	
 	SetTestStatus(TEST_LOAD);
 }
@@ -4502,63 +4560,6 @@ static void MainPageJudgeBreakCoreCycle( void )
 }	
 
 /*------------------------------------------------------------
- * Function Name  : AccordDispalcementGetDeformIncrement
- * Description    : 获取变形增量
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static float AccordDispalcementGetDeformIncrement( float originalDispalcement, float nowDispalcement )
-{
-	float originalGauge = GetOriginalGauge();
-	float extensometerGauge = GetExtensometerGauge();
-	float deformIncrement = 0;
-	const float COF = 1.0f;
-	
-	if (fabs(originalGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
-	{
-		originalGauge = 1;
-	}
-	
-	deformIncrement = COF * (extensometerGauge / originalGauge) * (nowDispalcement - originalDispalcement);
-	
-	ECHO_ASSERT(fabs(originalGauge)>MIN_FLOAT_PRECISION_DIFF_VALUE,"原始标距除零错误！\r\n");
-	
-	return deformIncrement;
-}
-
-/*------------------------------------------------------------
- * Function Name  : MainPageGetDeform
- * Description    : 获取变形量
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static float MainPageGetDeform( void )
-{
-	float deform = 0;
-	
-	if (g_mainPage.testAttribute != STRETCH_TEST)
-	{
-		return 0;
-	}
-	
-	if (GetDisplacementOrDeformShow() == SHOW_DISPLACEMENT)
-	{
-		deform = g_klTestBody.originalDeform + AccordDispalcementGetDeformIncrement(g_klTestBody.originalDisplacemen,\
-													get_smpl_value(SMPL_WY_NUM));
-	}
-	else
-	{
-		deform = get_smpl_value(SMPL_BX_NUM);
-	}
-	
-	ECHO(DEBUG_DEFORM_SHOW,"deform： %f \r\n",deform);
-	
-	return deform;
-}
-
-/*------------------------------------------------------------
  * Function Name  : KL_TestCheckPeakCycle
  * Description    : 抗拉试验检测峰值循环
  * Input          : None
@@ -4569,14 +4570,13 @@ static void KL_TestCheckPeakCycle( void )
 {
 	static float s_recordPeak = 0;
 	float peak = GetPeakValue(SMPL_FH_NUM);		
-	float deform = MainPageGetDeform();
 	
 	if ( fabs(peak-s_recordPeak) > MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
 		g_klTestBody.maxForceIndex = GetDrawLineNowTimePoint();		
 		g_klTestBody.maxForce = GetDrawLineSomeTimePointForce( g_klTestBody.maxForceIndex );
 		
-		g_klTestBody.maxForceSumExtend = deform;
+		g_klTestBody.maxForceSumExtend = g_klTestBody.nowDeform;
 		
 		s_recordPeak = peak;
 	}
@@ -4591,8 +4591,24 @@ static void KL_TestCheckPeakCycle( void )
  *------------------------------------------------------------*/
 static void KL_TestLoadCoreCycle( void )
 {
-	float force = get_smpl_value(SMPL_FH_NUM);
-	float peak = GetPeakValue(SMPL_FH_NUM);
+	float force 				= get_smpl_value(SMPL_FH_NUM);
+	float peak 					= GetPeakValue(SMPL_FH_NUM);
+	float yieldStartValue 		= GetTargetBreakStartValue(SMPL_FH_NUM);
+	
+	if (force > yieldStartValue)
+	{
+		if (g_klTestBody.flagStartJudgeYield == RESET)
+		{
+			g_klTestBody.flagStartJudgeYield = SET;
+			
+			ECHO(DEBUG_TEST_LOAD,"到达屈服起判力值！\r\n");
+		}
+	}
+	
+	if (g_klTestBody.flagStartJudgeYield == RESET)
+	{
+		return;
+	}
 	
 	/* 首次力值下降点 */
 	if (force < peak)
@@ -5385,6 +5401,30 @@ static float GetMaxForceSumElongation( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : FindInitialTransientEffectsPoint
+ * Description    : 查找初始瞬时效应点力值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static float FindInitialTransientEffectsPoint( const float *baseForcePtr, uint32_t baseIndex, uint32_t sumIndex )
+{
+	uint32_t i;
+	float value = 0;
+	
+	for (i=baseIndex; i<sumIndex; ++i)
+	{
+		if (baseForcePtr[i] < baseForcePtr[i+1])
+		{
+			value = baseForcePtr[i];
+			break;
+		}
+	}
+	
+	return value;
+}	
+
+/*------------------------------------------------------------
  * Function Name  : GetDownYieldForce
  * Description    : 获取下屈服力值
  * Input          : None
@@ -5397,20 +5437,32 @@ static float GetDownYieldForce( void )
 	
 	if (g_klTestBody.upYieldForceIndex >= g_klTestBody.maxForceIndex)
 	{
-		float downYieldForce = 0;
-		
-		return downYieldForce;
+		return 0.0f;
 	}
 	
 	{
 		float tempf = 0;
+		float downYieldForce = 0.0f;
 		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 		uint32_t num = (g_klTestBody.maxForceIndex - g_klTestBody.upYieldForceIndex) + 1;				
+		
+		/* 查找初始瞬时效应点 */
+		float InitialTransientEffectsPoint = FindInitialTransientEffectsPoint\
+					(pDrawLine->force,g_klTestBody.upYieldForceIndex,g_klTestBody.maxForceIndex);
 		
 		SortBubble((void *)&(pDrawLine->force[g_klTestBody.upYieldForceIndex]),\
 			num,&tempf,compFloatData);
 		
-		return pDrawLine->force[g_klTestBody.upYieldForceIndex];
+		downYieldForce = pDrawLine->force[g_klTestBody.upYieldForceIndex];
+		
+		if ( IS_FLOAT_EQUAL(downYieldForce,InitialTransientEffectsPoint) )
+		{
+			downYieldForce = pDrawLine->force[g_klTestBody.upYieldForceIndex+1];
+			
+			ECHO(DEBUG_TEST_LOAD,"过滤初始瞬时效应点，值为：%f\r\n",InitialTransientEffectsPoint);
+		}
+		
+		return downYieldForce;
 	}
 }
 
@@ -5736,6 +5788,20 @@ static void MainPageTestExecuteCoreCycle( void )
 		default:
 			return;
 	}
+	
+	switch ( g_mainPage.testAttribute )
+	{
+		case COMPRESSION_TEST:
+		case BENDING_TEST:	
+			break;
+		case STRETCH_TEST:	
+			KL_TestCheckPeakCycle();
+			break;
+		case INVALID_TEST:
+			break;
+		default:
+			break;
+	}
 		
 	switch ( GetTestStatus() )
 	{
@@ -5781,9 +5847,6 @@ static void MainPageTestExecuteCoreCycle( void )
 			}			
 			break;
 		case TEST_YIELD:
-			#if 0
-				KL_TestYieldCoreCycle();
-			#endif
 			break;
 		case TEST_DEFORM:
 			KL_TestDeformCoreCycle();
@@ -5819,20 +5882,6 @@ static void MainPageTestExecuteCoreCycle( void )
 		
 		default:
 			SetTestStatus(TEST_IDLE);	
-			break;
-	}
-	
-	switch ( g_mainPage.testAttribute )
-	{
-		case COMPRESSION_TEST:
-		case BENDING_TEST:	
-			break;
-		case STRETCH_TEST:	
-			KL_TestCheckPeakCycle();
-			break;
-		case INVALID_TEST:
-			break;
-		default:
 			break;
 	}
 }
@@ -5872,8 +5921,8 @@ static void InitMainPageCoordinateDrawLine( void )
 	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
-	pDrawLine->xUseType = pCoordinate->xUseType;
-	pDrawLine->yUseType = pCoordinate->yUseType;
+	pDrawLine->xType = pCoordinate->xType;
+	pDrawLine->yType = pCoordinate->yType;
 	pDrawLine->baseIndex = 0;
 	pDrawLine->status = STATUS_DRAW_LINE_IDLE;
 	pDrawLine->start = RESET;
@@ -5884,7 +5933,7 @@ static void InitMainPageCoordinateDrawLine( void )
 	pDrawLine->lenthY = pCoordinate->yLenth;
 	pDrawLine->nowTimePoint = 0;
 	pDrawLine->lineColor = CRIMSON;
-	switch ( pCoordinate->xUseType )
+	switch ( pCoordinate->xType )
 	{
 		case COORDINATE_USE_TIME:
 			{
@@ -5912,7 +5961,7 @@ static void InitMainPageCoordinateDrawLine( void )
 		default:
 			break;
 	}
-	switch ( pCoordinate->yUseType )
+	switch ( pCoordinate->yType )
 	{
 		case COORDINATE_USE_FORCE:
 			{
@@ -6019,26 +6068,26 @@ static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeD
  *------------------------------------------------------------*/
 static void MainPageCoordinateDrawLineRedrawJudgeCondition( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 {
-	uint32_t checkTime = 0;
-	uint32_t curTime = 0;
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
-	switch ( pCoordinate->xUseType )
+	switch ( pCoordinate->xType )
 	{
 		case COORDINATE_USE_TIME:
-			checkTime = pDrawLine->xMaxValue * ((float)(pCoordinate->columnFieldNum - 1) / pCoordinate->columnFieldNum);
-			curTime = pDrawLine->nowTimePoint * RECORD_COORDINATE_PERIOD;
-	
-			if (curTime > checkTime)
 			{
-				pDrawLine->xMaxValue += pDrawLine->xIncrease;
-				pDrawLine->enableRedraw = ENABLE;
+				float checkTime = pDrawLine->xMaxValue * ((float)(pCoordinate->columnFieldNum - 1) / pCoordinate->columnFieldNum);
+				float curTime = pDrawLine->nowTimePoint * RECORD_COORDINATE_PERIOD;
+		
+				if (curTime > checkTime)
+				{
+					pDrawLine->xMaxValue += pDrawLine->xIncrease;
+					pDrawLine->enableRedraw = ENABLE;
+				}
 			}
 			break;
 		case COORDINATE_USE_DEFORM:
 			{
 				float checkDeform = pDrawLine->xMaxValue * ((float)(pCoordinate->columnFieldNum - 1) / pCoordinate->columnFieldNum);	
-				float curDeform = MainPageGetDeform();
+				float curDeform = g_klTestBody.nowDeform;
 				
 				if (curDeform > checkDeform)
 				{
@@ -6053,12 +6102,11 @@ static void MainPageCoordinateDrawLineRedrawJudgeCondition( COORDINATE_DRAW_LINE
 			break;
 	}
 	
-	switch ( pCoordinate->yUseType )
+	switch ( pCoordinate->yType )
 	{
 		case COORDINATE_USE_FORCE:
 			{
 				float force = get_smpl_value(SMPL_FH_NUM);		
-				uint32_t maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
 				float checkForce = pDrawLine->yMaxValue * ((float)(pCoordinate->rowFieldNum - 1) / pCoordinate->rowFieldNum);
 				
 				if (force > checkForce)
@@ -6116,7 +6164,7 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 		float force = get_smpl_value(SMPL_FH_NUM);
 	
 		pDrawLine->force[pDrawLine->nowTimePoint] = force;
-		pDrawLine->deform[pDrawLine->nowTimePoint] = MainPageGetDeform();
+		pDrawLine->deform[pDrawLine->nowTimePoint] = g_klTestBody.nowDeform;
 	
 		ECHO(DEBUG_COORDINATE_DRAW_LINE,"打点时间：%d\r\n",pDrawLine->nowTimePoint);
 		ECHO(DEBUG_COORDINATE_DRAW_LINE,"打点力值：%f\r\n",force);
@@ -6156,29 +6204,6 @@ static void InitKL_TestProgress( void )
 	g_klTestProgress.pHead = NULL;
 	g_klTestProgress.pSeparator = " -> ";
 }
-
-///*------------------------------------------------------------
-// * Function Name  : FindKL_TestProgressStatusElement
-// * Description    : 查找与状态匹配的元素
-// * Input          : None
-// * Output         : None
-// * Return         : None
-// *------------------------------------------------------------*/
-//static void *FindKL_TestProgressStatusElement( STATUS_KL_TEST_PROGRESS_TypeDef status )
-//{
-//	LIST_KL_TEST_PROGRESS_TypeDef *pElement = NULL;
-//	
-//	/* 遍历所有元素 */
-//	list_for_each_entry_reverse(pElement,&g_klTestProgress.head,LIST_KL_TEST_PROGRESS_TypeDef,list)
-//	{
-//		if (pElement->status == status)
-//		{
-//			return pElement;
-//		}
-//	}
-//	
-//	return NULL;
-//}
 
 /*------------------------------------------------------------
  * Function Name  : InitKL_TestProgress
@@ -6361,8 +6386,9 @@ static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest )
 	pKlTest->maxForceSumExtend = 0;
 	pKlTest->maxForceSumElongation = 0;
 	
-	pKlTest->originalDisplacemen = get_smpl_value(SMPL_WY_NUM);
-	pKlTest->originalDeform = get_smpl_value(SMPL_BX_NUM);
+	pKlTest->recordDisplacemen = get_smpl_value(SMPL_WY_NUM);
+	pKlTest->recordDeform = get_smpl_value(SMPL_BX_NUM);
+	pKlTest->nowDeform = 0;
 	
 	pKlTest->upYieldForceIndex = 0;
 	pKlTest->maxForceIndex = 0;
@@ -6386,7 +6412,10 @@ static void MainPageCtrlCoreCycle( void )
 	/* 采样点循环体 */
 	MainPageSamplePointCycle();
 	
-	/* 试验执行 */
+	/* 计算采样值 */
+	CountSampleValueCycle();
+	
+	/* 试验执行体 */
 	MainPageTestExecuteCoreCycle();
 	
 	/* 画坐标系 */
