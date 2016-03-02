@@ -30,15 +30,17 @@
 /* 可读写输出位 */
 typedef enum
 {
-	BIT_PUMP = 0XF,		/* 启停油泵位 */
+	BIT_SCREW 	= 0X8,		/* 丝杆升降位 */
+	BIT_PUMP 	= 0XF,		/* 启停油泵位 */
 }SW_RW_OUTPUT_TypeDef;
 
 /* 输入位 */
 typedef enum
 {
-	BIT_UP_LIMIT 	= 0X00,
-	BIT_DOWN_LIMIT 	= 0X01,
-	BIT_OIL_LIMIT	= 0X02,
+	BIT_OIL_LIMIT			= 0X01,
+	BIT_EMERGENCY_STOP		= 0X02,
+	BIT_UP_LIMIT 			= 0X04,
+	BIT_DOWN_LIMIT 			= 0X08,	
 }ST_INPUT_TypeDef;
 
 typedef struct
@@ -152,12 +154,26 @@ typedef enum
 }STATUS_COORDINATE_DRAW_LINE_TypeDef;
 
 /* 坐标系 */
-enum
+typedef enum
 {
-	COORDINATE_USE_TIME = 0,
+	COORDINATE_TYPE_ERR = 0,
+	COORDINATE_USE_TIME,
 	COORDINATE_USE_DEFORM,
 	COORDINATE_USE_FORCE,
-};
+}COORDINATE_TYPE_TypeDef;
+
+typedef enum
+{
+	COORDINATE_UNIT_ERR = 0,
+	COORDINATE_UNIT_S,
+	COORDINATE_UNIT_MS,
+	COORDINATE_UNIT_N,
+	COORDINATE_UNIT_KN,
+	COORDINATE_UNIT_MM,
+	COORDINATE_UNIT_CM,
+	COORDINATE_UNIT_DM,
+	COORDINATE_UNIT_M,
+}COORDINATE_UNIT_TypeDef;
 
 typedef struct
 {
@@ -184,6 +200,8 @@ typedef struct
 	float yMaxValue;
 	uint8_t xType;				//X轴类型
 	uint8_t yType;				//Y轴类型
+	uint8_t xUint;				//X轴单位（COORDINATE_UNIT_TypeDef）
+	uint8_t yUint;				//Y轴单位
 	const char *pXUnit;			//X轴单位
 	const char *pYUnit;			//Y轴单位 
 }COORDINATE_TypeDef;
@@ -395,7 +413,6 @@ void DrawProcessBody( PROGRESS_BAR_TypeDef *pProgress );
 void RelinkPRM( uint16_t backColor );
 float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, float CurForce );
 void CheckOfflineCycle( void );
-
 void CoordinateDrawLineBodyCycle( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 COORDINATE_DRAW_LINE_TypeDef *GetDrawLineAddr( void );
 uint32_t GetDrawLineNowTimePoint( void );
@@ -403,12 +420,14 @@ float GetDrawLineSomeTimePointForce( uint32_t nowTimePoint );
 BoolStatus IsCoordinateRecordPointOverflow( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 void ReloadCoordinate( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 void CoordinateRedrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
-
 void GUI_DrawTestSaveProgressBar( uint16_t backColor );
 ErrorStatus SendChannelTareCmd( SMPL_NAME_TypeDef channel );
 void ExecuteTask( void );
 void SendOpenPumpCmd( void );
 void SendClosePumpCmd( void );
+void SendScrewUpCmd( void );
+void SendScrewDownCmd( void );
+void SendScrewStopCmd( void );
 void PumpStatusLampTask( void );
 void InitCommucationLamp( void );
 void CommucationLampTask( void );

@@ -886,6 +886,18 @@ uint32_t GetKeyVal( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : GetKeyStatus
+ * Description    : 获取按键状态
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+STATUS_KEY_TypeDef GetKeyStatus( void )
+{
+	return g_key.status;
+}
+
+/*------------------------------------------------------------
  * Function Name  : GetPutinStatus
  * Description    : 获取输入状态
  * Input          : None

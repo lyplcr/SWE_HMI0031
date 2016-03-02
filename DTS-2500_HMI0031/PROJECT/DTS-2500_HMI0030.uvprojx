@@ -1140,6 +1140,11 @@
               <FileType>5</FileType>
               <FilePath>..\Doc\BUG日志.txt</FilePath>
             </File>
+            <File>
+              <FileName>程序标准格式.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Doc\程序标准格式.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

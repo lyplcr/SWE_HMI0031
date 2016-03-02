@@ -2369,9 +2369,10 @@ static void GUI_MainPageLoadPageInfomation( void )
  *------------------------------------------------------------*/
 static void LoadDefaultCoordinate( void )
 {
-	float maxTime = 0;
+	float maxTime = 20.0f;
 	float maxForce = 0;
-	float maxDeform = 0;
+	float maxDeform = 10.0f;
+	float err = 0.0f;
 	void *xMaxValuePtr = NULL;
 	void *yMaxValuePtr = NULL;
 	uint8_t xType = 0;
@@ -2389,23 +2390,40 @@ static void LoadDefaultCoordinate( void )
 		case COMPRESSION_TEST:
 		case BENDING_TEST:
 			xType = COORDINATE_USE_TIME;
-			yType = COORDINATE_USE_FORCE;	
-			maxTime = 20.0f;
-			xMaxValuePtr = &maxTime;		
-			yMaxValuePtr = &maxForce;
+			yType = COORDINATE_USE_FORCE;				
 			break;
 		case STRETCH_TEST:	
 			xType = COORDINATE_USE_DEFORM;
-			yType = COORDINATE_USE_FORCE;
-			maxDeform = 10.0f;
-			xMaxValuePtr = &maxDeform;		
-			yMaxValuePtr = &maxForce;
+			yType = COORDINATE_USE_FORCE;							
 			break;
 		case INVALID_TEST:
-			xType = COORDINATE_USE_TIME;
-			yType = COORDINATE_USE_TIME;		
+			xType = COORDINATE_TYPE_ERR;
+			yType = COORDINATE_TYPE_ERR;		
 			break;
 		default:
+			break;
+	}
+	
+	switch ( xType )
+	{
+		case COORDINATE_USE_TIME:
+			xMaxValuePtr = &maxTime;	
+			break;
+		case COORDINATE_USE_DEFORM:
+			xMaxValuePtr = &maxDeform;
+			break; 
+		default:
+			xMaxValuePtr = &err;
+			break;
+	}
+	
+	switch ( yType )
+	{
+		case COORDINATE_USE_FORCE:
+			yMaxValuePtr = &maxForce;
+			break; 
+		default:
+			yMaxValuePtr = &err;
 			break;
 	}
 	
@@ -2914,17 +2932,18 @@ static void GUI_MainPageDrawCoordinate( uint8_t xType, uint8_t yType, void *xMax
 	switch ( pCoordinate->xType )
 	{
 		case COORDINATE_USE_TIME:
+			pCoordinate->xUint = COORDINATE_UNIT_S;
 			pCoordinate->pXUnit = " (S)";
 			pCoordinate->xMaxValue = *(float *)xMaxValuePtr;
 			break;
 		case COORDINATE_USE_DEFORM:
+			pCoordinate->xUint = COORDINATE_UNIT_MM;
 			pCoordinate->pXUnit = "(mm)";
 			pCoordinate->xMaxValue = *(float *)xMaxValuePtr;
 			break;
-		case INVALID_TEST:
-			pCoordinate->pXUnit = "ERROR";
-			break;
 		default:
+			pCoordinate->xUint = COORDINATE_UNIT_ERR;
+			pCoordinate->pXUnit = "(ERR)";
 			break;
 	}
 	
@@ -2934,17 +2953,18 @@ static void GUI_MainPageDrawCoordinate( uint8_t xType, uint8_t yType, void *xMax
 			pCoordinate->yMaxValue = *(float *)yMaxValuePtr;
 			if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
 			{
+				pCoordinate->yUint = COORDINATE_UNIT_KN;
 				pCoordinate->pYUnit = "(kN)";
 			}
 			else
 			{
+				pCoordinate->yUint = COORDINATE_UNIT_N;
 				pCoordinate->pYUnit = "(N)";
 			}
 			break;
-		case INVALID_TEST:
-			pCoordinate->pYUnit = "ERROR";
-			break;
 		default:
+			pCoordinate->yUint = COORDINATE_UNIT_ERR;
+			pCoordinate->pYUnit = "(ERR)";
 			break;
 	}
 	
@@ -5520,29 +5540,23 @@ void PrintfUpYieldToMaxForceData( void )
  *------------------------------------------------------------*/
 static void MainPageSaveCoordinateCurveToSD( void )
 {	
+	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 	COORDINATE_POINT_TypeDef *pCoordinatePoint = GetCoordinatePointAddr();
 	
-	pCoordinatePoint->xType = 0;
-	pCoordinatePoint->yType = 0;
-	pCoordinatePoint->xUint = 0;
-	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
-	{
-		pCoordinatePoint->yUint = 0;
-	}
-	else
-	{
-		pCoordinatePoint->yUint = 1;
-	}
+	pCoordinatePoint->xType = pCoordinate->xType;
+	pCoordinatePoint->yType = pCoordinate->yType;
+	pCoordinatePoint->xUint = pCoordinate->xUint;
+	pCoordinatePoint->yUint = pCoordinate->yUint;
 	pCoordinatePoint->xMaxValue = pDrawLine->xMaxValue;
 	pCoordinatePoint->yMaxValue = pDrawLine->yMaxValue;
-	pCoordinatePoint->systemMaxForce = smpl_ctrl_full_p_get(g_mainPage.fhChannelUnit);
 	pCoordinatePoint->recordPointFreq = RECORD_COORDINATE_FREQ;
 	pCoordinatePoint->nowUsePointNum = pDrawLine->nowTimePoint;
 	pCoordinatePoint->maxPointNum = DECORD_COORDINATE_FORCE_NUM;
 	pCoordinatePoint->xScalingCoefficient = pDrawLine->xScalingCoefficient;
 	pCoordinatePoint->yScalingCoefficient = pDrawLine->yScalingCoefficient;
 	memcpy(pCoordinatePoint->force,pDrawLine->force,sizeof(float) * DECORD_COORDINATE_FORCE_NUM);
+	memcpy(pCoordinatePoint->deform,pDrawLine->deform,sizeof(float) * DECORD_COORDINATE_FORCE_NUM);
 	
 	{
 		FRESULT result = SaveCoordinatePoint(MMC,g_mainPage.testType,g_testBody.curCompletePieceSerial,\
@@ -5933,58 +5947,89 @@ static void InitMainPageCoordinateDrawLine( void )
 	pDrawLine->lenthY = pCoordinate->yLenth;
 	pDrawLine->nowTimePoint = 0;
 	pDrawLine->lineColor = CRIMSON;
+	
 	switch ( pCoordinate->xType )
 	{
 		case COORDINATE_USE_TIME:
 			{
 				uint8_t BASE_TIME = 20;	//µ¥Î»£ºS
 				
-				pDrawLine->xScalingCoefficient = 0.001f;
-				pDrawLine->xMaxValue = BASE_TIME * 1000;
-				pDrawLine->xIncrease = BASE_TIME * 1000;
+				switch (pCoordinate->xUint)
+				{
+					case COORDINATE_UNIT_S:
+						pDrawLine->xScalingCoefficient = 0.001f;
+						pDrawLine->xMaxValue = pCoordinate->xMaxValue * 1000;
+						pDrawLine->xIncrease = BASE_TIME * 1000;
+						break;
+					case COORDINATE_UNIT_MS:
+						pDrawLine->xScalingCoefficient = 1.0f;
+						pDrawLine->xMaxValue = pCoordinate->xMaxValue;
+						pDrawLine->xIncrease = BASE_TIME;
+						break;
+					default:
+						pDrawLine->xScalingCoefficient = 0.0f;					
+						pDrawLine->xMaxValue = 0.0f;
+						pDrawLine->xIncrease = 0.0f;
+						break;
+				}			
 			}
 			break;
 		case COORDINATE_USE_DEFORM:
 			{
 				float BASE_DEFORM = 10.0f;
 				
-				pDrawLine->xScalingCoefficient = 1.0f;
-				pDrawLine->xMaxValue = BASE_DEFORM;
-				pDrawLine->xIncrease = BASE_DEFORM;
+				switch (pCoordinate->xUint)
+				{
+					case COORDINATE_UNIT_MM:						
+						pDrawLine->xScalingCoefficient = 1.0f;
+						pDrawLine->xMaxValue = pCoordinate->xMaxValue;
+						pDrawLine->xIncrease = BASE_DEFORM;
+						break;
+					default:
+						pDrawLine->xScalingCoefficient = 0.0f;
+						pDrawLine->xMaxValue = 0.0f;
+						pDrawLine->xIncrease = 0.0f;
+						break;
+				}
 			}
 			break;
-		case INVALID_TEST:
+		default:
 			pDrawLine->xScalingCoefficient = 0;
 			pDrawLine->xMaxValue = 0;
 			pDrawLine->xIncrease = 0;
 			break;
-		default:
-			break;
 	}
+	
 	switch ( pCoordinate->yType )
 	{
 		case COORDINATE_USE_FORCE:
 			{
 				float maxForce = smpl_ctrl_full_p_get(SMPL_FH_NUM);
 				
-				if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+				switch (pCoordinate->yUint)
 				{
-					pDrawLine->yScalingCoefficient = 0.001;
+					case COORDINATE_UNIT_KN:						
+						pDrawLine->yScalingCoefficient = 0.001f;
+						pDrawLine->yMaxValue = pCoordinate->yMaxValue * 1000;
+						pDrawLine->yIncrease = (maxForce / 10);
+						break;
+					case COORDINATE_UNIT_N:						
+						pDrawLine->yScalingCoefficient = 1.0f;
+						pDrawLine->yMaxValue = pCoordinate->yMaxValue;
+						pDrawLine->yIncrease = (maxForce / 10);
+						break;
+					default:
+						pDrawLine->xScalingCoefficient = 0.0f;
+						pDrawLine->xMaxValue = 0.0f;
+						pDrawLine->xIncrease = 0.0f;
+						break;
 				}
-				else
-				{
-					pDrawLine->yScalingCoefficient = 1;
-				}
-				pDrawLine->yMaxValue = (maxForce/2);
-				pDrawLine->yIncrease = (maxForce/10);
 			}
 			break;
-		case INVALID_TEST:
+		default:
 			pDrawLine->yScalingCoefficient = 0;
 			pDrawLine->yMaxValue = 0;
 			pDrawLine->yIncrease = 0;
-			break;
-		default:
 			break;
 	}
 	
@@ -6096,8 +6141,6 @@ static void MainPageCoordinateDrawLineRedrawJudgeCondition( COORDINATE_DRAW_LINE
 				}
 			}
 			break;
-		case INVALID_TEST:			
-			break;
 		default:
 			break;
 	}
@@ -6115,8 +6158,6 @@ static void MainPageCoordinateDrawLineRedrawJudgeCondition( COORDINATE_DRAW_LINE
 					pDrawLine->enableRedraw = ENABLE;
 				}
 			}
-			break;
-		case INVALID_TEST:			
 			break;
 		default:
 			break;

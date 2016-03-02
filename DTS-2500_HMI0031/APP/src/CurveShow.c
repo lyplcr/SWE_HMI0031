@@ -200,8 +200,7 @@ static void GUI_CurveShowDrawCoordinate( void )
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
 	pCoordinate->xType = pCurve->xType;
-	pCoordinate->yType = pCurve->yType;
-	
+	pCoordinate->yType = pCurve->yType;	
 	pCoordinate->x = 120;
 	pCoordinate->y = 70;
 	pCoordinate->rowSpace = 50;
@@ -227,21 +226,63 @@ static void GUI_CurveShowDrawCoordinate( void )
 	
 	switch (pCurve->xUint)
 	{
-		case 0:
-			pCoordinate->pXUnit = "(S)";
+		case COORDINATE_UNIT_S:
+			pCoordinate->pXUnit = " (S)";
 			break;
-		case 1:
+		case COORDINATE_UNIT_MS:
 			pCoordinate->pXUnit = "(MS)";
+			break;
+		case COORDINATE_UNIT_N:
+			pCoordinate->pXUnit = " (N)";
+			break;
+		case COORDINATE_UNIT_KN:
+			pCoordinate->pXUnit = "(kN)";
+			break;
+		case COORDINATE_UNIT_MM:
+			pCoordinate->pXUnit = "(mm)";
+			break;
+		case COORDINATE_UNIT_CM:
+			pCoordinate->pXUnit = "(cm)";
+			break;
+		case COORDINATE_UNIT_DM:
+			pCoordinate->pXUnit = "(dm)";
+			break;
+		case COORDINATE_UNIT_M:
+			pCoordinate->pXUnit = " (m)";
+			break;
+		default:
+			pCoordinate->pXUnit = "(ERR)";
 			break;
 	}
 	
 	switch (pCurve->yUint)
 	{
-		case 0:
+		case COORDINATE_UNIT_S:
+			pCoordinate->pYUnit = " (S)";
+			break;
+		case COORDINATE_UNIT_MS:
+			pCoordinate->pYUnit = "(MS)";
+			break;
+		case COORDINATE_UNIT_N:
+			pCoordinate->pYUnit = " (N)";
+			break;
+		case COORDINATE_UNIT_KN:
 			pCoordinate->pYUnit = "(kN)";
 			break;
-		case 1:
-			pCoordinate->pYUnit = "(N)";
+		case COORDINATE_UNIT_MM:
+			pCoordinate->pYUnit = "(mm)";
+			break;
+		case COORDINATE_UNIT_CM:
+			pCoordinate->pYUnit = "(cm)";
+			break;
+		case COORDINATE_UNIT_DM:
+			pCoordinate->pYUnit = "(dm)";
+			break;
+		case COORDINATE_UNIT_M:
+			pCoordinate->pYUnit = " (m)";
+			break;
+		default:
+			pCoordinate->pYUnit = "(ERR)";
 			break;
 	}
 	
@@ -260,6 +301,8 @@ static void InitCurveShowCoordinateDrawLine( void )
 	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 	COORDINATE_TypeDef *pCoordinate = GetCoordinateDataAddr();
 	
+	pDrawLine->xType = pCoordinate->xType;
+	pDrawLine->yType = pCoordinate->yType;
 	pDrawLine->baseIndex = 0;
 	pDrawLine->status = STATUS_DRAW_LINE_IDLE;
 	pDrawLine->start = RESET;
@@ -321,6 +364,7 @@ static void InitCurveShowCoordinateDrawLine( void )
 		DrawCircleMark(&circleMark);
 	}
 #endif
+	
 /*------------------------------------------------------------
  * Function Name  : CurveShowShowCurPageInfomation
  * Description    : 显示当前页信息

@@ -130,6 +130,7 @@ PUTIN_TypeDef *GetPutinAddr( void );
 uint32_t GetKeyVal( void );
 STATUS_PUTIN_TypeDef GetPutinStatus( void );
 void InitKeyCheck( void );
+STATUS_KEY_TypeDef GetKeyStatus( void );
 
 #endif
 

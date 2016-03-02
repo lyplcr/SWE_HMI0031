@@ -202,6 +202,9 @@ const char * const pPumpWarning[] =
 {
 	"ÓÍ±ÃÆô¶¯Ê§°Ü£¡",		//0
 	"ÓÍ±ÃÍ£Ö¹Ê§°Ü£¡",		//1
+	"Ë¿¸ËÉÏÉýÊ§°Ü£¡",		//2
+	"Ë¿¸ËÏÂ½µÊ§°Ü£¡",		//3
+	"Ë¿¸ËÍ£Ö¹Ê§°Ü£¡",		//4
 };
 
 const char * const pGlobalWarning[] = 
@@ -2025,8 +2028,6 @@ static void CoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 									pDrawLine->xMaxValue * pDrawLine->lenthX;
 			}	
 			break;
-		case INVALID_TEST:			
-			break;
 		default:
 			break;
 	}
@@ -2041,8 +2042,6 @@ static void CoordinateDrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 				lastYCoordinate = pDrawLine->originY - lastY / pDrawLine->yMaxValue * pDrawLine->lenthY;
 				nowYCoordinate = pDrawLine->originY - nowY / pDrawLine->yMaxValue * pDrawLine->lenthY;
 			}
-			break;
-		case INVALID_TEST:			
 			break;
 		default:
 			break;
@@ -2121,8 +2120,6 @@ void CoordinateRedrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 										pDrawLine->xMaxValue * pDrawLine->lenthX;
 				}	
 				break;
-			case INVALID_TEST:			
-				break;
 			default:
 				break;
 		}
@@ -2137,8 +2134,6 @@ void CoordinateRedrawLine( COORDINATE_DRAW_LINE_TypeDef *pDrawLine )
 					lastYCoordinate = pDrawLine->originY - lastY_f / pDrawLine->yMaxValue * pDrawLine->lenthY;
 					nowYCoordinate = pDrawLine->originY - nowY_f / pDrawLine->yMaxValue * pDrawLine->lenthY;
 				}
-				break;
-			case INVALID_TEST:			
 				break;
 			default:
 				break;
@@ -2242,6 +2237,88 @@ ErrorStatus SendChannelTareCmd( SMPL_NAME_TypeDef channel )
 	}
 }
 
+typedef enum
+{
+	STATUS_SCREW_IDLE = 0,
+	STATUS_SCREW_UP,
+	STATUS_SCREW_DOWN,
+	STATUS_SCREW_END,
+}SCREW_UP_DOWN_STATUS_TypeDef;
+
+/*------------------------------------------------------------
+ * Function Name  : ScrewUpDownTask
+ * Description    : Ë¿¸ËÉý½µÈÎÎñ
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void ScrewUpDownTask( void )
+{
+	static SCREW_UP_DOWN_STATUS_TypeDef s_screwStatus = STATUS_SCREW_IDLE;
+	static FlagStatus pushUP = RESET;
+	static FlagStatus pushDOWN = RESET;
+	
+	if (IsPressKey() == YES)
+	{					
+		switch ( GetKeyVal() )
+		{
+			case KEY_UP:
+				pushUP = SET;
+				break;
+			case KEY_DOWN:
+				pushDOWN = SET;
+				break;
+			default:				
+				break;
+		}
+	}
+	
+	if (GetKeyStatus() == STATUS_KEY_NO_PRESS)
+	{
+		pushUP = RESET;
+		pushDOWN = RESET;
+	}
+	
+	switch ( s_screwStatus )
+	{
+		case STATUS_SCREW_IDLE:
+			ECHO(DEBUG_SCREW_UP_DOWN,"¿ÕÏÐ\r\n");
+			if (pushUP == SET)
+			{
+				SendScrewUpCmd();
+				s_screwStatus = STATUS_SCREW_UP;
+			}
+			else if (pushDOWN == SET)
+			{
+				SendScrewDownCmd();
+				s_screwStatus = STATUS_SCREW_DOWN;
+			}
+			break;
+		case STATUS_SCREW_UP:
+			ECHO(DEBUG_SCREW_UP_DOWN,"ÉÏÉý\r\n");
+			if (pushUP == RESET)
+			{
+				s_screwStatus = STATUS_SCREW_END;
+			}
+			break;
+		case STATUS_SCREW_DOWN:
+			ECHO(DEBUG_SCREW_UP_DOWN,"ÏÂ½µ\r\n");			
+			if (pushDOWN == RESET)
+			{
+				s_screwStatus = STATUS_SCREW_END;
+			}
+			break;
+		case STATUS_SCREW_END:
+			ECHO(DEBUG_SCREW_UP_DOWN,"Í£Ö¹\r\n");
+			SendScrewStopCmd();
+			s_screwStatus = STATUS_SCREW_IDLE;
+			break;
+		default:
+			s_screwStatus = STATUS_SCREW_IDLE;
+			break;
+	}
+}
+
 /*------------------------------------------------------------
  * Function Name  : ExecuteTask
  * Description    : Ö´ÐÐ»ú¹¹ÈÎÎñ
@@ -2251,7 +2328,7 @@ ErrorStatus SendChannelTareCmd( SMPL_NAME_TypeDef channel )
  *------------------------------------------------------------*/
 void ExecuteTask( void )
 {
-	uint16_t rwStatus = 0;
+	uint16_t rwStatus = 0; 
 	
 	if (IsPressKey() == YES)
 	{	
@@ -2271,8 +2348,12 @@ void ExecuteTask( void )
 					SendClosePumpCmd();
 				}
 				break;
+			default:
+				break;
 		}
 	}
+	
+	ScrewUpDownTask();
 }
 
 /*------------------------------------------------------------
@@ -2318,6 +2399,75 @@ void SendClosePumpCmd( void )
 	if ( ( (cmdStatus!=CMD_IDLE) || (replyStatus!=STATUS_OK) ))
 	{
 		SetPopWindowsInfomation(POP_PCM_CUE,1,&pPumpWarning[1]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SendScrewUpCmd
+ * Description    : ·¢ËÍÉÏÉýË¿¸ËÃüÁî
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SendScrewUpCmd( void )
+{
+	CMD_STATUS_TypeDef cmdStatus;
+	uint8_t replyStatus;
+	
+	cmd_switch_pkg(0,(0x01<<BIT_SCREW),0);
+	
+	cmdStatus = PCM_CmdSendCycle();
+	replyStatus = GetPrmReplyStatus();
+	
+	if ( ( (cmdStatus!=CMD_IDLE) || (replyStatus!=STATUS_OK) ))
+	{
+		SetPopWindowsInfomation(POP_PCM_CUE,1,&pPumpWarning[2]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SendScrewDownCmd
+ * Description    : ·¢ËÍÏÂ½µË¿¸ËÃüÁî
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SendScrewDownCmd( void )
+{
+	CMD_STATUS_TypeDef cmdStatus;
+	uint8_t replyStatus;
+	
+	cmd_switch_pkg(0,(0x02<<BIT_SCREW),0);
+	
+	cmdStatus = PCM_CmdSendCycle();
+	replyStatus = GetPrmReplyStatus();
+	
+	if ( ( (cmdStatus!=CMD_IDLE) || (replyStatus!=STATUS_OK) ))
+	{
+		SetPopWindowsInfomation(POP_PCM_CUE,1,&pPumpWarning[3]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : SendScrewStopCmd
+ * Description    : ·¢ËÍÍ£Ö¹Ë¿¸ËÃüÁî
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SendScrewStopCmd( void )
+{
+	CMD_STATUS_TypeDef cmdStatus;
+	uint8_t replyStatus;
+	
+	cmd_switch_pkg((0x03<<BIT_SCREW),0,0);
+	
+	cmdStatus = PCM_CmdSendCycle();
+	replyStatus = GetPrmReplyStatus();
+	
+	if ( ( (cmdStatus!=CMD_IDLE) || (replyStatus!=STATUS_OK) ))
+	{
+		SetPopWindowsInfomation(POP_PCM_CUE,1,&pPumpWarning[4]);
 	}
 }
 

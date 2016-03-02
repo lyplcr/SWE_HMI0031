@@ -105,13 +105,12 @@ typedef struct
 /* X、Y类型：0-时间，1-变形，2-力值 */
 typedef struct
 {
-	uint8_t xType;						//X轴类型
+	uint8_t xType;						//X轴类型（COORDINATE_TYPE_TypeDef）
 	uint8_t yType;						//Y轴类型
-	uint8_t xUint;						//X轴单位（0：s，1：ms，2，mm）
-	uint8_t yUint;						//Y轴单位（0：kN，1：N）	
+	uint8_t xUint;						//X轴单位（COORDINATE_UNIT_TypeDef）
+	uint8_t yUint;						//Y轴单位
 	float xMaxValue;					//X轴最大值
 	float yMaxValue;					//Y轴最大值
-	float systemMaxForce;				//系统最大力值
 	uint16_t recordPointFreq;			//记录每个点频率
 	uint32_t nowUsePointNum;			//已使用的点数
 	uint32_t maxPointNum;				//支持的最大点数

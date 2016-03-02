@@ -869,38 +869,32 @@ static void GetInputDataFromPrm( void )
 {
 	SAMPLE_C_TypeDef *pSample = GetSampleAddr();
 	uint8_t stInput = pSample->input;
-	uint8_t maskBit = 0x01;
 	
-	while ( maskBit )
+	if (stInput & BIT_UP_LIMIT)
 	{
-		if (stInput & (1 << BIT_UP_LIMIT))
-		{
-			SetHardTestChnLimit(OBJECT_UP_LIMIT,ENABLE);
-		}
-		else
-		{
-			SetHardTestChnLimit(OBJECT_UP_LIMIT,DISABLE);
-		}
-		
-		if (stInput & (1 << BIT_DOWN_LIMIT))
-		{
-			SetHardTestChnLimit(OBJECT_DOWN_LIMIT,ENABLE);
-		}
-		else
-		{
-			SetHardTestChnLimit(OBJECT_DOWN_LIMIT,DISABLE);
-		}
-		
-		if (stInput & (1 << BIT_OIL_LIMIT))
-		{
-			SetHardTestChnLimit(OBJECT_OIL_LIMIT,ENABLE);
-		}
-		else
-		{
-			SetHardTestChnLimit(OBJECT_OIL_LIMIT,DISABLE);
-		}
-		
-		maskBit <<= 1;
+		SetHardTestChnLimit(OBJECT_UP_LIMIT,ENABLE);
+	}
+	else
+	{
+		SetHardTestChnLimit(OBJECT_UP_LIMIT,DISABLE);
+	}
+	
+	if (stInput & BIT_DOWN_LIMIT)
+	{
+		SetHardTestChnLimit(OBJECT_DOWN_LIMIT,ENABLE);
+	}
+	else
+	{
+		SetHardTestChnLimit(OBJECT_DOWN_LIMIT,DISABLE);
+	}
+	
+	if (stInput & BIT_OIL_LIMIT)
+	{
+		SetHardTestChnLimit(OBJECT_OIL_LIMIT,ENABLE);
+	}
+	else
+	{
+		SetHardTestChnLimit(OBJECT_OIL_LIMIT,DISABLE);
 	}
 }
 
