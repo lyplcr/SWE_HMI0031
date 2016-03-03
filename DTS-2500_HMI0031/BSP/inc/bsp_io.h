@@ -1,6 +1,6 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
+#ifndef __BSP_IO_H
+#define __BSP_IO_H
 
 /* Includes ------------------------------------------------------------------*/
 
@@ -33,10 +33,10 @@
 #define		KEY_RIGHT				0x00200000		
 #define		KEY_DISPLACE_DEFORMATE	0x00400000
 #define		KEY_FORCE_TARE			0x00800000	
-#define		KEY_BACKUP1				0x01000000
+#define		KEY_SCREW_UP			0x01000000
 #define		KEY_OIL_RUN				0x02000000
 #define		KEY_OIL_STOP			0x04000000
-#define		KEY_BACKUP2				0x08000000
+#define		KEY_SCREW_DOWN			0x08000000
 #define		KEY_F4					0x10000000
 #define		KEY_F3					0x20000000
 #define		KEY_F2					0x40000000	

@@ -157,6 +157,7 @@ const char * const pTwoLevelMenu[] =
 	"写入标定表",		//85
 	" 查看曲线 ",		//86
 	"  导  入  ",		//87
+	"  码取反  ",		//88
 };
 
 const char * const pUnitType[] = 
@@ -2262,10 +2263,10 @@ static void ScrewUpDownTask( void )
 	{					
 		switch ( GetKeyVal() )
 		{
-			case KEY_UP:
+			case KEY_SCREW_UP:
 				pushUP = SET;
 				break;
-			case KEY_DOWN:
+			case KEY_SCREW_DOWN:
 				pushDOWN = SET;
 				break;
 			default:				
@@ -2352,7 +2353,7 @@ void ExecuteTask( void )
 				break;
 		}
 	}
-	
+
 	ScrewUpDownTask();
 }
 

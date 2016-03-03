@@ -45,7 +45,7 @@ typedef struct
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static __INLINE int32_t compFloatData( const void* const pSource, const void* const pTarget ) 
+__STATIC_INLINE int32_t compFloatData( const void* const pSource, const void* const pTarget ) 
 {
 	const float source = *(const float*)pSource;
 	const float target = *(const float*)pTarget;
@@ -71,7 +71,7 @@ static __INLINE int32_t compFloatData( const void* const pSource, const void* co
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static __INLINE int32_t compUnsignedData( const void* const pSource, const void* const pTarget ) 
+__STATIC_INLINE int32_t compUnsignedData( const void* const pSource, const void* const pTarget ) 
 {
 	const uint32_t source = *(const uint32_t*)pSource;
 	const uint32_t target = *(const uint32_t*)pTarget;

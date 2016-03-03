@@ -34,7 +34,7 @@ typedef enum
 {
 	OBJECT_SERIAL = 0,
 	OBJECT_CHECK_POINT,
-	ONJECT_FORCE_CODE,
+	OBJECT_FORCE_CODE,
 }OBJECT_CALIBRATION_TABLE_TypeDef;
 
 typedef enum
@@ -78,7 +78,7 @@ typedef struct
 	BX_UINT_TypeDef	bxChannelUnit;					//变形通道单位
 	SMPL_NAME_TypeDef curChannel;					//当前通道
 	CALIBRATION_TABLE_AREA_TypeDef area;
-	FunctionalState exchangeNewSegment;				//切换新的分段点
+	FunctionalState reloadPage;						//重新加载页
 }CALIBRATION_TABLE_TypeDef;
 
 /* Private constants ---------------------------------------------------------*/
@@ -108,6 +108,7 @@ const char * const ControlParameterWarn[] =
 	"检测点变形值错误，",				//7
 	"不是递增趋势！",					//8
 	"变形码错误(不是递增趋势)！",		//9
+	"码取反操作失败！",					//10
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -283,7 +284,7 @@ static void CalibrationTableConfig( void )
 	/* 索引 */
 	g_calibrationTable.indexArray[INDEX_SERIAL] 		= OBJECT_SERIAL;
 	g_calibrationTable.indexArray[INDEX_CHECK_POINT] 	= OBJECT_CHECK_POINT;
-	g_calibrationTable.indexArray[INDEX_FORCE_CODE] 	= ONJECT_FORCE_CODE;
+	g_calibrationTable.indexArray[INDEX_FORCE_CODE] 	= OBJECT_FORCE_CODE;
 	
 	/* 字段名 */
 	g_calibrationTable.pParameterNameArray[INDEX_SERIAL] 		= pCalibrationTableFieldName[0];
@@ -409,14 +410,13 @@ static void CalibrationTableReadParameter( void )
 		
 	saveCalibrationSegments = calibrationSegments;
 	
-	if (g_calibrationTable.exchangeNewSegment == DISABLE)	
+	if (g_calibrationTable.reloadPage == DISABLE)	
 	{	
 		numtochar(MAX_DATA_BIT,calibrationSegments,g_calibrationTable.tableSegments);
 	}
-	else	/* 切换分段数 */
+	else
 	{
-		calibrationSegments = GetCalibrationTableSegments();
-		g_calibrationTable.exchangeNewSegment = DISABLE;
+		calibrationSegments = GetCalibrationTableSegments();		
 	}
 	
 	for (segmentIndex=0; segmentIndex<calibrationSegments; ++segmentIndex)
@@ -425,6 +425,11 @@ static void CalibrationTableReadParameter( void )
 		fieldIndex = GetCalibrationTableFieldIndex(OBJECT_SERIAL);
 		numtochar(MAX_DATA_BIT,serial,g_calibrationTable.fieldData[segmentIndex].parameterData[fieldIndex]);
 		serial++;
+		
+		if (g_calibrationTable.reloadPage == ENABLE)
+		{
+			continue;
+		}
 		
 		if (segmentIndex < saveCalibrationSegments)
 		{
@@ -483,11 +488,13 @@ static void CalibrationTableReadParameter( void )
 			numtochar(MAX_DATA_BIT,(int32_t)tempf,g_calibrationTable.fieldData[segmentIndex].parameterData[fieldIndex]);
 			
 			/* 读码值 */
-			fieldIndex = GetCalibrationTableFieldIndex(ONJECT_FORCE_CODE);
+			fieldIndex = GetCalibrationTableFieldIndex(OBJECT_FORCE_CODE);
 			code = smpl_tab_code_get(g_calibrationTable.curChannel,segmentIndex+1);
 			numtochar(MAX_DATA_BIT,code,g_calibrationTable.fieldData[segmentIndex].parameterData[fieldIndex]);
 		}
 	}
+	
+	g_calibrationTable.reloadPage = DISABLE;
 }
 
 /*------------------------------------------------------------
@@ -572,7 +579,7 @@ static void CalibrationTableWriteParameter( void )
 		smpl_tab_value_set(g_calibrationTable.curChannel,segmentIndex+1,force);
 		
 		/* 写码值 */
-		fieldIndex = GetCalibrationTableFieldIndex(ONJECT_FORCE_CODE);
+		fieldIndex = GetCalibrationTableFieldIndex(OBJECT_FORCE_CODE);
 		code = (int32_t)ustrtoul(g_calibrationTable.fieldData[segmentIndex].parameterData[fieldIndex],0,10);
 		smpl_tab_code_set(g_calibrationTable.curChannel,segmentIndex+1,code);
 	}
@@ -612,7 +619,7 @@ static void ConfigCalibrationTableOnwFieldRectangleFrameCoordinate( uint8_t rowI
 		case OBJECT_CHECK_POINT:
 			g_calibrationTable.oneLevelMenu[rowIndex][fieldIndex].lenth = 126;
 			break;
-		case ONJECT_FORCE_CODE:
+		case OBJECT_FORCE_CODE:
 			g_calibrationTable.oneLevelMenu[rowIndex][fieldIndex].lenth = 102;
 			break;
 	}
@@ -1231,7 +1238,7 @@ static void CalibrationTableShortcutCycleTask( void )
 		pShortCut->pContent[0] = pTwoLevelMenu[4];
 		pShortCut->pContent[1] = pTwoLevelMenu[19];
 		pShortCut->pContent[2] = pTwoLevelMenu[37];
-		pShortCut->pContent[3] = pTwoLevelMenu[58];
+		pShortCut->pContent[3] = pTwoLevelMenu[88];
 		
 		ShortcutMenuTask(pShortCut);
 	}
@@ -1324,6 +1331,43 @@ static void CalibrationTablePagePrint( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : CalibrationTableCodeReverse
+ * Description    : 码取反处理
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static ErrorStatus CalibrationTableCodeReverse( uint8_t index )
+{
+	uint8_t segment = GetCalibrationTableSegments();
+	
+	if ((segment<1) || (segment>MAX_CALIBRATION_SEGS))
+	{
+		return ERROR;
+	}
+	
+	{
+		uint8_t i;
+		uint8_t index = GetCalibrationTableFieldIndex(OBJECT_FORCE_CODE);
+		int32_t code = 0;
+		
+		if (index == 0xff)
+		{
+			return ERROR;
+		}
+		
+		for (i=0; i<segment; ++i)
+		{
+			code = (int32_t)ustrtoul(g_calibrationTable.fieldData[i].parameterData[index],0,10);
+			code = -code;
+			numtochar(MAX_DATA_BIT,code,g_calibrationTable.fieldData[i].parameterData[index]);
+		}
+		
+		return SUCCESS;
+	}
+}
+
+/*------------------------------------------------------------
  * Function Name  : CalibrationTableKeyProcess
  * Description    : 按键处理
  * Input          : None
@@ -1362,7 +1406,7 @@ static void CalibrationTableKeyProcess( void )
 								{
 									case TYPE_INT:
 										numtochar(g_calibrationTable.putinNum,*GetPutinIntDataAddr(),g_calibrationTable.tableSegments);
-										g_calibrationTable.exchangeNewSegment = ENABLE;
+										g_calibrationTable.reloadPage = ENABLE;
 										break;
 									default:
 										break;
@@ -1437,7 +1481,14 @@ static void CalibrationTableKeyProcess( void )
 				g_calibrationTable.leavePage.flagSaveData = SET;
 				break;
 			case KEY_F4:
-				SetPage(SYSTEM_SET);
+				if ( CalibrationTableCodeReverse(index) == ERROR)
+				{
+					SetPopWindowsInfomation(POP_PCM_CUE,1,&ControlParameterWarn[10]);										
+				}
+				else
+				{
+					g_calibrationTable.reloadPage = ENABLE;
+				}
 				g_calibrationTable.leavePage.flagLeavePage = SET;
 				g_calibrationTable.leavePage.flagSaveData = RESET;
 				break;
@@ -1529,7 +1580,7 @@ static TestStatus CalibrationTableCheckDataCycle( TABLE_INDEX_TypeDef *pTableInd
 		}
 	}
 	
-	fieldIndex =  GetCalibrationTableFieldIndex(ONJECT_FORCE_CODE);
+	fieldIndex =  GetCalibrationTableFieldIndex(OBJECT_FORCE_CODE);
 	
 	for (rowIndex=0; rowIndex<calibrationSegments-1; ++rowIndex)
 	{	

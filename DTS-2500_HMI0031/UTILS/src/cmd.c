@@ -1255,7 +1255,7 @@ void sample_cycle( void )
 	g_ioStatus.st_sw_rol = g_sampleCycle.sw_rol;
 	g_ioStatus.st_sw_rw = g_sampleCycle.sw_rw;
 	
-	ECHO(DEBUG_REAL_TIME_DATA_FRAME,"输入：%x\r\n",g_ioStatus.st_input);
+//	ECHO(DEBUG_REAL_TIME_DATA_FRAME,"输入：%x\r\n",g_ioStatus.st_input);
 //	ECHO(DEBUG_REAL_TIME_DATA_FRAME,"只读：%x\r\n",g_ioStatus.st_sw_rol);
 //	ECHO(DEBUG_REAL_TIME_DATA_FRAME,"可读写：%x\r\n",g_ioStatus.st_sw_rw);
 	

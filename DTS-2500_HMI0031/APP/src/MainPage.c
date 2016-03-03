@@ -4399,6 +4399,38 @@ static void CountSampleValueCycle( void )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : MainPageClearZeroAllChannel
+ * Description    : 清除所有通道
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static ErrorStatus MainPageClearZeroAllChannel( void )
+{
+	ErrorStatus errStatus = SUCCESS;
+	
+//	if (SendChannelTareCmd(SMPL_FH_NUM) == ERROR)
+//	{
+//		SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[3]);	
+//		errStatus = ERROR;
+//	}
+
+	if (SendChannelTareCmd(SMPL_WY_NUM) == ERROR)
+	{
+		SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[14]);
+		errStatus = ERROR;
+	}
+
+	if (SendChannelTareCmd(SMPL_BX_NUM) == ERROR)
+	{
+		SetPopWindowsInfomation(POP_PCM_CUE,1,&pMainPageWarning[15]);
+		errStatus = ERROR;
+	}
+	
+	return errStatus;
+}
+
+/*------------------------------------------------------------
  * Function Name  : MainPageExecuteTestStartBody
  * Description    : 试验开始
  * Input          : None
@@ -4407,6 +4439,14 @@ static void CountSampleValueCycle( void )
  *------------------------------------------------------------*/
 static void MainPageExecuteTestStartBody( void )
 {
+	if (MainPageClearZeroAllChannel() == ERROR)
+	{
+		g_mainPage.leavePage.flagLeavePage = SET;
+		g_mainPage.leavePage.flagSaveData = RESET;
+		
+		return;
+	}
+	
 	/* 初始化采样过程 */
 	InitSampleProcess(SMPL_FH_NUM);
 	
@@ -5498,7 +5538,7 @@ void PrintfUpYieldToMaxForceData( void )
 	{
 		uint32_t i;
 			
-		ECHO(DEBUG_TEST_LOAD,"------------\r\n");
+		printf("------------\r\n");
 		
 		if (g_klTestBody.upYieldForceIndex > g_klTestBody.maxForceIndex)
 		{
@@ -5509,26 +5549,26 @@ void PrintfUpYieldToMaxForceData( void )
 		
 		for (i=g_klTestBody.upYieldForceIndex; i<=g_klTestBody.maxForceIndex; ++i)
 		{
-			ECHO(DEBUG_TEST_LOAD,"%f\r\n",GetDrawLineSomeTimePointForce(i));
+			printf("%f\r\n",GetDrawLineSomeTimePointForce(i));
 			bsp_DelayMS(100);
 		}
 	}
 	
-	{
-		float tempf = 0;
-		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
-		uint32_t diff = g_klTestBody.maxForceIndex - g_klTestBody.upYieldForceIndex + 1;
-		uint32_t i;
-		
-		ECHO(DEBUG_TEST_LOAD,"------------\r\n");
-		
-		SortBubble((void *)&(pDrawLine->force[g_klTestBody.upYieldForceIndex]),diff,&tempf,compFloatData);
-		for (i=g_klTestBody.upYieldForceIndex; i<=g_klTestBody.maxForceIndex; ++i)
-		{
-			ECHO(DEBUG_TEST_LOAD,"%f\r\n",GetDrawLineSomeTimePointForce(i));
-			bsp_DelayMS(100);
-		}
-	}
+//	{
+//		float tempf = 0;
+//		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
+//		uint32_t diff = g_klTestBody.maxForceIndex - g_klTestBody.upYieldForceIndex + 1;
+//		uint32_t i;
+//		
+//		printf("------------\r\n");
+//		
+//		SortBubble((void *)&(pDrawLine->force[g_klTestBody.upYieldForceIndex]),diff,&tempf,compFloatData);
+//		for (i=g_klTestBody.upYieldForceIndex; i<=g_klTestBody.maxForceIndex; ++i)
+//		{
+//			printf("%f\r\n",GetDrawLineSomeTimePointForce(i));
+//			bsp_DelayMS(100);
+//		}
+//	}
 }
 
 /*------------------------------------------------------------
@@ -6427,8 +6467,8 @@ static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest )
 	pKlTest->maxForceSumExtend = 0;
 	pKlTest->maxForceSumElongation = 0;
 	
-	pKlTest->recordDisplacemen = get_smpl_value(SMPL_WY_NUM);
-	pKlTest->recordDeform = get_smpl_value(SMPL_BX_NUM);
+	pKlTest->recordDisplacemen = 0;
+	pKlTest->recordDeform = 0;
 	pKlTest->nowDeform = 0;
 	
 	pKlTest->upYieldForceIndex = 0;

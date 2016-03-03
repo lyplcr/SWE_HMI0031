@@ -1889,7 +1889,7 @@ static TestStatus ForceCalibrationCheckCalibrationDateIsAvail( void )
 	
 	for (i=0; i<calibrationNum-1; ++i)
 	{
-		if (g_CalibrationBody.code[i] > g_CalibrationBody.code[i+1])
+		if (abs(g_CalibrationBody.code[i]) > abs(g_CalibrationBody.code[i+1]))
 		{
 			return FAILED;
 		}
