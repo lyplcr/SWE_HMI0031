@@ -19,8 +19,7 @@
 
 
 /* Private define ------------------------------------------------------------*/
-#define PRINT_DELAY		20			//向打印机发送数据延时
-#define END_ROW_CNT		3			//打印结束空余行
+#define END_ROW_CNT			2			//打印结束空余行
 
 
 /* Private typedef -----------------------------------------------------------*/
@@ -77,6 +76,9 @@ static void ConfigPrinterDefaultSet( void )
 	
 	print_chinese();
 	print_direct(FORWARD_DIR);
+	
+	/* 解决每次打印第一行数据只能打印出下半部分 */
+	print_enter();
 }
 
 /*------------------------------------------------------------
@@ -298,8 +300,6 @@ ErrorStatus PrintCalibrationTable( SMPL_NAME_TypeDef tureChannel )
 		code = (uint32_t)smpl_tab_code_get(tureChannel,i);		
 		numtochar(MAX_DATA_BIT,code,value_buff);
 		PrintWordsAndLineFeed(value_buff);
-		
-		bsp_DelayMS(PRINT_DELAY);
 	}
 	
 	PrintRowSpace(END_ROW_CNT);	//防止被打印的数据卡在打印机内部
@@ -416,8 +416,6 @@ ErrorStatus PrintForceCalibrationResultTable( CALIBRATION_RSULT_PRINT_TypeDef *p
 					PrintWordsAndLineFeed("%");
 					break;
 			}
-			
-			bsp_DelayMS(PRINT_DELAY);		//必须加延时，否则数据发送太快导致丢失
 		}	
 	}
 	
@@ -877,8 +875,6 @@ ErrorStatus PrintTestReport( TEST_TYPE_TypeDef test_type, TEST_ATTRIBUTE_TypeDef
 				floattochar(MAX_SHOW_BIT,BIT_AVAIL_STRENGTH_DOT,report->strength[i],print_buff);
 				print(print_buff);	
 				PrintWordsAndLineFeed("MPa");
-				
-				bsp_DelayMS(PRINT_DELAY);		//必须加延时，否则数据发送太快导致丢失
 			}
 			
 			print_enter();
@@ -914,7 +910,7 @@ ErrorStatus PrintTestReport( TEST_TYPE_TypeDef test_type, TEST_ATTRIBUTE_TypeDef
 			break;
 		case STRETCH_TEST:
 			for (i=0; i<tab_num; ++i)
-			{
+			{			
 				PrintWordsAndLineFeed(pPrint_Title[i]);
 				
 				{
@@ -1009,7 +1005,7 @@ ErrorStatus PrintTestReport( TEST_TYPE_TypeDef test_type, TEST_ATTRIBUTE_TypeDef
 					print(print_buff);
 					
 					PrintWordsAndLineFeed("%");
-				}
+				}		
 			}
 			break;
 			

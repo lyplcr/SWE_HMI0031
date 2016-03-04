@@ -317,13 +317,6 @@ static void ForceCalibationInit( void )
 	g_ForceCalibration.bxChannelUnit = GetBX_SmplUnit();
 	g_ForceCalibration.curChannel = GetChannelSelectChannel();
 	
-	disp_syn(DISP_CHN_FH);
-	disp_syn(DISP_CHN_WY);
-	disp_syn(DISP_CHN_BX);
-	disp_syn(DISP_CHN_STRENGTH);
-	disp_syn(DISP_CHN_PEAK);
-	disp_syn(DISP_CHN_SPEED);
-	
 	InitInterfaceElement();
 	
 	g_ForceCalibration.refreshShortcut = ENABLE;

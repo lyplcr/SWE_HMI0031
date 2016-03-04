@@ -522,14 +522,7 @@ void LoadMainPage( void )
  * Return         : None
  *------------------------------------------------------------*/
 static void MainPageInit( void )
-{
-	disp_syn(DISP_CHN_FH);
-	disp_syn(DISP_CHN_WY);
-	disp_syn(DISP_CHN_BX);
-	disp_syn(DISP_CHN_STRENGTH);
-	disp_syn(DISP_CHN_PEAK);
-	disp_syn(DISP_CHN_SPEED);
-	
+{	
 	InitInterfaceElement();
 	
 	g_mainPage.isIndexMove = NO;
@@ -5461,32 +5454,68 @@ static float GetMaxForceSumElongation( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : FindInitialTransientEffectsPoint
- * Description    : 查找初始瞬时效应点力值
+ * Function Name  : PrintYieldForce
+ * Description    : 打印屈服段力值
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static float FindInitialTransientEffectsPoint( const float *baseForcePtr, uint32_t baseIndex, uint32_t sumIndex )
+void PrintYieldForce( void )
+{
+	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
+	uint32_t i;
+	
+	for (i=g_klTestBody.upYieldForceIndex; i<=g_klTestBody.maxForceIndex; ++i)
+	{
+		printf("%f\r\n",pDrawLine->force[i]);
+		bsp_DelayMS(50);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : FindArrayValleyValuePoint
+ * Description    : 查找数组中的谷值点
+ * Input          : baseValuePtr：数组基指针，baseIndex：数组基索引，sumIndex：数组最大索引
+*				  : valleyIndexPtr：指向谷值点的数组索引，valleyValuePtr：指向谷值的指针
+ * Output         : None
+ * Return         : FlagStatus：SET--找到谷值点，RESET--未找到谷值点
+ *------------------------------------------------------------*/
+static FlagStatus FindArrayValleyValuePoint( const float *baseValuePtr, uint32_t baseIndex, \
+				uint32_t sumIndex, uint32_t *valleyIndexPtr, float *valleyValuePtr )
 {
 	uint32_t i;
-	float value = 0;
+	FlagStatus fallingTrend = RESET;
+	FlagStatus findOK = RESET;
 	
 	for (i=baseIndex; i<sumIndex; ++i)
 	{
-		if (baseForcePtr[i] < baseForcePtr[i+1])
+		if (baseValuePtr[i+1] < baseValuePtr[i])
 		{
-			value = baseForcePtr[i];
-			break;
+			fallingTrend = SET;
+		}
+		
+		if (fallingTrend == SET)
+		{
+			if (baseValuePtr[i+1] > baseValuePtr[i])
+			{
+				*valleyIndexPtr = i;
+				*valleyValuePtr = baseValuePtr[i];
+				
+				findOK = SET;
+				
+				break;
+			}
 		}
 	}
 	
-	return value;
+	return findOK;
 }	
 
 /*------------------------------------------------------------
  * Function Name  : GetDownYieldForce
- * Description    : 获取下屈服力值
+ * Description    : 获取下屈服力值(屈服阶段中如呈现两个或两个以上的谷值力,舍去第一个谷值力
+ *				  :	(第一个极小值力) ,取其余谷值力中之最小者判为下屈服力。如只呈现一个下降谷值力,
+ *				  : 此谷值力判为下屈服力。)
  * Input          : None
  * Output         : None
  * Return         : None
@@ -5494,81 +5523,59 @@ static float FindInitialTransientEffectsPoint( const float *baseForcePtr, uint32
 static float GetDownYieldForce( void )
 {
 	COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
+	float downYieldForce = 0.0f;
 	
+	/* 上屈服力也是最大力，无下屈服点 */
 	if (g_klTestBody.upYieldForceIndex >= g_klTestBody.maxForceIndex)
 	{
 		return 0.0f;
 	}
 	
 	{
-		float tempf = 0;
-		float downYieldForce = 0.0f;
-		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
-		uint32_t num = (g_klTestBody.maxForceIndex - g_klTestBody.upYieldForceIndex) + 1;				
+		float minValleyValue = 0.0f;
+		uint8_t valleyValueNum = 0;	/* 谷值点个数 */
+		float InitialTransientEffectsPoint = 0;/* 初始瞬时效应点 */
 		
-		/* 查找初始瞬时效应点 */
-		float InitialTransientEffectsPoint = FindInitialTransientEffectsPoint\
-					(pDrawLine->force,g_klTestBody.upYieldForceIndex,g_klTestBody.maxForceIndex);
-		
-		SortBubble((void *)&(pDrawLine->force[g_klTestBody.upYieldForceIndex]),\
-			num,&tempf,compFloatData);
-		
-		downYieldForce = pDrawLine->force[g_klTestBody.upYieldForceIndex];
-		
-		if ( IS_FLOAT_EQUAL(downYieldForce,InitialTransientEffectsPoint) )
-		{
-			downYieldForce = pDrawLine->force[g_klTestBody.upYieldForceIndex+1];
+		{		
+			uint32_t valleyIndex = g_klTestBody.upYieldForceIndex;
+			float valleyValue = 0;
 			
-			ECHO(DEBUG_TEST_LOAD,"过滤初始瞬时效应点，值为：%f\r\n",InitialTransientEffectsPoint);
+			while ( FindArrayValleyValuePoint(pDrawLine->force,valleyIndex,g_klTestBody.maxForceIndex,\
+							&valleyIndex,&valleyValue) == SET )
+			{
+				valleyValueNum++;
+				
+				/* 第一个谷值点为初始瞬时效应点 */
+				if (valleyValueNum == 1)
+				{
+					InitialTransientEffectsPoint = valleyValue;
+				}
+				else if (valleyValueNum == 2)
+				{
+					minValleyValue = valleyValue;				
+				}
+				else
+				{
+					if (valleyValue < minValleyValue)
+					{
+						minValleyValue = valleyValue;
+					}
+				}
+			}		
 		}
 		
-		return downYieldForce;
-	}
-}
-
-/*------------------------------------------------------------
- * Function Name  : PrintfUpYieldToMaxForceData
- * Description    : 打印上屈服到最大力段数据
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-void PrintfUpYieldToMaxForceData( void )
-{
-	{
-		uint32_t i;
-			
-		printf("------------\r\n");
-		
-		if (g_klTestBody.upYieldForceIndex > g_klTestBody.maxForceIndex)
+		/* 只有一个谷值点，将初始瞬时效应点作为下屈服点 */
+		if (valleyValueNum == 1)
 		{
-			ECHO(DEBUG_TEST_LOAD,"上屈服点就是最大力！\r\n");
-			
-			return;
+			downYieldForce = InitialTransientEffectsPoint;
 		}
-		
-		for (i=g_klTestBody.upYieldForceIndex; i<=g_klTestBody.maxForceIndex; ++i)
+		else
 		{
-			printf("%f\r\n",GetDrawLineSomeTimePointForce(i));
-			bsp_DelayMS(100);
+			downYieldForce = minValleyValue;
 		}
 	}
 	
-//	{
-//		float tempf = 0;
-//		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
-//		uint32_t diff = g_klTestBody.maxForceIndex - g_klTestBody.upYieldForceIndex + 1;
-//		uint32_t i;
-//		
-//		printf("------------\r\n");
-//		
-//		SortBubble((void *)&(pDrawLine->force[g_klTestBody.upYieldForceIndex]),diff,&tempf,compFloatData);
-//		for (i=g_klTestBody.upYieldForceIndex; i<=g_klTestBody.maxForceIndex; ++i)
-//		{
-//			printf("%f\r\n",GetDrawLineSomeTimePointForce(i));
-//			bsp_DelayMS(100);
-//		}
-//	}
+	return downYieldForce;
 }
 
 /*------------------------------------------------------------
@@ -5652,10 +5659,11 @@ static void MainPageExecuteEndOnePieceProcess( void )
 				break;
 			case STRETCH_TEST:	
 				if (g_testBody.curCompletePieceSerial)
-				{
-//					PrintfUpYieldToMaxForceData();
+				{	
+					#if 0					
+						PrintYieldForce();
+					#endif
 					
-					/* 获取下屈服点数据 */
 					g_klTestBody.downYieldForce = GetDownYieldForce();
 					g_klTestBody.downYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.downYieldForce);
 					

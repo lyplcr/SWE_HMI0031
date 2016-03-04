@@ -1700,4 +1700,21 @@ ErrorStatus WriteFlashFontPassword( void )
 	return ERROR;
 }
 
+/*------------------------------------------------------------
+ * Function Name  : SyncDispAllChannel
+ * Description    : 同步所有显示通道
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void SyncDispAllChannel( void )
+{
+	disp_syn(DISP_CHN_FH);
+	disp_syn(DISP_CHN_WY);
+	disp_syn(DISP_CHN_BX);
+	disp_syn(DISP_CHN_STRENGTH);
+	disp_syn(DISP_CHN_PEAK);
+	disp_syn(DISP_CHN_SPEED);
+}
+
 /******************* (C) COPYRIGHT 2012 XinGao Tech *****END OF FILE****/  

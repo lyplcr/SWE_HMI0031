@@ -30,7 +30,9 @@ description: 打印缓冲区中所有数据都将被打印而且向前走一行，效果与回车命
 **********************************************************************/
 void print_enter(void)
 {
-	UartPrintChar(0x0A);	 
+	//UartPrintChar(0x0A);
+	UartPrintChar('\r');
+	UartPrintChar('\n');
 }  
  
 /**********************************************************************
@@ -231,6 +233,8 @@ void print(const char *dat)
 		UartPrintChar((uint8_t)*d);
 		d++;
 	}
+	
+	bsp_DelayMS(50);	//防止打印过快，打印机内部数据被覆盖
 } 
 
 

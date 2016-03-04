@@ -63,6 +63,9 @@ static void ExchangePageInit( void )
 	/* 初始化异常标志 */
 	ClearExceptionFlag();
 	
+	/* 同步所有显示通道 */
+	SyncDispAllChannel();
+	
 	bsp_StartTimer(GENERAL_TIMEOUT_TIMING,100);
 	while (1)
 	{	
