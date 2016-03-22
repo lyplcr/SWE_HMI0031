@@ -1377,6 +1377,15 @@ void GUI_DrawCoordinate( COORDINATE_TypeDef *pCoordinate )
 {
 	tDashedFrameObject dashed_frame;
 	
+	/* 画标题 */
+	{
+		uint16_t titlelenth = strlen(pCoordinate->pTitle);
+		uint16_t x = pCoordinate->x + (pCoordinate->xLenth - titlelenth * 8) / 2;
+		uint16_t y = pCoordinate->y - 28;
+		
+		GUI_DispStr16At(x,y,pCoordinate->fontPointColor,pCoordinate->fontBackColor,pCoordinate->pTitle);
+	}
+	
 	//定义画虚线框的各个属性
 	dashed_frame.x 				= pCoordinate->x;					//起点X坐标
 	dashed_frame.y 				= pCoordinate->y;					//起点Y坐标

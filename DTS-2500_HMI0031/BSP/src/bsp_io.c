@@ -186,9 +186,6 @@ static void InitExt_74HC595( void )
 	GPIO_InitStructure.GPIO_Pin = EXT_PIN_HC595_SDA;	
 	GPIO_Init(EXT_PORT_HC595_SDA, &GPIO_InitStructure);
 	
-	GPIO_InitStructure.GPIO_Pin = EXT_PIN_HC595_SCK;	
-	GPIO_Init(EXT_PORT_HC595_SCK, &GPIO_InitStructure);
-	
 	#ifdef USE_HC595_EN_CONFIG_PORT
 		GPIO_InitStructure.GPIO_Pin = EXT_PIN_HC595_SE;
 		GPIO_Init(EXT_PORT_HC595_SE, &GPIO_InitStructure);
@@ -312,8 +309,8 @@ void SetLampVal( uint32_t led )
 			CLR_EXT_HC595_SDA();
 		}
 		
-		SET_HC165_CLK();
-		CLR_HC165_CLK();
+		SET_EXT_HC595_SCK();
+		CLR_EXT_HC595_SCK();
 		
 		led<<=1;		
 	}

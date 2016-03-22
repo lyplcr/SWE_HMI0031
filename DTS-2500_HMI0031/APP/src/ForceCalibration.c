@@ -2381,6 +2381,8 @@ static void ForceCalibrationExecuteEndBody( void )
 	g_CalibrationBody.endCalibration = SET;
 	
 	g_ForceCalibration.refreshShortcut = ENABLE;
+	
+	GUI_ClearShortcutMenu();
 }
 
 /*------------------------------------------------------------
@@ -2684,7 +2686,7 @@ static void ForceCalibrationTakePointProcess( void )
 	int32_t code = 0;
 	float deviation = 0;
 		
-	if(g_CalibrationBody.flagTakePoint == SET)
+	if (g_CalibrationBody.flagTakePoint == SET)
 	{
 		g_CalibrationBody.flagTakePoint = RESET;
 		
@@ -2741,6 +2743,15 @@ static void ForceCalibrationTakePointProcess( void )
 		if (g_CalibrationBody.curCompletePieceSerial >= g_ForceCalibration.sumSampleNum)
 		{
 			g_CalibrationBody.flagCalibrationComplete = SET;
+			
+			if (GetPageName() == FORCE_CALIBRATION_PAGE)
+			{
+				SetShortCutMenuCue(COLOR_POINT,DARKBLUE,"校准结束，请卸载！");
+			}
+			else if (GetPageName() == FORCE_VERIFICATION_PAGE)
+			{
+				SetShortCutMenuCue(COLOR_POINT,DARKBLUE,"检定结束，请卸载！");
+			}
 		}
 	}
 }	
@@ -2870,8 +2881,7 @@ static void ForceCalibrationExecuteCoreCycle( void )
 			}
 			break;
 			
-		default:
-			
+		default:			
 			break;
 	}
 	

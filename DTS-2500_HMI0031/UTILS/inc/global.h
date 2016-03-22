@@ -196,14 +196,15 @@ typedef struct
 	uint16_t fontBackColor;		//字体背景色
 	uint16_t xLinePointColor;	//X轴线前景色
 	uint16_t yLinePointColor;	//Y轴线前景色
-	float xMaxValue;				
-	float yMaxValue;
+	float xMaxValue;			//X轴最大值	
+	float yMaxValue;			//Y轴最大值
 	uint8_t xType;				//X轴类型
 	uint8_t yType;				//Y轴类型
 	uint8_t xUint;				//X轴单位（COORDINATE_UNIT_TypeDef）
 	uint8_t yUint;				//Y轴单位
 	const char *pXUnit;			//X轴单位
 	const char *pYUnit;			//Y轴单位 
+	const char *pTitle;			//坐标系标题
 }COORDINATE_TypeDef;
 
 typedef struct

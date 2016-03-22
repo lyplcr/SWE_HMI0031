@@ -2376,7 +2376,7 @@ static void LoadDefaultCoordinate( void )
 	{
 		maxForce /= 1000;
 	}	
-	maxForce /= 2;
+	maxForce /= 10;
 	
 	switch ( g_mainPage.testAttribute )
 	{
@@ -2903,7 +2903,7 @@ static void GUI_MainPageDrawCoordinate( uint8_t xType, uint8_t yType, void *xMax
 	pCoordinate->xType = xType;
 	pCoordinate->yType = yType;	
 	pCoordinate->x = 75;
-	pCoordinate->y = 120;
+	pCoordinate->y = 140;
 	pCoordinate->rowSpace = 50;
 	pCoordinate->columnSpace = 50;
 	pCoordinate->xLenth = 250;
@@ -2921,6 +2921,21 @@ static void GUI_MainPageDrawCoordinate( uint8_t xType, uint8_t yType, void *xMax
 	pCoordinate->fontBackColor = COLOR_BACK;
 	pCoordinate->xLinePointColor = FRESH_GREEN;
 	pCoordinate->yLinePointColor = FRESH_GREEN;
+	
+	if ((pCoordinate->xType==COORDINATE_USE_DEFORM) && \
+		(pCoordinate->yType==COORDINATE_USE_FORCE))
+	{
+		pCoordinate->pTitle = "『负荷 -- 变形』曲线";
+	}
+	else if ((pCoordinate->xType==COORDINATE_USE_TIME) && \
+		(pCoordinate->yType==COORDINATE_USE_FORCE))
+	{
+		pCoordinate->pTitle = "『负荷 -- 时间』曲线";
+	}
+	else
+	{
+		pCoordinate->pTitle = "『XXXX -- XXXX』曲线";
+	}
 	
 	switch ( pCoordinate->xType )
 	{
@@ -4082,7 +4097,14 @@ static void SetDynamicContentPeak( void )
 			if (GetTestStatus() == TEST_IDLE)
 			{
 				s_peakDelayTime = GetCurveStayTime() * CTRL_FREQ;
-				g_testBody.peakStatus = STATUS_PEAK_KEEP;
+				if (s_peakDelayTime)
+				{
+					g_testBody.peakStatus = STATUS_PEAK_KEEP;
+				}
+				else
+				{
+					g_testBody.peakStatus = STATUS_PEAK_IDLE;
+				}
 			}
 			break;
 		case STATUS_PEAK_KEEP:
@@ -5572,6 +5594,11 @@ static float GetDownYieldForce( void )
 		else
 		{
 			downYieldForce = minValleyValue;
+			
+			if (downYieldForce > g_klTestBody.upYieldForce)
+			{
+				downYieldForce = InitialTransientEffectsPoint;
+			}
 		}
 	}
 	

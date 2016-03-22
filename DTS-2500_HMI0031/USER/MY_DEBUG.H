@@ -28,6 +28,7 @@
 #define DEBUG_COMM_BUFF						DEBUG_OFF
 #define DEBUG_ACTIVE						DEBUG_OFF
 #define DEBUG_SCREW_UP_DOWN					DEBUG_OFF
+#define DEBUG_CURVE_SHOW					DEBUG_OFF
 
 
 #ifdef __DEBUG__

@@ -176,7 +176,18 @@ static void CurveShowReadParameter( void )
 		FRESULT result = ReadCoordinatePoint(MMC,g_curveShow.testType,g_curveShow.curPage,\
 							GetSelectReportFileNameAddr(),pCurve);	
 		
-		if (result != FR_OK)
+		if (result == FR_OK)
+		{
+			if (pCurve->nowUsePointNum > DECORD_COORDINATE_FORCE_NUM)
+			{
+				pCurve->nowUsePointNum = DECORD_COORDINATE_FORCE_NUM;
+			}
+			if (pCurve->maxPointNum > DECORD_COORDINATE_FORCE_NUM)
+			{
+				pCurve->maxPointNum = DECORD_COORDINATE_FORCE_NUM;
+			}
+		}
+		else
 		{
 			g_curveShow.leavePage.flagLeavePage = SET;
 			SetPage(DETAIL_REPORT_PAGE);
@@ -186,6 +197,36 @@ static void CurveShowReadParameter( void )
 			PopWindowsProcessCycle();
 		}
 	}
+	
+	/* 打印调试信息 */
+	ECHO(DEBUG_CURVE_SHOW,"最大力：%f\r\n",readReport.maxForce[g_curveShow.curPage-1]);
+	ECHO(DEBUG_CURVE_SHOW,"抗拉强度：%f\r\n",readReport.maxStrength[g_curveShow.curPage-1]);
+	ECHO(DEBUG_CURVE_SHOW,"上屈服力：%f\r\n",readReport.upYieldForce[g_curveShow.curPage-1]);
+	ECHO(DEBUG_CURVE_SHOW,"下屈服力：%f\r\n",readReport.downYieldForce[g_curveShow.curPage-1]);
+	ECHO(DEBUG_CURVE_SHOW,"上屈服强度：%f\r\n",readReport.upYieldStrength[g_curveShow.curPage-1]);
+	ECHO(DEBUG_CURVE_SHOW,"下屈服强度：%f\r\n",readReport.downYieldStrength[g_curveShow.curPage-1]);
+	
+	#if (DEBUG_CURVE_SHOW == DEBUG_ON)
+	{
+		uint32_t i;
+		
+		ECHO(DEBUG_CURVE_SHOW,"打印曲线力值：\r\n");
+		
+		for (i=0; i<pCurve->nowUsePointNum; ++i)
+		{
+			ECHO(DEBUG_CURVE_SHOW,"%f\r\n",pCurve->force[i]);
+			bsp_DelayMS(10);
+		}
+	
+		ECHO(DEBUG_CURVE_SHOW,"打印曲线变形：\r\n");
+		
+		for (i=0; i<pCurve->nowUsePointNum; ++i)
+		{
+			ECHO(DEBUG_CURVE_SHOW,"%f\r\n",pCurve->deform[i]);
+			bsp_DelayMS(10);
+		}
+	}
+	#endif
 }
 
 /*------------------------------------------------------------
@@ -202,15 +243,15 @@ static void GUI_CurveShowDrawCoordinate( void )
 	pCoordinate->xType = pCurve->xType;
 	pCoordinate->yType = pCurve->yType;	
 	pCoordinate->x = 120;
-	pCoordinate->y = 70;
-	pCoordinate->rowSpace = 50;
+	pCoordinate->y = 80;
+	pCoordinate->rowSpace = 30;
 	pCoordinate->columnSpace = 60;
 	pCoordinate->xLenth = 600;
 	pCoordinate->yLenth = 300;
 	pCoordinate->fillFieldLenth = 5;
 	pCoordinate->emptyFieldLenth = 5;
 	pCoordinate->lineWidth = 1;
-	pCoordinate->rowFieldNum = 6;
+	pCoordinate->rowFieldNum = 10;
 	pCoordinate->columnFieldNum = 10;
 	pCoordinate->mainBackColor = COLOR_BACK;
 	pCoordinate->windowsBackColor = COLOR_BACK;
@@ -220,6 +261,21 @@ static void GUI_CurveShowDrawCoordinate( void )
 	pCoordinate->fontBackColor = COLOR_BACK;
 	pCoordinate->xLinePointColor = FRESH_GREEN;
 	pCoordinate->yLinePointColor = FRESH_GREEN;
+	
+	if ((pCoordinate->xType==COORDINATE_USE_DEFORM) && \
+		(pCoordinate->yType==COORDINATE_USE_FORCE))
+	{
+		pCoordinate->pTitle = "『负荷 -- 变形』曲线";
+	}
+	else if ((pCoordinate->xType==COORDINATE_USE_TIME) && \
+		(pCoordinate->yType==COORDINATE_USE_FORCE))
+	{
+		pCoordinate->pTitle = "『负荷 -- 时间』曲线";
+	}
+	else
+	{
+		pCoordinate->pTitle = "『XXXX -- XXXX』曲线";
+	}
 	
 	pCoordinate->xMaxValue = pCurve->xMaxValue * pCurve->xScalingCoefficient;
 	pCoordinate->yMaxValue = pCurve->yMaxValue * pCurve->yScalingCoefficient;
@@ -318,7 +374,8 @@ static void InitCurveShowCoordinateDrawLine( void )
 	pDrawLine->xScalingCoefficient = pCurve->xScalingCoefficient;
 	pDrawLine->yScalingCoefficient = pCurve->yScalingCoefficient;
 	pDrawLine->recordPointFreq = pCurve->recordPointFreq;
-	pDrawLine->pDrawCoordinate = NULL;	
+	pDrawLine->pDrawCoordinate = NULL;
+	
 	memset(pDrawLine->force,0x00,sizeof(float)*pCurve->maxPointNum);
 	memset(pDrawLine->deform,0x00,sizeof(float)*pCurve->maxPointNum);
 	
