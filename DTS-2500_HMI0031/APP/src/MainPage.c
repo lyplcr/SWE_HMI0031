@@ -4718,7 +4718,7 @@ static void KL_TestLoadCoreCycle( void )
 			{
 				g_klTestBody.recordUpYieldForce = force;
 				g_klTestBody.recordUpYieldDeform = g_klTestBody.nowDeform;
-				g_klTestBody.upYieldForceIndex = GetDrawLineNowTimePoint();
+				g_klTestBody.upYieldForceIndex = GetDrawLineNextTimePoint();	//执行当前函数时，还没记录当前点的力值。因此，记录下一点的力值索引
 			}
 			else
 			{

@@ -417,6 +417,7 @@ void CheckOfflineCycle( void );
 void CoordinateDrawLineBodyCycle( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 COORDINATE_DRAW_LINE_TypeDef *GetDrawLineAddr( void );
 uint32_t GetDrawLineNowTimePoint( void );
+uint32_t GetDrawLineNextTimePoint( void );
 float GetDrawLineSomeTimePointForce( uint32_t nowTimePoint );
 BoolStatus IsCoordinateRecordPointOverflow( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );
 void ReloadCoordinate( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );

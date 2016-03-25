@@ -1955,6 +1955,30 @@ uint32_t GetDrawLineNowTimePoint( void )
 	return g_coordinateDrawLine.nowTimePoint;
 }
 
+
+/*------------------------------------------------------------
+ * Function Name  : GetDrawLineNextTimePoint
+ * Description    : 获取坐标系画线下一个时间点
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+uint32_t GetDrawLineNextTimePoint( void )
+{
+	uint32_t nowIndex = g_coordinateDrawLine.nowTimePoint;
+	
+	nowIndex++;
+	
+	if (nowIndex < DECORD_COORDINATE_FORCE_NUM)
+	{
+		return nowIndex;
+	}
+	else
+	{
+		return g_coordinateDrawLine.nowTimePoint;
+	}
+}
+
 /*------------------------------------------------------------
  * Function Name  : GetDrawLineSomeTimePointForce
  * Description    : 获取坐标系画线某个时间点力值
