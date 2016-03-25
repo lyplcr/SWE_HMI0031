@@ -62,6 +62,7 @@ typedef struct
 	uint8_t 	wyUnit;										//位移单位
 	uint8_t 	bxUnit;										//变形单位
 	uint8_t		wyConvBx;									//位移切换为变形
+	uint16_t	yieldDisturbThreshold;						//屈服干扰阈值
 }HMI_TypeDef; 
 
 //记忆功能    

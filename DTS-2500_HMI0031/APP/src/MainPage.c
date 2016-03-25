@@ -311,6 +311,10 @@ typedef struct
 	/* 计算屈服点、最大力 */
 	uint32_t upYieldForceIndex;
 	uint32_t maxForceIndex;
+	
+	/* 计算上屈服点 */
+	float recordUpYieldForce;			//记录上一点力值
+	float recordUpYieldDeform;			//记录上一点变形
 }KL_TEST_BODY_TypeDef;
 
 
@@ -4504,6 +4508,9 @@ static void MainPageExecuteTestStartBody( void )
 	
 	g_klTestBody.flagStartJudgeYield = RESET;
 	
+	g_klTestBody.recordUpYieldForce = 0.0f;
+	g_klTestBody.recordUpYieldDeform = 0.0f; 
+	
 	SetTestStatus(TEST_LOAD);
 }
 
@@ -4657,6 +4664,13 @@ static void KL_TestCheckPeakCycle( void )
 	}
 }
 
+typedef enum
+{
+	STATUS_UP_YIELD_IDLE = 0,
+	STATUS_UP_YIELD_START,
+	STATUS_UP_YIELD_END,
+}STATUS_UP_YIELD_TypeDef;
+
 /*------------------------------------------------------------
  * Function Name  : KL_TestLoadCoreCycle
  * Description    : 抗拉试验加载循环体
@@ -4669,12 +4683,14 @@ static void KL_TestLoadCoreCycle( void )
 	float force 				= get_smpl_value(SMPL_FH_NUM);
 	float peak 					= GetPeakValue(SMPL_FH_NUM);
 	float yieldStartValue 		= GetTargetBreakStartValue(SMPL_FH_NUM);
+	static STATUS_UP_YIELD_TypeDef s_upYieldStatus = STATUS_UP_YIELD_IDLE;
 	
 	if (force > yieldStartValue)
 	{
 		if (g_klTestBody.flagStartJudgeYield == RESET)
 		{
 			g_klTestBody.flagStartJudgeYield = SET;
+			s_upYieldStatus = STATUS_UP_YIELD_IDLE;
 			
 			ECHO(DEBUG_TEST_LOAD,"到达屈服起判力值！\r\n");
 		}
@@ -4685,17 +4701,70 @@ static void KL_TestLoadCoreCycle( void )
 		return;
 	}
 	
-	/* 首次力值下降点 */
-	if (force < peak)
+	/* 
+		上屈服点定义：试样发生屈服而力首次下降的点。
+		判断上屈服点，由于存在丝杆打滑等干扰，都可能导致力值下降。
+		因此计算力值下降后，至力值重新回到上次的力值下降点之间的变形值
+		的变化率：
+			如果大于设定值，说明变形值变化幅度较大，与屈服段变形值的变化趋势相近，
+		可以判断为上屈服点。
+			如果小于设定值，说明变形值变化幅度较小，与干扰产生的变形值变化趋势相近，
+		可以判断为干扰，忽略此次的上屈服点。
+	*/
+	switch ( s_upYieldStatus )
 	{
-		g_klTestBody.upYieldForceIndex = GetDrawLineNowTimePoint();
-		g_klTestBody.upYieldForce = GetDrawLineSomeTimePointForce( g_klTestBody.upYieldForceIndex );	
-		g_klTestBody.upYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.upYieldForce);
-		
-		SetTestStatus(TEST_DEFORM);
-		
-		ECHO(DEBUG_TEST_LOAD,"到达上屈服点！\r\n");
-		ECHO(DEBUG_TEST_LOAD,"上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
+		case STATUS_UP_YIELD_IDLE:
+			if (force > g_klTestBody.recordUpYieldForce)
+			{
+				g_klTestBody.recordUpYieldForce = force;
+				g_klTestBody.recordUpYieldDeform = g_klTestBody.nowDeform;
+				g_klTestBody.upYieldForceIndex = GetDrawLineNowTimePoint();
+			}
+			else
+			{
+				s_upYieldStatus = STATUS_UP_YIELD_START;
+			}
+			break;
+		case STATUS_UP_YIELD_START:
+			if (force > g_klTestBody.recordUpYieldForce)
+			{
+				float deformRate = 0;
+				uint16_t yieldDisturbThreshold = GetYieldDisturbThreshold();
+				
+				if (fabs(g_klTestBody.recordUpYieldDeform) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+				{
+					g_klTestBody.recordUpYieldDeform = MIN_FLOAT_PRECISION_DIFF_VALUE;
+					ECHO(DEBUG_YIELD_DEFORM,"屈服变形值错误！\r\n");
+				}
+				
+				deformRate = fabs( (g_klTestBody.nowDeform - g_klTestBody.recordUpYieldDeform)\
+										/ g_klTestBody.recordUpYieldDeform ) * 1000;
+				
+				if (deformRate > yieldDisturbThreshold)
+				{
+					s_upYieldStatus = STATUS_UP_YIELD_END;
+				}
+				else
+				{
+					s_upYieldStatus = STATUS_UP_YIELD_IDLE;
+				}
+				
+				ECHO(DEBUG_YIELD_DEFORM,"上屈服变形变化率：%f\r\n",deformRate);
+				ECHO(DEBUG_YIELD_DEFORM,"上屈服点力值：%f\r\n",GetDrawLineSomeTimePointForce( g_klTestBody.upYieldForceIndex ));
+			}
+			break;
+		case STATUS_UP_YIELD_END:
+			g_klTestBody.upYieldForce = GetDrawLineSomeTimePointForce( g_klTestBody.upYieldForceIndex );	
+			g_klTestBody.upYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.upYieldForce);
+			
+			SetTestStatus(TEST_DEFORM);
+			
+			ECHO(DEBUG_TEST_LOAD,"到达上屈服点！\r\n");
+			ECHO(DEBUG_TEST_LOAD,"上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
+			break;
+		default:
+			s_upYieldStatus = STATUS_UP_YIELD_IDLE;
+			break;
 	}
 }
 #if 0

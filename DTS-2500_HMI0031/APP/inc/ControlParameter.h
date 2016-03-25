@@ -23,6 +23,7 @@ float GetTargetWithMaxForceDifference( SMPL_NAME_TypeDef channel );
 float GetTargetBreakDownPoint( SMPL_NAME_TypeDef channel );
 float GetTargetAdjoinTwoPointDiff( SMPL_NAME_TypeDef channel );
 float GetTargetBreakStartValue( SMPL_NAME_TypeDef channel );
+uint16_t GetYieldDisturbThreshold( void );
 
 #endif
 

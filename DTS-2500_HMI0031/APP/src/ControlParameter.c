@@ -23,7 +23,7 @@
 #define COLOR_POINT						WHITE
 #define	COLOR_BACK						BLACK
 
-#define MAX_PARAMETER_CNT				8
+#define MAX_PARAMETER_CNT				9
 #define MAX_CONTROL_PARAMETER_PUTIN_BIT	7
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,6 +37,7 @@ typedef enum
 	OBJECT_BREAK_TYPE,
 	OBJECT_FORCE_DECAY_RATE,
 	OBJECT_MAX_FORCE_DIFF,
+	OBJECT_YIELD_DISTURB_THRESHOLD,
 }OBJECT_CONTROL_PARAMETER_TypeDef;
 
 typedef enum
@@ -49,6 +50,7 @@ typedef enum
 	INDEX_BREAK_TYPE,
 	INDEX_FORCE_DECAY_RATE,
 	INDEX_MAX_FORCE_DIFF,
+	INDEX_YIELD_DISTURB_THRESHOLD,
 }INDEX_CONTROL_PARAMETER_TypeDef;
 
 typedef struct
@@ -91,6 +93,7 @@ const char * const pCntrolParameterName[] =
 	"变形满量程：",		//9
 	"加载起始位移：",	//10
 	"加载起始变形：",	//11
+	"屈服干扰阈值：",	//12
 };
 
 const char * const ControlParamErrInfoKN[] = 
@@ -109,6 +112,8 @@ const char * const ControlParamErrInfoKN[] =
 	"(0.1 ~ 100 kN)",	
 	"力值衰减了输入范围：",		//12
 	"(1 ~ 100)",
+	"屈服干扰阈值输入范围：",	//14
+	"(0 ~ 60000)",		
 };
 
 const char * const ControlParamErrInfoN[] = 
@@ -297,7 +302,7 @@ static void ControlParameterConfig( void )
 			g_controlParameter.indexArray[INDEX_BREAK_TYPE] 			= OBJECT_BREAK_TYPE;
 			g_controlParameter.indexArray[INDEX_FORCE_DECAY_RATE] 		= OBJECT_FORCE_DECAY_RATE;
 			g_controlParameter.indexArray[INDEX_MAX_FORCE_DIFF] 		= OBJECT_MAX_FORCE_DIFF;
-			
+			g_controlParameter.indexArray[INDEX_YIELD_DISTURB_THRESHOLD] = OBJECT_YIELD_DISTURB_THRESHOLD;
 			
 			/* 参数名称 */
 			g_controlParameter.pParameterNameArray[INDEX_SYSTEM_MAX_VALUE] 			= pCntrolParameterName[0];
@@ -308,6 +313,7 @@ static void ControlParameterConfig( void )
 			g_controlParameter.pParameterNameArray[INDEX_BREAK_TYPE] 				= pCntrolParameterName[5];
 			g_controlParameter.pParameterNameArray[INDEX_FORCE_DECAY_RATE] 			= pCntrolParameterName[6];
 			g_controlParameter.pParameterNameArray[INDEX_MAX_FORCE_DIFF] 			= pCntrolParameterName[7];
+			g_controlParameter.pParameterNameArray[INDEX_YIELD_DISTURB_THRESHOLD] 	= pCntrolParameterName[12];
 
 			/* 单位 */
 			if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
@@ -320,6 +326,7 @@ static void ControlParameterConfig( void )
 				g_controlParameter.pParameterUnitArray[INDEX_BREAK_TYPE] 				= "NULL";
 				g_controlParameter.pParameterUnitArray[INDEX_FORCE_DECAY_RATE] 			= pUnitType[10];
 				g_controlParameter.pParameterUnitArray[INDEX_MAX_FORCE_DIFF] 			= pUnitType[1];
+				g_controlParameter.pParameterUnitArray[INDEX_YIELD_DISTURB_THRESHOLD] 	= "NULL";
 			}
 			else
 			{
@@ -331,6 +338,7 @@ static void ControlParameterConfig( void )
 				g_controlParameter.pParameterUnitArray[INDEX_BREAK_TYPE] 				= "NULL";
 				g_controlParameter.pParameterUnitArray[INDEX_FORCE_DECAY_RATE] 			= pUnitType[10];
 				g_controlParameter.pParameterUnitArray[INDEX_MAX_FORCE_DIFF] 			= pUnitType[0];
+				g_controlParameter.pParameterUnitArray[INDEX_YIELD_DISTURB_THRESHOLD] 	= "NULL";
 			}
 			
 			/* 数据保存类型 */
@@ -342,6 +350,7 @@ static void ControlParameterConfig( void )
 			g_controlParameter.oneLevelMenu[INDEX_BREAK_TYPE].saveType 				= TYPE_INT;
 			g_controlParameter.oneLevelMenu[INDEX_FORCE_DECAY_RATE].saveType 		= TYPE_INT;
 			g_controlParameter.oneLevelMenu[INDEX_MAX_FORCE_DIFF].saveType 			= TYPE_FLOAT;	
+			g_controlParameter.oneLevelMenu[INDEX_YIELD_DISTURB_THRESHOLD].saveType = TYPE_INT;
 
 			/* 小数点位数 */
 			g_controlParameter.oneLevelMenu[INDEX_SYSTEM_MAX_VALUE].pointBit 		= 0;
@@ -352,6 +361,7 @@ static void ControlParameterConfig( void )
 			g_controlParameter.oneLevelMenu[INDEX_BREAK_TYPE].pointBit 				= 0;
 			g_controlParameter.oneLevelMenu[INDEX_FORCE_DECAY_RATE].pointBit 		= 0;
 			g_controlParameter.oneLevelMenu[INDEX_MAX_FORCE_DIFF].pointBit 			= 1;
+			g_controlParameter.oneLevelMenu[INDEX_YIELD_DISTURB_THRESHOLD].pointBit	= 0;
 			
 			/* 二级菜单类型 */
 			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterType 		= IMMEDIATELY_PUTIN_NONE;
@@ -362,6 +372,7 @@ static void ControlParameterConfig( void )
 			g_controlParameter.twoLevelMenu[INDEX_BREAK_TYPE].parameterType 			= NONE_USE_USER_DEFINE;
 			g_controlParameter.twoLevelMenu[INDEX_FORCE_DECAY_RATE].parameterType 		= IMMEDIATELY_PUTIN_NONE;
 			g_controlParameter.twoLevelMenu[INDEX_MAX_FORCE_DIFF].parameterType 		= IMMEDIATELY_PUTIN_NONE;
+			g_controlParameter.twoLevelMenu[INDEX_YIELD_DISTURB_THRESHOLD].parameterType= IMMEDIATELY_PUTIN_NONE;
 			
 			/* 二级菜单参数名 */
 			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].pParameterNameArray = NULL;
@@ -372,6 +383,7 @@ static void ControlParameterConfig( void )
 			g_controlParameter.twoLevelMenu[INDEX_BREAK_TYPE].pParameterNameArray = ControlParameterCondition;
 			g_controlParameter.twoLevelMenu[INDEX_FORCE_DECAY_RATE].pParameterNameArray = NULL;
 			g_controlParameter.twoLevelMenu[INDEX_MAX_FORCE_DIFF].pParameterNameArray = NULL;
+			g_controlParameter.twoLevelMenu[INDEX_YIELD_DISTURB_THRESHOLD].pParameterNameArray = NULL;
 			
 			/* 二级菜单参数个数 */
 			g_controlParameter.twoLevelMenu[INDEX_SYSTEM_MAX_VALUE].parameterCnt = 0;
@@ -382,6 +394,7 @@ static void ControlParameterConfig( void )
 			g_controlParameter.twoLevelMenu[INDEX_BREAK_TYPE].parameterCnt = 2;
 			g_controlParameter.twoLevelMenu[INDEX_FORCE_DECAY_RATE].parameterCnt = 0;
 			g_controlParameter.twoLevelMenu[INDEX_MAX_FORCE_DIFF].parameterCnt = 0;
+			g_controlParameter.twoLevelMenu[INDEX_YIELD_DISTURB_THRESHOLD].parameterCnt = 0;
 			break;
 		case SMPL_WY_NUM:
 			/* 个数 */
@@ -740,6 +753,14 @@ static void ControlParameterReadParameter( void )
 					tempf /= 1000;
 				}
 				floattochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,g_controlParameter.oneLevelMenu[index].pointBit,tempf,g_controlParameter.parameterData[index]);
+			}
+
+			index = GetControlParameterIndex(OBJECT_YIELD_DISTURB_THRESHOLD);
+			if (index != 0xff)
+			{
+				uint32_t temp = pHmi->yieldDisturbThreshold;
+				
+				numtochar(MAX_CONTROL_PARAMETER_PUTIN_BIT,temp,g_controlParameter.parameterData[index]);
 			}	
 			break;
 		case SMPL_WY_NUM:
@@ -940,6 +961,13 @@ static void ControlParameterWriteParameter( void )
 				}
 				pHmi->break_max_value[g_controlParameter.curChannel] = tempf;
 			}	
+			
+			index = GetControlParameterIndex(OBJECT_YIELD_DISTURB_THRESHOLD);
+			if (index != 0xff)
+			{
+				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+				pHmi->yieldDisturbThreshold = tempu;
+			}
 			break;
 		case SMPL_WY_NUM:
 			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
@@ -1840,6 +1868,19 @@ static TestStatus ControlParameterCheckData( uint8_t index )
 				}
 			}
 			break;
+			
+		case OBJECT_YIELD_DISTURB_THRESHOLD:
+			tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+			if (tempu > 60000)
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[14]);
+				
+				return FAILED;
+			}
+			break;
+		
+		default:
+			break;
 	}
 	
 	return PASSED;
@@ -1965,6 +2006,18 @@ float GetTargetBreakStartValue( SMPL_NAME_TypeDef channel )
 	{
 		return pHmi->break_judge_value[channel];
 	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetYieldDisturbThreshold
+ * Description    : 获取屈服干扰阈值
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+uint16_t GetYieldDisturbThreshold( void )
+{
+	return pHmi->yieldDisturbThreshold;
 }
 
 

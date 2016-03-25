@@ -390,7 +390,37 @@ static void HandlerDefaultPassword( void )
 		
 		pcm_save();
 	}
-}	
+}
+
+/*------------------------------------------------------------
+ * Function Name  : CheckSystemParameterOverflow
+ * Description    : 检测系统参数溢出
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void CheckSystemParameterOverflow( void )
+{
+	uint32_t len = 0;
+	
+	len = sizeof(HMI_TypeDef);
+	ECHO(DEBUG_PARAMETER_LEN,"PCM  最大长度：%d ,当前长度：%d\r\n",200,len);
+	
+	len = TEST_NUM * sizeof(TEST_TypeDef);
+	ECHO(DEBUG_PARAMETER_LEN,"TEST 最大长度：%d ,当前长度：%d\r\n",3000,len);
+	
+	len = sizeof(SYS_PRM_TypeDef);
+	ECHO(DEBUG_PARAMETER_LEN,"PRM 当前长度：%d\r\n",len);	
+	
+	len = sizeof(SYS_PRV_TypeDef);
+	ECHO(DEBUG_PARAMETER_LEN,"PRV 当前长度：%d\r\n",len);
+	
+	len = sizeof(REPORT_TypeDef);
+	ECHO(DEBUG_PARAMETER_LEN,"REPORT 当前长度：%d\r\n",len);
+	
+	len = sizeof(COORDINATE_POINT_TypeDef);
+	ECHO(DEBUG_PARAMETER_LEN,"COORDINATE 当前长度：%d\r\n",len);
+}
 
 /*------------------------------------------------------------
  * Function Name  : LoadSystemSetupPage
@@ -401,6 +431,9 @@ static void HandlerDefaultPassword( void )
  *------------------------------------------------------------*/
 void LoadSystemSetupPage( void )
 {		
+	/* 检测参数溢出 */
+	CheckSystemParameterOverflow();
+	
 	/* 读取FLASH */
 	pcm_read();								
 	prm_read();							

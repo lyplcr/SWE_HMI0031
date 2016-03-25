@@ -196,9 +196,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>3616</LineNumber>
+          <LineNumber>3620</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134475486</Address>
+          <Address>134477234</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -207,7 +207,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\APP\src\MainPage.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\DTS_2500_HMI0030\../APP/src/MainPage.c\3616</Expression>
+          <Expression>\\DTS_2500_HMI0030\../APP/src/MainPage.c\3620</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
