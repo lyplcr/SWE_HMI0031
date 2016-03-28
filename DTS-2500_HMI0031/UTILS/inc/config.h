@@ -14,7 +14,7 @@
 #define	__CONFIG_H	
 
 /* 宏定义软件为正式版本 */
-//#define		VERSION_RELEASE	
+#define		VERSION_RELEASE	
 
 #ifdef VERSION_RELEASE
 	#define ENABLE_BEEP

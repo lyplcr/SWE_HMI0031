@@ -403,6 +403,8 @@ static void CheckSystemParameterOverflow( void )
 {
 	uint32_t len = 0;
 	
+	len = len;
+	
 	len = sizeof(HMI_TypeDef);
 	ECHO(DEBUG_PARAMETER_LEN,"PCM  最大长度：%d ,当前长度：%d\r\n",200,len);
 	

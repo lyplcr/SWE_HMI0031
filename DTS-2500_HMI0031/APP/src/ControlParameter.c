@@ -1870,13 +1870,13 @@ static TestStatus ControlParameterCheckData( uint8_t index )
 			break;
 			
 		case OBJECT_YIELD_DISTURB_THRESHOLD:
-			tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-			if (tempu > 60000)
-			{
-				SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[14]);
-				
-				return FAILED;
-			}
+//			tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
+//			if (tempu > 60000)
+//			{
+//				SetPopWindowsInfomation(POP_PCM_CUE,2,&ControlParamErrInfoKN[14]);
+//				
+//				return FAILED;
+//			}
 			break;
 		
 		default:
@@ -2015,7 +2015,7 @@ float GetTargetBreakStartValue( SMPL_NAME_TypeDef channel )
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-uint16_t GetYieldDisturbThreshold( void )
+uint32_t GetYieldDisturbThreshold( void )
 {
 	return pHmi->yieldDisturbThreshold;
 }

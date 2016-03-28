@@ -4729,7 +4729,7 @@ static void KL_TestLoadCoreCycle( void )
 			if (force > g_klTestBody.recordUpYieldForce)
 			{
 				float deformRate = 0;
-				uint16_t yieldDisturbThreshold = GetYieldDisturbThreshold();
+				uint32_t yieldDisturbThreshold = GetYieldDisturbThreshold();
 				
 				if (fabs(g_klTestBody.recordUpYieldDeform) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 				{

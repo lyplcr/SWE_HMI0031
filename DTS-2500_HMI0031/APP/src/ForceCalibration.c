@@ -2776,6 +2776,9 @@ static void ForceCalibrationCancelPointProcess( void )
 		
 		if (g_CalibrationBody.flagCalibrationComplete == SET)
 		{
+			GUI_ClearShortcutMenu();
+			g_ForceCalibration.refreshShortcut = ENABLE;
+			
 			g_CalibrationBody.flagCalibrationComplete = RESET;
 		}
 		
