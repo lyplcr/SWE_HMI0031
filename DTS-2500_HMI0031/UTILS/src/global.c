@@ -158,6 +158,10 @@ const char * const pTwoLevelMenu[] =
 	" 查看曲线 ",		//86
 	"  导  入  ",		//87
 	"  码取反  ",		//88
+	" 开始校准 ",		//89
+	" 开始检定 ",		//90
+	" 结束校准 ",		//91
+	" 结束检定 ",		//92
 };
 
 const char * const pUnitType[] = 
@@ -579,7 +583,7 @@ void RefreshDynamicStrength( uint16_t x, uint16_t y, uint16_t pointColor, uint16
 	
 	strength = SetValueNotEqualZero(strength);
 	
-	if (absStrength < 1000)
+	if (absStrength < 10000)
 	{
 		disp_value(strength,DISP_CHN_STRENGTH,x,y,pointColor,backColor,3,1);
 	}
@@ -769,7 +773,7 @@ void RefreshDynamicTestStatus( uint16_t x, uint16_t y, uint16_t pointColor, uint
 			GUI_DispStr16At(x,y,pointColor,backColor,"屈服");
 			break;
 		case TEST_DEFORM:
-			FefreshFlickerStatus(x,y,pointColor,backColor,"加载",16);
+			GUI_DispStr16At(x,y,pointColor,backColor,"变形");
 			break;
 		case TEST_BREAK:
 			GUI_DispStr16At(x,y,pointColor,backColor,"判破");

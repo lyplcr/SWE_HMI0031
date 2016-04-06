@@ -398,7 +398,7 @@ static void ControlParameterConfig( void )
 			break;
 		case SMPL_WY_NUM:
 			/* 个数 */
-			g_controlParameter.curParameterNum = 2;	
+			g_controlParameter.curParameterNum = 1;	
 		
 			/* 索引值 */
 			g_controlParameter.indexArray[INDEX_SYSTEM_MAX_VALUE] 					= OBJECT_SYSTEM_MAX_VALUE;
@@ -453,7 +453,7 @@ static void ControlParameterConfig( void )
 			break;
 		case SMPL_BX_NUM:
 			/* 个数 */
-			g_controlParameter.curParameterNum = 2;	
+			g_controlParameter.curParameterNum = 1;	
 		
 			/* 索引值 */
 			g_controlParameter.indexArray[INDEX_SYSTEM_MAX_VALUE] 					= OBJECT_SYSTEM_MAX_VALUE;

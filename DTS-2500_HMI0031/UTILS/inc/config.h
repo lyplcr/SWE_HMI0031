@@ -14,7 +14,7 @@
 #define	__CONFIG_H	
 
 /* 宏定义软件为正式版本 */
-#define		VERSION_RELEASE	
+//#define		VERSION_RELEASE	
 
 #ifdef VERSION_RELEASE
 	#define ENABLE_BEEP
@@ -34,7 +34,7 @@
 #define		FLASH_FONT_PASSWORD		0x2F8E4A7D							//FLASH字库密码
 
 #define		SYSTEM_MODEL			"SWE"								//系统型号
-#define		SOFT_VERSION			"1.1.8.0"							//上位机软件版本	
+#define		SOFT_VERSION			"1.1.9.0"							//上位机软件版本	
 #define		PCB_VERSION				"HMI0031"							//上位机PCB版本
 
 #define 	CLI()     			 	__disable_irq()

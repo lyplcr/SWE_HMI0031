@@ -326,6 +326,9 @@ static void ForceCalibationInit( void )
 	g_ForceCalibration.curPageSampleNum = 0;
 	g_ForceCalibration.sumSampleNum = 0;	
 	g_ForceCalibration.sumPage = 1;
+	
+	g_CalibrationBody.startCalibration = RESET;
+	g_CalibrationBody.endCalibration = RESET;
 }
 
 /*------------------------------------------------------------
@@ -1785,22 +1788,44 @@ static void ForceCalibrationShortcutCycleTask( void )
 		switch ( GetCalibrationStatus() )
 		{
 			case STATUS_CALIBRATION_IDLE:
-				pShortCut->status = SHOW_F4;
-					
+				pShortCut->status = SHOW_F1 | SHOW_F4;
+				
+				if (GetPageName() == FORCE_CALIBRATION_PAGE)
+				{
+					pShortCut->pContent[0] = pTwoLevelMenu[89];	
+				}
+				else if (GetPageName() == FORCE_VERIFICATION_PAGE)
+				{
+					pShortCut->pContent[0] = pTwoLevelMenu[90];	
+				}				
 				pShortCut->pContent[3] = pTwoLevelMenu[60];
 				break;
 			case STATUS_CALIBRATION_PROCESS:
-				pShortCut->status = SHOW_F3 | SHOW_F4;
-				pShortCut->pContent[2] = pTwoLevelMenu[65];
-				pShortCut->pContent[3] = pTwoLevelMenu[47];
-				break;
 			case STATUS_CALIBRATION_BACKHAUL:
-				pShortCut->status = SHOW_F3 | SHOW_F4;
+				pShortCut->status = SHOW_F1 | SHOW_F3 | SHOW_F4;
+				
+				if (GetPageName() == FORCE_CALIBRATION_PAGE)
+				{
+					pShortCut->pContent[0] = pTwoLevelMenu[91];	
+				}
+				else if (GetPageName() == FORCE_VERIFICATION_PAGE)
+				{
+					pShortCut->pContent[0] = pTwoLevelMenu[92];	
+				}
 				pShortCut->pContent[2] = pTwoLevelMenu[65];
 				pShortCut->pContent[3] = pTwoLevelMenu[47];
 				break;
 			case STATUS_CALIBRATION_END:
-				pShortCut->status = SHOW_F2 | SHOW_F3 | SHOW_F4;
+				pShortCut->status = SHOW_F1 | SHOW_F2 | SHOW_F3 | SHOW_F4;
+			
+				if (GetPageName() == FORCE_CALIBRATION_PAGE)
+				{
+					pShortCut->pContent[0] = pTwoLevelMenu[89];	
+				}
+				else if (GetPageName() == FORCE_VERIFICATION_PAGE)
+				{
+					pShortCut->pContent[0] = pTwoLevelMenu[90];	
+				}
 				pShortCut->pContent[1] = pTwoLevelMenu[19];
 				pShortCut->pContent[2] = pTwoLevelMenu[85];
 				pShortCut->pContent[3] = pTwoLevelMenu[60];
@@ -2073,6 +2098,21 @@ static void ForceCalibrationKeyProcess( void )
 	{
 		switch ( GetKeyVal() )
 		{
+			case KEY_F1:
+				switch ( GetCalibrationStatus() )
+				{
+					case STATUS_CALIBRATION_IDLE:
+					case STATUS_CALIBRATION_END:
+						g_CalibrationBody.startCalibration = SET;
+						break;
+					case STATUS_CALIBRATION_PROCESS:
+					case STATUS_CALIBRATION_BACKHAUL:
+						g_CalibrationBody.endCalibration = SET;
+						break;
+					default:
+						break;
+				}
+				break;
 			case KEY_F2:
 //			case KEY_PRINT:
 				ForceCalibrationKeyF2Process();
@@ -2158,11 +2198,19 @@ static void ForceCalibrationKeyProcess( void )
  *------------------------------------------------------------*/
 static void ForceCalibrationCheckWarn( void )
 {	
-	/* 检测下位机警告 */
-	if (CheckPrmWarning() == YES)
-	{	
-		g_ForceCalibration.leavePage.flagLeavePage = SET;
-		g_ForceCalibration.leavePage.flagSaveData = RESET;
+	switch ( GetCalibrationStatus() )
+	{
+		case STATUS_CALIBRATION_IDLE:
+		case STATUS_CALIBRATION_END:
+			/* 检测下位机警告 */
+			if (CheckPrmWarning() == YES)
+			{	
+				g_ForceCalibration.leavePage.flagLeavePage = SET;
+				g_ForceCalibration.leavePage.flagSaveData = RESET;
+			}
+			break;
+		default:
+			break;
 	}	
 }
 
@@ -2285,7 +2333,7 @@ static FunctionalState ForceCalibrationAllowRunCalibration( void )
 		return DISABLE;
 	}
 	
-	/* 检测试块个数 */
+	/* 检测个数 */
 	if (g_ForceCalibration.sumSampleNum == 0)
 	{
 		SetPopWindowsInfomation(POP_PCM_CUE,1,&pForceCalibrationWarning[1]);
@@ -2344,8 +2392,6 @@ static void ReloadForceCalibrationArea( void )
  *------------------------------------------------------------*/
 static void ForceCalibrationExecuteStartBody( void )
 {
-	g_CalibrationBody.startCalibration = SET;
-	g_CalibrationBody.endCalibration = RESET;
 	g_CalibrationBody.curCompletePieceSerial = 0;
 	g_CalibrationBody.flagCalibrationComplete = RESET;
 	g_CalibrationBody.flagTakePoint = RESET;
@@ -2375,14 +2421,9 @@ static void ForceCalibrationExecuteEndBody( void )
 	else
 	{
 		SetCalibrationStatus(STATUS_CALIBRATION_IDLE);
-	}
-	
-	g_CalibrationBody.startCalibration = RESET;
-	g_CalibrationBody.endCalibration = SET;
+	}	
 	
 	g_ForceCalibration.refreshShortcut = ENABLE;
-	
-	GUI_ClearShortcutMenu();
 }
 
 /*------------------------------------------------------------
@@ -2744,14 +2785,16 @@ static void ForceCalibrationTakePointProcess( void )
 		{
 			g_CalibrationBody.flagCalibrationComplete = SET;
 			
-			if (GetPageName() == FORCE_CALIBRATION_PAGE)
-			{
-				SetShortCutMenuCue(COLOR_POINT,DARKBLUE,"校准结束，请卸载！");
-			}
-			else if (GetPageName() == FORCE_VERIFICATION_PAGE)
-			{
-				SetShortCutMenuCue(COLOR_POINT,DARKBLUE,"检定结束，请卸载！");
-			}
+			#if 0
+				if (GetPageName() == FORCE_CALIBRATION_PAGE)
+				{
+					SetShortCutMenuCue(COLOR_POINT,DARKBLUE,"校准结束，请卸载！");
+				}
+				else if (GetPageName() == FORCE_VERIFICATION_PAGE)
+				{
+					SetShortCutMenuCue(COLOR_POINT,DARKBLUE,"检定结束，请卸载！");
+				}
+			#endif
 		}
 	}
 }	
@@ -2776,7 +2819,6 @@ static void ForceCalibrationCancelPointProcess( void )
 		
 		if (g_CalibrationBody.flagCalibrationComplete == SET)
 		{
-			GUI_ClearShortcutMenu();
 			g_ForceCalibration.refreshShortcut = ENABLE;
 			
 			g_CalibrationBody.flagCalibrationComplete = RESET;
@@ -2830,14 +2872,11 @@ static void ForceCalibrationCancelPointProcess( void )
  *------------------------------------------------------------*/
 static void ForceCalibrationTakePointCoreCycle( void )
 {	
-	if (g_CalibrationBody.startCalibration == SET)
-	{
-		/* 打点处理 */
-		ForceCalibrationTakePointProcess();
-		
-		/* 撤销一点处理 */
-		ForceCalibrationCancelPointProcess();
-	}
+	/* 打点处理 */
+	ForceCalibrationTakePointProcess();
+	
+	/* 撤销一点处理 */
+	ForceCalibrationCancelPointProcess();
 }	
 
 /*------------------------------------------------------------
@@ -2849,14 +2888,13 @@ static void ForceCalibrationTakePointCoreCycle( void )
  *------------------------------------------------------------*/
 static void ForceCalibrationExecuteCoreCycle( void )
 {
-	float force = get_smpl_value(g_ForceCalibration.curChannel);
-	float startLoadForce = smpl_ctrl_entry_get(g_ForceCalibration.curChannel);
-	
 	switch ( GetCalibrationStatus() )
 	{
 		case STATUS_CALIBRATION_IDLE:
-			if (force > startLoadForce)
+			if (g_CalibrationBody.startCalibration == SET)
 			{
+				g_CalibrationBody.startCalibration = RESET;
+				
 				if (ForceCalibrationAllowRunCalibration() == ENABLE)
 				{
 					ForceCalibrationExecuteStartBody();
@@ -2869,16 +2907,18 @@ static void ForceCalibrationExecuteCoreCycle( void )
 			}
 			break;
 		case STATUS_CALIBRATION_PROCESS:
-			if (force < startLoadForce)
+		case STATUS_CALIBRATION_BACKHAUL:
+			ForceCalibrationTakePointCoreCycle();
+			
+			if (g_CalibrationBody.endCalibration == SET)
 			{
+				g_CalibrationBody.endCalibration = RESET;
+			
 				ForceCalibrationExecuteEndBody();
 			}
 			break;
-		case STATUS_CALIBRATION_BACKHAUL:			
-			break;
-		case STATUS_CALIBRATION_END:	
-			/* 再次进入校准过程 */
-			if (force > startLoadForce)
+		case STATUS_CALIBRATION_END:
+			if (g_CalibrationBody.startCalibration == SET)
 			{
 				SetCalibrationStatus(STATUS_CALIBRATION_IDLE);
 			}
@@ -2887,9 +2927,6 @@ static void ForceCalibrationExecuteCoreCycle( void )
 		default:			
 			break;
 	}
-	
-	/* 打点 */
-	ForceCalibrationTakePointCoreCycle();
 }
 
 /*------------------------------------------------------------

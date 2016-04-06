@@ -164,7 +164,6 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name></Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -192,29 +191,27 @@
           <Name>-O207 -S0 -C0 -FO7  -FN1 -FC1000 -FD20000000 -FF0STM32F4xx_512 -FL080000 -FS08000000 -FP0($$Device:STM32F407VE$CMSIS\Flash\STM32F4xx_512.FLM)</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint>
-        <Bp>
-          <Number>0</Number>
-          <Type>0</Type>
-          <LineNumber>3620</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134473962</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\APP\src\MainPage.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\DTS_2500_HMI0030\../APP/src/MainPage.c\3620</Expression>
-        </Bp>
-      </Breakpoint>
+      <Breakpoint/>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
           <ItemText>pCurve</ItemText>
+        </Ww>
+        <Ww>
+          <count>1</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>pDrawLine</ItemText>
+        </Ww>
+        <Ww>
+          <count>2</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>g_CalibrationBody.calibrationStatus</ItemText>
+        </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>g_CalibrationBody.calibrationStatus</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>
@@ -1099,7 +1096,7 @@
 
   <Group>
     <GroupName>UTILS</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

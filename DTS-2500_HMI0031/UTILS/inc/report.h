@@ -15,7 +15,7 @@
 
 #pragma pack(1)
 
-#define SUPPORT_TEST_NUM				12							//支持的试验个数
+#define SUPPORT_TEST_NUM				15							//支持的试验个数
 
 /* 试验类型选择 */
 typedef enum 
@@ -32,6 +32,9 @@ typedef enum
 	KZYJSNJ,		//[9]压浆水泥浆抗折
 	KZTY,			//[10]通用抗折
 	KLJSSW,			//[11]金属室温拉伸
+	KLYYLGJX,		//[12]预应力钢绞线拉伸
+	KLGJHJJT,		//[13]钢筋焊接接头拉伸
+	KLGJJXJT,		//[14]钢筋机械接头拉伸
 }TEST_TYPE_TypeDef;
 
 
@@ -101,8 +104,6 @@ typedef struct
 #define RECORD_COORDINATE_TIME_SECOND	(5 * 60)			//5分钟	
 #define DECORD_COORDINATE_FORCE_NUM		(RECORD_COORDINATE_TIME_SECOND * RECORD_COORDINATE_FREQ) 
 
-
-/* X、Y类型：0-时间，1-变形，2-力值 */
 typedef struct
 {
 	uint8_t xType;						//X轴类型（COORDINATE_TYPE_TypeDef）

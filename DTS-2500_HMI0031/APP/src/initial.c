@@ -405,6 +405,10 @@ static void CheckSystemParameterOverflow( void )
 	
 	len = len;
 	
+	#if (SUPPORT_TEST_NUM > TEST_NUM)
+		#error "Test num overflow."
+	#endif
+	
 	len = sizeof(HMI_TypeDef);
 	ECHO(DEBUG_PARAMETER_LEN,"PCM  最大长度：%d ,当前长度：%d\r\n",200,len);
 	

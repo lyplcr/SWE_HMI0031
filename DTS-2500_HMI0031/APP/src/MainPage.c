@@ -41,7 +41,7 @@
 #define TEST_INFOMATION_FAILED_MAX_CHAR_NUM	16
 #define TEST_RESULT_SERIAL_MAX_CHAR_NUM		4
 #define TEST_RESULT_FORCE_MAX_CHAR_NUM		8	
-#define TEST_RESULT_STRENGTH_MAX_CHAR_NUM	6	//0->经过floattochar转换后，变成-0.0，所以内存需要大一些
+#define TEST_RESULT_STRENGTH_MAX_CHAR_NUM	8	//0->经过floattochar转换后，变成-0.0，所以内存需要大一些
 #define TEST_RESULT_AVAIL_SERIAL_MAX_CHAR_NUM	8
 #define KL_TEST_MAX_CHAR_BIT				8	//抗拉试验支持最大字符个数
 
@@ -290,10 +290,22 @@ typedef struct
 	const char *pSeparator;	
 }KL_TEST_PROGRESS_TypeDef;
 
+typedef enum
+{
+	YIELD_MODE_ERROR = 0,	//错误屈服模式
+	OBVIOUS_YIELD,			//明显屈服模式
+	SIGMA0_2,				//σ0.2模式
+}YIELD_JUDGE_MODE_TypeDef;
+
+typedef enum
+{
+	STATUS_UP_YIELD_IDLE = 0,
+	STATUS_UP_YIELD_START,
+	STATUS_UP_YIELD_END,
+}STATUS_UP_YIELD_TypeDef;
+
 typedef struct
 {
-	FlagStatus flagStartJudgeYield;		//起始判断屈服标识
-	
 	float maxForce;						//最大力
 	float maxStrength;					//最大强度
 	float upYieldForce;					//上屈服力
@@ -308,13 +320,15 @@ typedef struct
 	float recordDeform;					//记录上一次变形
 	float nowDeform;					//当前变形
 	
-	/* 计算屈服点、最大力 */
-	uint32_t upYieldForceIndex;
-	uint32_t maxForceIndex;
+	/* 计算最大力 */
+	uint32_t maxForceIndex;				//最大力索引值
 	
-	/* 计算上屈服点 */
+	/* 计算屈服点 */
+	STATUS_UP_YIELD_TypeDef upYieldStatus;//上屈服状态 
+	FlagStatus flagExistYield;			//存在屈服现象标志
+	uint32_t upYieldForceIndex;			//上屈服时力值索引值
 	float recordUpYieldForce;			//记录上一点力值
-	float recordUpYieldDeform;			//记录上一点变形
+	float recordUpYieldDisplacement;	//记录上一点位移
 }KL_TEST_BODY_TypeDef;
 
 
@@ -559,6 +573,35 @@ static void MainPageInit( void )
 	g_mainPage.fhChannelUnit = GetFH_SmplUnit();
 	g_mainPage.wyChannelUnit = GetWY_SmplUnit();
 	g_mainPage.bxChannelUnit = GetBX_SmplUnit();
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetYieldJudgeMode
+ * Description    : 获取屈服判断方式
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static YIELD_JUDGE_MODE_TypeDef GetYieldJudgeMode( TEST_TYPE_TypeDef testType )
+{
+	YIELD_JUDGE_MODE_TypeDef mode = YIELD_MODE_ERROR;
+	
+	switch ( testType )
+	{
+		case KLJSSW:
+			mode = OBVIOUS_YIELD;
+			break;
+		case KLYYLGJX:
+		case KLGJHJJT:
+		case KLGJJXJT:	
+			mode = SIGMA0_2;
+			break;
+		default:	
+			mode = YIELD_MODE_ERROR;
+			break;
+	}
+	
+	return mode;
 }
 
 /*------------------------------------------------------------
@@ -1044,12 +1087,13 @@ static void MainPageWriteStrength( uint8_t index, float strength )
 {
 	if ((index>=1) && (index<=MAX_TEST_RESULT_TABLE_ONE_PAGE_NUM))
 	{		
-		if (fabs(strength) > 999)
+		if (fabs(strength) > 9999999)
 		{
-			strcpy(g_mainPage.testResultData[index-1].strength,"---");
+			strcpy(g_mainPage.testResultData[index-1].force,"--------");
 			
 			return;
 		}
+		
 		floattochar(TEST_RESULT_STRENGTH_MAX_CHAR_NUM,SHOW_STRENGTH_DOT_BIT,strength,g_mainPage.testResultData[index-1].strength);
 	}
 }
@@ -2890,7 +2934,7 @@ static void RefreshDynamicContent( void )
  *------------------------------------------------------------*/
 static void ClearMainPageCoordinate( uint16_t color )
 {
-	lcd_fill(4,110,350,290,color);
+	lcd_fill(2,90,358,336,color);
 }
 
 /*------------------------------------------------------------
@@ -4478,14 +4522,10 @@ static void MainPageExecuteTestStartBody( void )
 		case BENDING_TEST:		
 			/* 跳转到试验结果页 */
 			KZKY_TestJumpTestResultPage();
-			
-			g_mainPage.refreshShortcut = ENABLE;
 			break;
 		case STRETCH_TEST:							
 			/* 初始化抗拉试验 */
 			InitKL_TestBody(&g_klTestBody);
-		
-			CountSampleValueCycle();
 		
 			/* 跳转到试验结果页 */
 			KL_TestJumpTestResultPage();
@@ -4504,14 +4544,11 @@ static void MainPageExecuteTestStartBody( void )
 	g_testBody.flagStartJudgeBreak = RESET;
 	
 	g_testBody.breakPeak = 0;
-	g_testBody.breakStrength = 0;
-	
-	g_klTestBody.flagStartJudgeYield = RESET;
-	
-	g_klTestBody.recordUpYieldForce = 0.0f;
-	g_klTestBody.recordUpYieldDeform = 0.0f; 
+	g_testBody.breakStrength = 0;	
 	
 	SetTestStatus(TEST_LOAD);
+	
+	g_mainPage.refreshShortcut = ENABLE;
 }
 
 /*------------------------------------------------------------
@@ -4664,13 +4701,6 @@ static void KL_TestCheckPeakCycle( void )
 	}
 }
 
-typedef enum
-{
-	STATUS_UP_YIELD_IDLE = 0,
-	STATUS_UP_YIELD_START,
-	STATUS_UP_YIELD_END,
-}STATUS_UP_YIELD_TypeDef;
-
 /*------------------------------------------------------------
  * Function Name  : KL_TestLoadCoreCycle
  * Description    : 抗拉试验加载循环体
@@ -4680,133 +4710,176 @@ typedef enum
  *------------------------------------------------------------*/
 static void KL_TestLoadCoreCycle( void )
 {
-	float force 				= get_smpl_value(SMPL_FH_NUM);
-	float peak 					= GetPeakValue(SMPL_FH_NUM);
-	float yieldStartValue 		= GetTargetBreakStartValue(SMPL_FH_NUM);
-	static STATUS_UP_YIELD_TypeDef s_upYieldStatus = STATUS_UP_YIELD_IDLE;
+	float force 			= get_smpl_value(SMPL_FH_NUM);
+	float yieldStartValue 	= GetTargetBreakStartValue(SMPL_FH_NUM);
+	float startLoadForce 	= smpl_ctrl_entry_get(SMPL_FH_NUM);
 	
-	if (force > yieldStartValue)
-	{
-		if (g_klTestBody.flagStartJudgeYield == RESET)
-		{
-			g_klTestBody.flagStartJudgeYield = SET;
-			s_upYieldStatus = STATUS_UP_YIELD_IDLE;
-			
-			ECHO(DEBUG_TEST_LOAD,"到达屈服起判力值！\r\n");
-		}
+	if (force < startLoadForce)
+	{											
+		SetTestStatus(TEST_DEFORM);		
+		ECHO(DEBUG_TEST_LOAD,"拉伸试验跳过屈服阶段！\r\n");
 	}
+	else if (force > yieldStartValue)
+	{
+		SetTestStatus(TEST_YIELD);
+		ECHO(DEBUG_TEST_LOAD,"到达屈服起判力值！\r\n");		
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : KZ_KY_TestLoadCoreCycle
+ * Description    : 抗折抗压试验加载循环体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void KZ_KY_TestLoadCoreCycle( void )
+{
+	float force 			= get_smpl_value(SMPL_FH_NUM);
+	float startLoadForce 	= smpl_ctrl_entry_get(SMPL_FH_NUM);
 	
-	if (g_klTestBody.flagStartJudgeYield == RESET)
+	if (force < startLoadForce)
 	{
-		return;
+		g_mainPage.refreshShortcut = ENABLE;		
+		SetTestStatus(TEST_IDLE);	
+		ECHO(DEBUG_TEST_LOAD,"试验停止！\r\n");
 	}
+	else
+	{
+		MainPageJudgeBreakCoreCycle();
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageLoadCoreCycle
+ * Description    : 加载核心循环体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageLoadCoreCycle( void )
+{
+	switch ( g_mainPage.testAttribute )
+	{
+		case COMPRESSION_TEST:
+		case BENDING_TEST:
+			KZ_KY_TestLoadCoreCycle();
+			break;
+		case STRETCH_TEST:						
+			KL_TestLoadCoreCycle();
+			break;
+		case INVALID_TEST:
+			break;
+		default:
+			break;
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : KL_TestLoadYieldProcess
+ * Description    : 抗拉试验加载屈服处理
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void KL_TestLoadYieldProcess( void )
+{
+	float force = get_smpl_value(SMPL_FH_NUM);
 	
 	/* 
 		上屈服点定义：试样发生屈服而力首次下降的点。
 		判断上屈服点，由于存在丝杆打滑等干扰，都可能导致力值下降。
-		因此计算力值下降后，至力值重新回到上次的力值下降点之间的变形值
+		因此计算力值下降后，至力值重新回到上次的力值下降点之间的位移值
 		的变化率：
-			如果大于设定值，说明变形值变化幅度较大，与屈服段变形值的变化趋势相近，
+			如果大于设定值，说明位移值变化幅度较大，与屈服段位移值的变化趋势相近，
 		可以判断为上屈服点。
-			如果小于设定值，说明变形值变化幅度较小，与干扰产生的变形值变化趋势相近，
+			如果小于设定值，说明位移值变化幅度较小，与干扰产生的位移值变化趋势相近，
 		可以判断为干扰，忽略此次的上屈服点。
 	*/
-	switch ( s_upYieldStatus )
+	switch ( g_klTestBody.upYieldStatus )
 	{
 		case STATUS_UP_YIELD_IDLE:
 			if (force > g_klTestBody.recordUpYieldForce)
 			{
 				g_klTestBody.recordUpYieldForce = force;
-				g_klTestBody.recordUpYieldDeform = g_klTestBody.nowDeform;
-				g_klTestBody.upYieldForceIndex = GetDrawLineNextTimePoint();	//执行当前函数时，还没记录当前点的力值。因此，记录下一点的力值索引
+				g_klTestBody.recordUpYieldDisplacement = get_smpl_value(SMPL_WY_NUM);
+				g_klTestBody.upYieldForceIndex = GetDrawLineNowTimePoint();	
 			}
 			else
 			{
-				s_upYieldStatus = STATUS_UP_YIELD_START;
+				g_klTestBody.upYieldStatus = STATUS_UP_YIELD_START;
 			}
 			break;
 		case STATUS_UP_YIELD_START:
 			if (force > g_klTestBody.recordUpYieldForce)
 			{
-				float deformRate = 0;
+				float DispalcementRate = 0;
 				uint32_t yieldDisturbThreshold = GetYieldDisturbThreshold();
 				
-				if (fabs(g_klTestBody.recordUpYieldDeform) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+				if (fabs(g_klTestBody.recordUpYieldDisplacement) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 				{
-					g_klTestBody.recordUpYieldDeform = MIN_FLOAT_PRECISION_DIFF_VALUE;
-					ECHO(DEBUG_YIELD_DEFORM,"屈服变形值错误！\r\n");
+					g_klTestBody.recordUpYieldDisplacement = MIN_FLOAT_PRECISION_DIFF_VALUE;
+					ECHO(DEBUG_YIELD_DEFORM,"屈服位移值错误！\r\n");
 				}
 				
-				deformRate = fabs( (g_klTestBody.nowDeform - g_klTestBody.recordUpYieldDeform)\
-										/ g_klTestBody.recordUpYieldDeform ) * 1000;
+				DispalcementRate = fabs( (g_klTestBody.nowDeform - g_klTestBody.recordUpYieldDisplacement)\
+										/ g_klTestBody.recordUpYieldDisplacement ) * 1000;
 				
-				if (deformRate > yieldDisturbThreshold)
+				if (DispalcementRate > yieldDisturbThreshold)
 				{
-					s_upYieldStatus = STATUS_UP_YIELD_END;
+					g_klTestBody.upYieldStatus = STATUS_UP_YIELD_END;
 				}
 				else
 				{
-					s_upYieldStatus = STATUS_UP_YIELD_IDLE;
+					g_klTestBody.upYieldStatus = STATUS_UP_YIELD_IDLE;
 				}
 				
-				ECHO(DEBUG_YIELD_DEFORM,"上屈服变形变化率：%f\r\n",deformRate);
+				ECHO(DEBUG_YIELD_DEFORM,"上屈服位移变化率：%f\r\n",DispalcementRate);
 				ECHO(DEBUG_YIELD_DEFORM,"上屈服点力值：%f\r\n",GetDrawLineSomeTimePointForce( g_klTestBody.upYieldForceIndex ));
 			}
 			break;
 		case STATUS_UP_YIELD_END:
-			g_klTestBody.upYieldForce = GetDrawLineSomeTimePointForce( g_klTestBody.upYieldForceIndex );	
-			g_klTestBody.upYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.upYieldForce);
-			
+			g_klTestBody.flagExistYield = SET;
 			SetTestStatus(TEST_DEFORM);
-			
-			ECHO(DEBUG_TEST_LOAD,"到达上屈服点！\r\n");
-			ECHO(DEBUG_TEST_LOAD,"上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
 			break;
 		default:
-			s_upYieldStatus = STATUS_UP_YIELD_IDLE;
+			g_klTestBody.upYieldStatus = STATUS_UP_YIELD_IDLE;
 			break;
 	}
 }
-#if 0
-	/*------------------------------------------------------------
-	 * Function Name  : KL_TestYieldCoreCycle
-	 * Description    : 抗拉试验屈服段循环体
-	 * Input          : None
-	 * Output         : None
-	 * Return         : None
-	 *------------------------------------------------------------*/
-	static void KL_TestYieldCoreCycle( void )
+
+/*------------------------------------------------------------
+ * Function Name  : KL_TestYieldCycle
+ * Description    : 抗拉试验屈服段循环体
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void KL_TestYieldCycle( void )
+{
+	float force 			= get_smpl_value(SMPL_FH_NUM);
+	float startLoadForce 	= smpl_ctrl_entry_get(SMPL_FH_NUM);
+	
+	if (force < startLoadForce)
 	{
-		float force = get_smpl_value(SMPL_FH_NUM);
-		float startLoadForce = smpl_ctrl_entry_get(SMPL_FH_NUM);
-		
-		/* 记录屈服阶段最低力值点 */
-		if (force < g_klTestBody.downYieldForce)
+		SetTestStatus(TEST_DEFORM);		
+		ECHO(DEBUG_TEST_LOAD,"拉伸试验未出现屈服现象！\r\n");
+	}
+	else
+	{
+		switch ( GetYieldJudgeMode(g_mainPage.testType) )
 		{
-			g_klTestBody.downYieldForce = force;
-		}
-		
-		/* 离开屈服段 */
-		if (force > g_klTestBody.upYieldForce)
-		{
-			g_klTestBody.downYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.downYieldForce);
-			
-			SetTestStatus(TEST_DEFORM);
-			
-			ECHO(DEBUG_TEST_LOAD,"离开屈服段！\r\n");
-			ECHO(DEBUG_TEST_LOAD,"下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);		
-		}
-		
-		if (force < startLoadForce)
-		{
-			g_mainPage.refreshShortcut = ENABLE;
-			
-			SetTestStatus(TEST_IDLE);
-			
-			ECHO(DEBUG_TEST_LOAD,"试验停止！\r\n");
+			case OBVIOUS_YIELD:
+				KL_TestLoadYieldProcess();
+				break;
+			case SIGMA0_2:
+				
+				break;
+			default:
+				break;
 		}
 	}
-#endif
+}
 
 /*------------------------------------------------------------
  * Function Name  : KL_TestDeformCoreCycle
@@ -4821,9 +4894,7 @@ static void KL_TestDeformCoreCycle( void )
 	float startLoadForce = smpl_ctrl_entry_get(SMPL_FH_NUM);
 	
 	if (force < startLoadForce)
-	{
-		g_klTestBody.maxStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.maxForce);
-		
+	{	
 		g_testBody.flagOnePieceSampleComplete = SET;
 		
 		g_testBody.curCompletePieceSerial++;
@@ -5760,8 +5831,16 @@ static void MainPageExecuteEndOnePieceProcess( void )
 						PrintYieldForce();
 					#endif
 					
-					g_klTestBody.downYieldForce = GetDownYieldForce();
-					g_klTestBody.downYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.downYieldForce);
+					g_klTestBody.maxStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.maxForce);
+					
+					if (g_klTestBody.flagExistYield == SET)
+					{
+						g_klTestBody.upYieldForce = GetDrawLineSomeTimePointForce( g_klTestBody.upYieldForceIndex );	
+						g_klTestBody.upYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.upYieldForce);
+	
+						g_klTestBody.downYieldForce = GetDownYieldForce();
+						g_klTestBody.downYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.downYieldForce);
+					}
 					
 					g_klTestBody.maxForceSumElongation = GetMaxForceSumElongation();
 				
@@ -5774,6 +5853,7 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					g_readReport.maxForceSumExtend[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForceSumExtend;
 					g_readReport.maxForceSumElongation[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForceSumElongation;
 					
+					ECHO(DEBUG_TEST_LOAD,"上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
 					ECHO(DEBUG_TEST_LOAD,"下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);
 					ECHO(DEBUG_TEST_LOAD,"最大力总延伸：%f, 最大力总伸长率：%f\r\n",g_klTestBody.maxForceSumExtend,g_klTestBody.maxForceSumElongation);
 				}
@@ -5979,62 +6059,33 @@ static void MainPageTestExecuteCoreCycle( void )
 				}
 			}
 			break;
-		case TEST_LOAD:
-			if (force < startLoadForce)
-			{
-				g_mainPage.refreshShortcut = ENABLE;
-				
-				SetTestStatus(TEST_IDLE);
-				
-				ECHO(DEBUG_TEST_LOAD,"试验停止！\r\n");
-			}
-		
-			switch ( g_mainPage.testAttribute )
-			{
-				case COMPRESSION_TEST:
-				case BENDING_TEST:
-					MainPageJudgeBreakCoreCycle();		
-					break;
-				case STRETCH_TEST:	
-					KL_TestLoadCoreCycle();
-					break;
-				case INVALID_TEST:
-					break;
-				default:
-					break;
-			}			
+		case TEST_LOAD:	
+			MainPageLoadCoreCycle();			
 			break;
 		case TEST_YIELD:
+			KL_TestYieldCycle();
 			break;
 		case TEST_DEFORM:
 			KL_TestDeformCoreCycle();
 			break;
 		case TEST_BREAK:
-			SetShortCutMenuCue(COLOR_POINT,DARKBLUE,"试样已破碎！");
-		
-			SetTestStatus(TEST_UNLOAD);
-		
+			SetShortCutMenuCue(COLOR_POINT,DARKBLUE,"试样已破碎！");	
+			SetTestStatus(TEST_UNLOAD);	
 			ECHO(DEBUG_TEST_LOAD,"判破提示！\r\n");
 			break;
 		case TEST_UNLOAD:
 			if (force < startLoadForce)
 			{
-				GUI_ClearShortcutMenu();
-				
-				MainPageExecuteTestEndBody();
-				
-				SetTestStatus(TEST_SAVE);
-				
+				GUI_ClearShortcutMenu();				
+				MainPageExecuteTestEndBody();				
+				SetTestStatus(TEST_SAVE);				
 				ECHO(DEBUG_TEST_LOAD,"试验后处理！\r\n");
 			}
 			break;
 		case TEST_SAVE:
-			MainPageTestAfterDisposeExecuteCycle();
-		
+			MainPageTestAfterDisposeExecuteCycle();		
 			SetTestStatus(TEST_IDLE);
-
 			g_mainPage.refreshShortcut = ENABLE;
-
 			ECHO(DEBUG_TEST_LOAD,"试验结束！\r\n");
 			break;
 		
@@ -6201,7 +6252,9 @@ static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeD
 	{
 		case STATUS_DRAW_LINE_IDLE:
 			if (force > curveShowStartForce)
-			{						
+			{			
+				InitSampleProcess(SMPL_FH_NUM);
+				
 				LoadDefaultCoordinate();
 				
 				pDrawLine->start = SET;
@@ -6575,8 +6628,13 @@ static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest )
 	pKlTest->recordDeform = 0;
 	pKlTest->nowDeform = 0;
 	
-	pKlTest->upYieldForceIndex = 0;
 	pKlTest->maxForceIndex = 0;
+	
+	pKlTest->upYieldStatus = STATUS_UP_YIELD_IDLE;
+	pKlTest->flagExistYield = RESET;
+	pKlTest->upYieldForceIndex = 0;
+	pKlTest->recordUpYieldForce = 0.0f;
+	pKlTest->recordUpYieldDisplacement = 0.0f;
 }
 
 /*------------------------------------------------------------
@@ -6591,7 +6649,7 @@ static void MainPageCtrlCoreCycle( void )
 	/* 控制周期50HZ */
 	while (!bsp_CheckTimer(MAIN_CYCLE_TIMING));
 	
-	/* 上位机下发命令(包含采样) */
+	/* 上位机下发命令 */
 	PCM_CmdSendCycle();
 	
 	/* 采样点循环体 */
@@ -6600,11 +6658,14 @@ static void MainPageCtrlCoreCycle( void )
 	/* 计算采样值 */
 	CountSampleValueCycle();
 	
+	/* 画坐标系
+		必须放在试验执行前面，因为画坐标系时
+		会记录试验执行需要知道的数据。
+	*/
+	MainPageCoordinateDrawLineBodyCycle();
+	
 	/* 试验执行体 */
 	MainPageTestExecuteCoreCycle();
-	
-	/* 画坐标系 */
-	MainPageCoordinateDrawLineBodyCycle();
 	
 	/* 设置动态内容 */
 	SetDynamicContentTask();
