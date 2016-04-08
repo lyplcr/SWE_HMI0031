@@ -182,8 +182,8 @@ union KLJSSW_PARA_NAME_TypeDef		//金属室温拉伸
 		ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW,		//原始截面积
 		EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW,		//引伸计标距
 		ORIGINAL_GAUGE_RECTANGLE_KLJSSW,			//原始标距
-		PARALLEL_LENTH_RECTANGLE_KLJSSW,			//平行长度
 		SAMPLE_NUM_RECTANGLE_KLJSSW,				//试件根数
+		PARALLEL_LENTH_RECTANGLE_KLJSSW,			//平行长度
 	}KYTY_SHAPE_RECTANGLE;
 	enum				 
 	{
@@ -193,8 +193,8 @@ union KLJSSW_PARA_NAME_TypeDef		//金属室温拉伸
 		ORIGINAL_CROSS_AREA_ROUND_KLJSSW,		//原始截面积
 		EXTERNSOMETER_GAUGE_ROUND_KLJSSW,		//引伸计标距
 		ORIGINAL_GAUGE_ROUND_KLJSSW,			//原始标距
-		PARALLEL_LENTH_ROUND_KLJSSW,			//平行长度
 		SAMPLE_NUM_ROUND_KLJSSW,				//试件根数
+		PARALLEL_LENTH_ROUND_KLJSSW,			//平行长度
 	}KLJSSW_SHAPE_ROUND;
 	enum				 
 	{
@@ -205,8 +205,8 @@ union KLJSSW_PARA_NAME_TypeDef		//金属室温拉伸
 		ORIGINAL_CROSS_AREA_TUBE_KLJSSW,		//原始截面积
 		EXTERNSOMETER_GAUGE_TUBE_KLJSSW,		//引伸计标距
 		ORIGINAL_GAUGE_TUBE_KLJSSW,				//原始标距
-		PARALLEL_LENTH_TUBE_KLJSSW,				//平行长度
 		SAMPLE_NUM_TUBE_KLJSSW,					//试件根数
+		PARALLEL_LENTH_TUBE_KLJSSW,				//平行长度
 	}KYTY_SHAPE_TUBE;
 	enum				 
 	{
@@ -215,8 +215,8 @@ union KLJSSW_PARA_NAME_TypeDef		//金属室温拉伸
 		ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW,			//原始截面积
 		EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW,			//引伸计标距
 		ORIGINAL_GAUGE_RIRREGULAR_KLJSSW,				//原始标距
-		PARALLEL_LENTH_RIRREGULAR_KLJSSW,				//平行长度
 		SAMPLE_NUM_RIRREGULAR_KLJSSW,					//试件根数
+		PARALLEL_LENTH_RIRREGULAR_KLJSSW,				//平行长度
 	}KYTY_SHAPE_RIRREGULAR;
 };
 
@@ -268,7 +268,7 @@ const char * const pTestStandard[] =
 	"GB/T 50081-2002",	  	//普通混凝土抗压/普通混凝土抗折
 	"JGJ/T 70-2009",	  	//建筑砂浆抗压
 	"GB/T 2542-2012",	  	//砌墙砖抗压
-	"GB/T 228-2002",		//金属室温拉伸
+	"GB/T 228.1-2010",		//金属室温拉伸
 };
 
 /* 水泥胶砂抗压参数名称显示 */
@@ -1913,7 +1913,7 @@ static void TestParameterConfig( void )
 				{
 					case JSSWKL_SHAPE_RECTANGLE:
 						/* 试块个数 */
-						g_testParameter.curParameterNum = 9;
+						g_testParameter.curParameterNum = 8;
 						
 						/* 索引值 */
 						g_testParameter.indexArray[TEST_SERIAL_RECTANGLE_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
@@ -2005,7 +2005,7 @@ static void TestParameterConfig( void )
 						break;
 					case JSSWKL_SHAPE_ROUND:
 						/* 试块个数 */
-						g_testParameter.curParameterNum = 8;
+						g_testParameter.curParameterNum = 7;
 						
 						/* 索引值 */
 						g_testParameter.indexArray[TEST_SERIAL_ROUND_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
@@ -2089,7 +2089,7 @@ static void TestParameterConfig( void )
 						break;
 					case JSSWKL_SHAPE_TUBE:
 						/* 试块个数 */
-						g_testParameter.curParameterNum = 9;
+						g_testParameter.curParameterNum = 8;
 						
 						/* 索引值 */
 						g_testParameter.indexArray[TEST_SERIAL_TUBE_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
@@ -2181,7 +2181,7 @@ static void TestParameterConfig( void )
 						break;
 					case JSSWKL_SHAPE_IRREGULAR:
 						/* 试块个数 */
-						g_testParameter.curParameterNum = 7;
+						g_testParameter.curParameterNum = 6;
 						
 						/* 索引值 */
 						g_testParameter.indexArray[TEST_SERIAL_RIRREGULAR_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	

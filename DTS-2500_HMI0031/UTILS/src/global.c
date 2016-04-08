@@ -183,6 +183,7 @@ const char * const pUnitType[] =
 	"   dm",		//13
 	"    m",		//14
 	"  MPa",		//15
+	"  GPa",		//16
 };
 
 const char * const pSelectMenuCue[] = 
@@ -1631,6 +1632,36 @@ void GUI_DrawTestSaveProgressBar( uint16_t backColor )
 }
 
 /*------------------------------------------------------------
+ * Function Name  : Get_KLJSSW_TestArea
+ * Description    : 获取金属室温拉伸面积
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+float Get_KLJSSW_TestArea( REPORT_TypeDef *report )
+{
+	float area = 0;
+	
+	switch (report->sample_shape_index)
+	{
+		case JSSWKL_SHAPE_RECTANGLE:
+			area = report->gz_area;
+			break;
+		case JSSWKL_SHAPE_ROUND:
+			area = report->gz_area;
+			break;
+		case JSSWKL_SHAPE_TUBE:
+			area = report->gz_area;
+			break;
+		case JSSWKL_SHAPE_IRREGULAR:
+			area = report->bgz_area;
+			break;
+	}
+	
+	return area;
+}
+
+/*------------------------------------------------------------
  * Function Name  : FromForceGetStrength
  * Description    : 从力值获取强度
  * Input          : None
@@ -1775,23 +1806,7 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 		
 		case KLJSSW:
 			{
-				float area = 0;
-				
-				switch (report->sample_shape_index)
-				{
-					case JSSWKL_SHAPE_RECTANGLE:
-						area = report->gz_area;
-						break;
-					case JSSWKL_SHAPE_ROUND:
-						area = report->gz_area;
-						break;
-					case JSSWKL_SHAPE_TUBE:
-						area = report->gz_area;
-						break;
-					case JSSWKL_SHAPE_IRREGULAR:
-						area = report->bgz_area;
-						break;
-				}
+				float area = Get_KLJSSW_TestArea(report);
 				
 				if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 				{													

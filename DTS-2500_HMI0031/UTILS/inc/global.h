@@ -412,6 +412,7 @@ COORDINATE_TypeDef * GetCoordinateDataAddr( void );
 void GUI_ProgressBar( PROGRESS_BAR_TypeDef *pProgress );
 void DrawProcessBody( PROGRESS_BAR_TypeDef *pProgress );
 void RelinkPRM( uint16_t backColor );
+float Get_KLJSSW_TestArea( REPORT_TypeDef *report );
 float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, float CurForce );
 void CheckOfflineCycle( void );
 void CoordinateDrawLineBodyCycle( COORDINATE_DRAW_LINE_TypeDef *pDrawLine );

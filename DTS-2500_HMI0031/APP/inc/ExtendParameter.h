@@ -23,6 +23,11 @@ typedef enum
 /* Exported variables --------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void LoadExtendParameterPage( void );
+YIELD_JUDGE_MODE_TypeDef GetYieldJudgeMode( void );
+COMPUTE_LASTIC_MODULUS_TypeDef GetComputeLasticModulusMode( void );
+uint32_t GetYieldDisturbThreshold( void );
+float GetElasticModulusStartStrength( void );
+float GetElasticModulusEndStrength( void );	
 
 #endif
 

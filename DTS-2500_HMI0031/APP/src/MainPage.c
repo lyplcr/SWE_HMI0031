@@ -61,7 +61,7 @@
 #define STATUS_BAR_NUMS						5		
 
 /* 抗拉试验结果 */
-#define	KL_TEST_MAX_RESULT_ROW_NUM			9
+#define	KL_TEST_MAX_RESULT_ROW_NUM			11
 
 /* 抗拉试验进度 */
 #define MAX_KL_TEST_PROCESS_NUM				6		//最大进度个数
@@ -138,23 +138,48 @@ typedef enum
 	OBJECT_KL_UP_YIELD,
 	OBJECT_KL_DOWN_YIELD,
 	OBJECT_KL_UP_YIELD_STRENGTH,
-	OBJECT_KL_DOWN_YIELD_STRENGTH,
-	OBJECT_KL_MAX_FORCE_ALL_EXTEND,
-	OBJECT_KL_TOTAL_ELONGATION,
+	OBJECT_KL_DOWN_YIELD_STRENGTH,	
+	OBJECT_KL_MAX_FORCE_ALL_EXTEND,				//最大力总延伸
+	OBJECT_KL_ELASTIC_MODULUS,					//弹性模量
+	OBJECT_KL_TOTAL_ELONGATION,					//最大力总伸长率
+	OBJECT_KL_NON_PROPORTIONAL_EXTENSION_FORCE,	//规定非比例延伸力
+	OBJECT_KL_NON_PROPORTIONAL_EXTENSION_STRENGTH,	//规定非比例延伸强度
 }OBJECT_KL_TEST_RESULT_TypeDef;
 
-typedef enum
+union INDEX_KL_TEST_RESULT_TypeDef
 {
-	INDEX_KL_SAMPLE_SERIAL = 0,
-	INDEX_KL_MAX_FORCE,
-	INDEX_KL_STRENGTH,
-	INDEX_KL_UP_YIELD,
-	INDEX_KL_DOWN_YIELD,
-	INDEX_KL_UP_YIELD_STRENGTH,
-	INDEX_KL_DOWN_YIELD_STRENGTH,
-	INDEX_KL_MAX_FORCE_ALL_EXTEND,
-	INDEX_KL_TOTAL_ELONGATION,
-}INDEX_KL_TEST_RESULT_TypeDef;
+	enum INDEX_KL_TEST_OBVIOUS_YIELD_TypeDef
+	{
+		INDEX_KL_OBVIOUS_YIELD_SAMPLE_SERIAL = 0,
+		INDEX_KL_OBVIOUS_YIELD_MAX_FORCE,
+		INDEX_KL_OBVIOUS_YIELD_STRENGTH,
+		INDEX_KL_OBVIOUS_YIELD_UP_YIELD,
+		INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD,
+		INDEX_KL_OBVIOUS_YIELD_UP_YIELD_STRENGTH,
+		INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD_STRENGTH,
+		INDEX_KL_OBVIOUS_YIELD_TOTAL_ELONGATION,
+		INDEX_KL_OBVIOUS_YIELD_ELASTIC_MODULUS,
+		INDEX_KL_OBVIOUS_YIELD_MAX_FORCE_ALL_EXTEND,
+	}KL_TEST_OBVIOUS_YIELD;
+	enum INDEX_KL_TEST_RP0_2_TypeDef
+	{
+		INDEX_KL_RP0_2_SAMPLE_SERIAL = 0,
+		INDEX_KL_RP0_2_MAX_FORCE,
+		INDEX_KL_RP0_2_STRENGTH,
+		INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_FORCE,
+		INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_STRENGTH,
+		INDEX_KL_RP0_2_TOTAL_ELONGATION,
+		INDEX_KL_RP0_2_ELASTIC_MODULUS,
+		INDEX_KL_RP0_2_MAX_FORCE_ALL_EXTEND,
+	}KL_TEST_RP0_2;
+	enum INDEX_KL_TEST_NO_YIELD_TypeDef
+	{
+		INDEX_KL_NO_YIELD_SAMPLE_SERIAL = 0,
+		INDEX_KL_NO_YIELD_MAX_FORCE,
+		INDEX_KL_NO_YIELD_STRENGTH,
+		INDEX_KL_NO_YIELD_ELASTIC_MODULUS,
+	}KL_TEST_NO_YIELD;	
+};	
 
 typedef enum
 {
@@ -308,6 +333,9 @@ typedef struct
 	float downYieldStrength;			//下屈服强度
 	float maxForceSumExtend;			//最大力总延伸
 	float maxForceSumElongation;		//最大力总伸长率
+	float elasticModulus;				//弹性模量
+	float nonProportionalExtensionForce;	//规定非比例延伸力
+	float nonProportionalExtensionStrength;//规定非比例延伸强度
 	
 	/* 计算最大力总延伸 */
 	float recordDisplacemen;			//记录上一次位移
@@ -433,6 +461,9 @@ const char * const pKLTestResultName[] =
 	"下屈服强度[ReL]：",				//6
 	"最大力总延伸[ΔLm]：",			//7
 	"最大力总伸长率[Agt]：",			//8
+	"弹性模量[E]：",					//9
+	"非比例延伸力[Fp]：",			//10
+	"非比例延伸强度[Rp]：",			//11
 };
 
 const char * const pKLTestProgressName[] = 
@@ -567,30 +598,6 @@ static void MainPageInit( void )
 	g_mainPage.fhChannelUnit = GetFH_SmplUnit();
 	g_mainPage.wyChannelUnit = GetWY_SmplUnit();
 	g_mainPage.bxChannelUnit = GetBX_SmplUnit();
-}
-
-/*------------------------------------------------------------
- * Function Name  : GetYieldJudgeMode
- * Description    : 获取屈服判断方式
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-static YIELD_JUDGE_MODE_TypeDef GetYieldJudgeMode( TEST_TYPE_TypeDef testType )
-{
-	YIELD_JUDGE_MODE_TypeDef mode = NO_YIELD;
-	
-	switch ( testType )
-	{
-		case KLJSSW:
-			mode = OBVIOUS_YIELD;
-			break;
-		default:	
-			mode = NO_YIELD;
-			break;
-	}
-	
-	return mode;
 }
 
 /*------------------------------------------------------------
@@ -740,15 +747,39 @@ static void MainPageConfig( void )
 			break;
 		case STRETCH_TEST:	
 			/* 索引值 */
-			g_mainPage.indexKLTestResultArray[INDEX_KL_SAMPLE_SERIAL] 			= OBJECT_KL_SAMPLE_SERIAL;		
-			g_mainPage.indexKLTestResultArray[INDEX_KL_MAX_FORCE] 				= OBJECT_KL_MAX_FORCE;		
-			g_mainPage.indexKLTestResultArray[INDEX_KL_STRENGTH] 				= OBJECT_KL_STRENGTH;		
-			g_mainPage.indexKLTestResultArray[INDEX_KL_UP_YIELD] 				= OBJECT_KL_UP_YIELD;			
-			g_mainPage.indexKLTestResultArray[INDEX_KL_DOWN_YIELD] 				= OBJECT_KL_DOWN_YIELD;	
-			g_mainPage.indexKLTestResultArray[INDEX_KL_UP_YIELD_STRENGTH] 		= OBJECT_KL_UP_YIELD_STRENGTH;	
-			g_mainPage.indexKLTestResultArray[INDEX_KL_DOWN_YIELD_STRENGTH] 	= OBJECT_KL_DOWN_YIELD_STRENGTH;	
-			g_mainPage.indexKLTestResultArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= OBJECT_KL_MAX_FORCE_ALL_EXTEND;	
-			g_mainPage.indexKLTestResultArray[INDEX_KL_TOTAL_ELONGATION] 		= OBJECT_KL_TOTAL_ELONGATION;	
+			switch ( GetYieldJudgeMode() )
+			{
+				case OBVIOUS_YIELD:
+					g_mainPage.indexKLTestResultArray[INDEX_KL_OBVIOUS_YIELD_SAMPLE_SERIAL] 		= OBJECT_KL_SAMPLE_SERIAL;		
+					g_mainPage.indexKLTestResultArray[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE] 			= OBJECT_KL_MAX_FORCE;		
+					g_mainPage.indexKLTestResultArray[INDEX_KL_OBVIOUS_YIELD_STRENGTH] 				= OBJECT_KL_STRENGTH;		
+					g_mainPage.indexKLTestResultArray[INDEX_KL_OBVIOUS_YIELD_UP_YIELD] 				= OBJECT_KL_UP_YIELD;			
+					g_mainPage.indexKLTestResultArray[INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD] 			= OBJECT_KL_DOWN_YIELD;	
+					g_mainPage.indexKLTestResultArray[INDEX_KL_OBVIOUS_YIELD_UP_YIELD_STRENGTH] 	= OBJECT_KL_UP_YIELD_STRENGTH;	
+					g_mainPage.indexKLTestResultArray[INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD_STRENGTH] 	= OBJECT_KL_DOWN_YIELD_STRENGTH;	
+					g_mainPage.indexKLTestResultArray[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE_ALL_EXTEND] 	= OBJECT_KL_MAX_FORCE_ALL_EXTEND;	
+					g_mainPage.indexKLTestResultArray[INDEX_KL_OBVIOUS_YIELD_TOTAL_ELONGATION] 		= OBJECT_KL_TOTAL_ELONGATION;	
+					g_mainPage.indexKLTestResultArray[INDEX_KL_OBVIOUS_YIELD_ELASTIC_MODULUS] 		= OBJECT_KL_ELASTIC_MODULUS;
+					break;
+				case SIGMA0_2:
+					g_mainPage.indexKLTestResultArray[INDEX_KL_RP0_2_SAMPLE_SERIAL] 		= OBJECT_KL_SAMPLE_SERIAL;		
+					g_mainPage.indexKLTestResultArray[INDEX_KL_RP0_2_MAX_FORCE] 			= OBJECT_KL_MAX_FORCE;		
+					g_mainPage.indexKLTestResultArray[INDEX_KL_RP0_2_STRENGTH] 				= OBJECT_KL_STRENGTH;		
+					g_mainPage.indexKLTestResultArray[INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_FORCE] 	= OBJECT_KL_NON_PROPORTIONAL_EXTENSION_FORCE;
+					g_mainPage.indexKLTestResultArray[INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_STRENGTH] = OBJECT_KL_NON_PROPORTIONAL_EXTENSION_STRENGTH;				
+					g_mainPage.indexKLTestResultArray[INDEX_KL_RP0_2_MAX_FORCE_ALL_EXTEND] 	= OBJECT_KL_MAX_FORCE_ALL_EXTEND;	
+					g_mainPage.indexKLTestResultArray[INDEX_KL_RP0_2_TOTAL_ELONGATION] 		= OBJECT_KL_TOTAL_ELONGATION;	
+					g_mainPage.indexKLTestResultArray[INDEX_KL_RP0_2_ELASTIC_MODULUS] 		= OBJECT_KL_ELASTIC_MODULUS;
+					break;
+				case NO_YIELD:
+					g_mainPage.indexKLTestResultArray[INDEX_KL_NO_YIELD_SAMPLE_SERIAL] 		= OBJECT_KL_SAMPLE_SERIAL;		
+					g_mainPage.indexKLTestResultArray[INDEX_KL_NO_YIELD_MAX_FORCE] 			= OBJECT_KL_MAX_FORCE;		
+					g_mainPage.indexKLTestResultArray[INDEX_KL_NO_YIELD_STRENGTH] 			= OBJECT_KL_STRENGTH;			
+					g_mainPage.indexKLTestResultArray[INDEX_KL_NO_YIELD_ELASTIC_MODULUS] 	= OBJECT_KL_ELASTIC_MODULUS;
+					break;
+				default:
+					break;
+			}	
 			break;
 		case INVALID_TEST:
 			break;
@@ -831,15 +862,39 @@ static void MainPageConfig( void )
 			break;
 		case STRETCH_TEST:	
 			/* 参数名称 */
-			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_SAMPLE_SERIAL] 			= pKLTestResultName[0];
-			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_MAX_FORCE] 				= pKLTestResultName[1];
-			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_STRENGTH] 				= pKLTestResultName[2];
-			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_UP_YIELD] 				= pKLTestResultName[3];
-			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_DOWN_YIELD] 			= pKLTestResultName[4];
-			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_UP_YIELD_STRENGTH] 		= pKLTestResultName[5];
-			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_DOWN_YIELD_STRENGTH] 	= pKLTestResultName[6];
-			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pKLTestResultName[7];
-			g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_TOTAL_ELONGATION] 		= pKLTestResultName[8];
+			switch ( GetYieldJudgeMode() )
+			{
+				case OBVIOUS_YIELD:
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_OBVIOUS_YIELD_SAMPLE_SERIAL] 		= pKLTestResultName[0];		
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE] 			= pKLTestResultName[1];		
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_OBVIOUS_YIELD_STRENGTH] 			= pKLTestResultName[2];		
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_OBVIOUS_YIELD_UP_YIELD] 			= pKLTestResultName[3];			
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD] 			= pKLTestResultName[4];	
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_OBVIOUS_YIELD_UP_YIELD_STRENGTH] 	= pKLTestResultName[5];	
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD_STRENGTH] 	= pKLTestResultName[6];	
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE_ALL_EXTEND] = pKLTestResultName[7];	
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_OBVIOUS_YIELD_TOTAL_ELONGATION] 	= pKLTestResultName[8];	
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_OBVIOUS_YIELD_ELASTIC_MODULUS] 		= pKLTestResultName[9];
+					break;
+				case SIGMA0_2:
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_RP0_2_SAMPLE_SERIAL] 				= pKLTestResultName[0];		
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_RP0_2_MAX_FORCE] 					= pKLTestResultName[1];		
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_RP0_2_STRENGTH] 					= pKLTestResultName[2];		
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_FORCE] = pKLTestResultName[10];								
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_STRENGTH] = pKLTestResultName[11];
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_RP0_2_MAX_FORCE_ALL_EXTEND] 		= pKLTestResultName[7];	
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_RP0_2_TOTAL_ELONGATION] 			= pKLTestResultName[8];	
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_RP0_2_ELASTIC_MODULUS] 				= pKLTestResultName[9];
+					break;
+				case NO_YIELD:
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_NO_YIELD_SAMPLE_SERIAL] 			= pKLTestResultName[0];		
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_NO_YIELD_MAX_FORCE] 				= pKLTestResultName[1];		
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_NO_YIELD_STRENGTH] 					= pKLTestResultName[2];			
+					g_mainPage.pKLTestResultParameterNameArray[INDEX_KL_NO_YIELD_ELASTIC_MODULUS] 			= pKLTestResultName[9];
+					break;
+				default:
+					break;
+			}
 			break;
 		case INVALID_TEST:
 			break;
@@ -858,7 +913,42 @@ static void MainPageConfig( void )
 	g_mainPage.tableFieldNum = MAX_TEST_RESULT_TABLE_FIELD_NUM;
 	g_mainPage.indicateWindowNum = INDICATE_WINDOWS_NUMS;
 	g_mainPage.statusBarNum = STATUS_BAR_NUMS;
-	g_mainPage.klFieldNum = KL_TEST_MAX_RESULT_ROW_NUM;
+	
+	switch ( GetYieldJudgeMode() )
+	{
+		case OBVIOUS_YIELD:
+			if (GetComputeLasticModulusMode() == NO_LASTIC_MODULUS)
+			{
+				g_mainPage.klFieldNum = 8;
+			}
+			else
+			{
+				g_mainPage.klFieldNum = 9;
+			}
+			break;
+		case SIGMA0_2:
+			if (GetComputeLasticModulusMode() == NO_LASTIC_MODULUS)
+			{
+				g_mainPage.klFieldNum = 6;
+			}
+			else
+			{
+				g_mainPage.klFieldNum = 7;
+			}
+			break;
+		case NO_YIELD:
+			if (GetComputeLasticModulusMode() == NO_LASTIC_MODULUS)
+			{
+				g_mainPage.klFieldNum = 3;
+			}
+			else
+			{
+				g_mainPage.klFieldNum = 4;
+			}
+			break;
+		default:
+			break;
+	}
 	
 	/* 数据对齐 */
 	g_mainPage.align[INDEX_SERIAL] 		= ALIGN_MIDDLE;
@@ -866,49 +956,126 @@ static void MainPageConfig( void )
 	g_mainPage.align[INDEX_STRENGTH] 	= ALIGN_LEFT;
 	
 	/* 单位 */
-	g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_SAMPLE_SERIAL] 			= "NULL";
-	if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+	switch ( GetYieldJudgeMode() )
 	{
-		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE] 				= pUnitType[1];
-		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_UP_YIELD] 				= pUnitType[1];
-		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_DOWN_YIELD] 			= pUnitType[1];
+		case OBVIOUS_YIELD:
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_SAMPLE_SERIAL] 		= "NULL";
+			if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+			{
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE] 		= pUnitType[1];
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_UP_YIELD] 		= pUnitType[1];
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD] 		= pUnitType[1];
+			}
+			else
+			{
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE] 		= pUnitType[0];
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_UP_YIELD] 		= pUnitType[0];
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD] 		= pUnitType[0];
+			}
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_STRENGTH]				= pUnitType[15];
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_UP_YIELD_STRENGTH] 	= pUnitType[15];
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD_STRENGTH] 	= pUnitType[15];
+			switch ( g_mainPage.bxChannelUnit )
+			{
+				case BX_UNIT_MM:
+					g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE_ALL_EXTEND] 	= pUnitType[4];
+					break;
+				case BX_UNIT_CM:
+					g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE_ALL_EXTEND] 	= pUnitType[12];
+					break;
+				case BX_UNIT_DM:
+					g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE_ALL_EXTEND] 	= pUnitType[13];
+					break;
+				case BX_UNIT_M:
+					g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE_ALL_EXTEND] 	= pUnitType[14];
+					break;
+			}
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_TOTAL_ELONGATION] 				= pUnitType[10];
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_OBVIOUS_YIELD_ELASTIC_MODULUS] 					= pUnitType[16];
+			break;
+		case SIGMA0_2:
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_SAMPLE_SERIAL] 						= "NULL";
+			if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+			{
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_MAX_FORCE] 						= pUnitType[1];
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_FORCE] = pUnitType[1];				
+			}
+			else
+			{
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_MAX_FORCE] 						= pUnitType[0];
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_FORCE] = pUnitType[0];
+			}
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_STRENGTH]								= pUnitType[15];
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_STRENGTH] 	= pUnitType[15];
+			switch ( g_mainPage.bxChannelUnit )
+			{
+				case BX_UNIT_MM:
+					g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_MAX_FORCE_ALL_EXTEND] 	= pUnitType[4];
+					break;
+				case BX_UNIT_CM:
+					g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_MAX_FORCE_ALL_EXTEND] 	= pUnitType[12];
+					break;
+				case BX_UNIT_DM:
+					g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_MAX_FORCE_ALL_EXTEND] 	= pUnitType[13];
+					break;
+				case BX_UNIT_M:
+					g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_MAX_FORCE_ALL_EXTEND] 	= pUnitType[14];
+					break;
+			}
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_TOTAL_ELONGATION] 				= pUnitType[10];
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_RP0_2_ELASTIC_MODULUS] 					= pUnitType[16];
+			break;
+		case NO_YIELD:
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_NO_YIELD_SAMPLE_SERIAL] 						= "NULL";
+			if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+			{
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_NO_YIELD_MAX_FORCE] 						= pUnitType[1];				
+			}
+			else
+			{
+				g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_NO_YIELD_MAX_FORCE] 						= pUnitType[0];				
+			}
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_NO_YIELD_STRENGTH]								= pUnitType[15];
+			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_NO_YIELD_ELASTIC_MODULUS] 						= pUnitType[16];
+			break;
+		default:
+			break;
 	}
-	else
-	{
-		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE] 				= pUnitType[0];
-		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_UP_YIELD] 				= pUnitType[0];
-		g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_DOWN_YIELD] 			= pUnitType[0];
-	}
-	g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_STRENGTH]				= pUnitType[15];
-	g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_UP_YIELD_STRENGTH] 		= pUnitType[15];
-	g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_DOWN_YIELD_STRENGTH] 	= pUnitType[15];
-	switch ( g_mainPage.bxChannelUnit )
-	{
-		case BX_UNIT_MM:
-			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pUnitType[4];
-			break;
-		case BX_UNIT_CM:
-			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pUnitType[12];
-			break;
-		case BX_UNIT_DM:
-			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pUnitType[13];
-			break;
-		case BX_UNIT_M:
-			g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_MAX_FORCE_ALL_EXTEND] 	= pUnitType[14];
-			break;
-	}
-	g_mainPage.pKLTestResultParameterUnitArray[INDEX_KL_TOTAL_ELONGATION] 		= pUnitType[10];
 	
 	/* 小数点位数 */
-	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_SAMPLE_SERIAL].pointBit 		= 0;
-	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_MAX_FORCE].pointBit 			= 2;
-	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_STRENGTH].pointBit 			= 1;
-	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_UP_YIELD].pointBit 			= 2;
-	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_DOWN_YIELD].pointBit 			= 2;
-	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_UP_YIELD_STRENGTH].pointBit 	= 1;
-	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_DOWN_YIELD_STRENGTH].pointBit 	= 1;
-	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_MAX_FORCE_ALL_EXTEND].pointBit = 2;
-	g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_TOTAL_ELONGATION].pointBit 	= 1;
+	switch ( GetYieldJudgeMode() )
+	{
+		case OBVIOUS_YIELD:
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_OBVIOUS_YIELD_SAMPLE_SERIAL].pointBit 			= 0;		
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE].pointBit 				= 2;		
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_OBVIOUS_YIELD_STRENGTH].pointBit 				= 1;		
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_OBVIOUS_YIELD_UP_YIELD].pointBit 				= 2;			
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD].pointBit 			= 2;	
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_OBVIOUS_YIELD_UP_YIELD_STRENGTH].pointBit 		= 1;	
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_OBVIOUS_YIELD_DOWN_YIELD_STRENGTH].pointBit 	= 1;	
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_OBVIOUS_YIELD_MAX_FORCE_ALL_EXTEND].pointBit 	= 2;	
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_OBVIOUS_YIELD_TOTAL_ELONGATION].pointBit 		= 1;	
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_OBVIOUS_YIELD_ELASTIC_MODULUS].pointBit 		= 1;
+			break;
+		case SIGMA0_2:
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_RP0_2_SAMPLE_SERIAL].pointBit 				= 0;		
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_RP0_2_MAX_FORCE].pointBit 					= 2;		
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_RP0_2_STRENGTH].pointBit 					= 1;		
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_FORCE].pointBit = 2;	
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_RP0_2_NON_PROPORTIONAL_EXTENSION_STRENGTH].pointBit = 1;	
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_RP0_2_MAX_FORCE_ALL_EXTEND].pointBit 		= 2;	
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_RP0_2_TOTAL_ELONGATION].pointBit 			= 1;	
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_RP0_2_ELASTIC_MODULUS].pointBit 			= 1;
+			break;
+		case NO_YIELD:
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_NO_YIELD_SAMPLE_SERIAL].pointBit 			= 0;		
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_NO_YIELD_MAX_FORCE].pointBit 				= 2;		
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_NO_YIELD_STRENGTH].pointBit 				= 1;			
+			g_mainPage.oneLevelMenuKLTestResult[INDEX_KL_NO_YIELD_ELASTIC_MODULUS].pointBit 		= 1;
+			break;
+		default:
+			break;
+	}
 	
 	/* 试验名称 */
 	switch ( g_mainPage.testType )
@@ -1005,6 +1172,9 @@ static void FromTestParameterCopyToReport( REPORT_TypeDef *pReport )
 			pReport->downYieldStrength[i] = 0;
 			pReport->maxForceSumExtend[i] = 0;
 			pReport->maxForceSumElongation[i] = 0;
+			pReport->elasticModulus[i] = 0;
+			pReport->nonProportionalExtensionForce[i] = 0;
+			pReport->nonProportionalExtensionStrength[i] = 0;
 		}
 	}
 }	
@@ -1474,6 +1644,98 @@ static void MainPageWriteKLTestMaxForceTotalElongation( float maxForceTotalElong
 }
 
 /*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestElasticModulus
+ * Description    : 写入弹性模量
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestElasticModulus( float elasticModulus )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+			
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_ELASTIC_MODULUS);
+	
+	if (index != 0xff)
+	{
+		if (elasticModulus > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,elasticModulus,g_mainPage.kLTestResultData[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestNonProportionalExtensionForce
+ * Description    : 写入非比例延伸力
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestNonProportionalExtensionForce( float nonProportionalExtensionForce )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+			
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_NON_PROPORTIONAL_EXTENSION_FORCE);
+	
+	if (index != 0xff)
+	{
+		if (g_mainPage.fhChannelUnit == FH_UNIT_kN)
+		{
+			nonProportionalExtensionForce /= 1000;
+		}
+		
+		if (nonProportionalExtensionForce > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,nonProportionalExtensionForce,g_mainPage.kLTestResultData[index]);
+	}
+}
+
+/*------------------------------------------------------------
+ * Function Name  : MainPageWriteKLTestNonProportionalExtensionStrength
+ * Description    : 写入非比例延伸强度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static void MainPageWriteKLTestNonProportionalExtensionStrength( float nonProportionalExtensionStrength )
+{
+	uint8_t index = 0;
+	uint8_t dotNum = 0;
+			
+	index = GetMainPageKLTestResultFieldIndex(OBJECT_KL_NON_PROPORTIONAL_EXTENSION_STRENGTH);
+	
+	if (index != 0xff)
+	{
+		if (nonProportionalExtensionStrength > 9999999)
+		{
+			strcpy(g_mainPage.kLTestResultData[index],"--------");
+			
+			return;
+		}
+	
+		dotNum = g_mainPage.oneLevelMenuKLTestResult[index].pointBit;
+		
+		floattochar(KL_TEST_MAX_CHAR_BIT,dotNum,nonProportionalExtensionStrength,g_mainPage.kLTestResultData[index]);
+	}
+}
+
+/*------------------------------------------------------------
  * Function Name  : GetCompletePieceSerialInCurrentPageSerial
  * Description    : 获取已做试块编号在当前页编号
  * Input          : None
@@ -1679,6 +1941,9 @@ static void MainPageWriteKLParameter( void )
 	MainPageWriteKLTestDownYieldStrength(g_readReport.downYieldStrength[g_mainPage.curPage-1]);
 	MainPageWriteKLTestMaxForceAllExtend(g_readReport.maxForceSumExtend[g_mainPage.curPage-1]);
 	MainPageWriteKLTestMaxForceTotalElongation(g_readReport.maxForceSumElongation[g_mainPage.curPage-1]);
+	MainPageWriteKLTestElasticModulus(g_readReport.elasticModulus[g_mainPage.curPage-1]);
+	MainPageWriteKLTestNonProportionalExtensionForce(g_readReport.nonProportionalExtensionForce[g_mainPage.curPage-1]);
+	MainPageWriteKLTestNonProportionalExtensionStrength(g_readReport.nonProportionalExtensionStrength[g_mainPage.curPage-1]);
 }
 
 /*------------------------------------------------------------
@@ -4856,12 +5121,15 @@ static void KL_TestYieldCycle( void )
 	}
 	else
 	{
-		switch ( GetYieldJudgeMode(g_mainPage.testType) )
+		switch ( GetYieldJudgeMode() )
 		{
 			case OBVIOUS_YIELD:
 				KL_TestLoadYieldProcess();
 				break;
 			case SIGMA0_2:
+				
+				break;
+			case NO_YIELD:
 				
 				break;
 			default:
@@ -5484,6 +5752,9 @@ static void MainPageExecuteCancelLastPiece( void )
 				MainPageClearKLTestData(OBJECT_KL_DOWN_YIELD_STRENGTH);
 				MainPageClearKLTestData(OBJECT_KL_MAX_FORCE_ALL_EXTEND);
 				MainPageClearKLTestData(OBJECT_KL_TOTAL_ELONGATION);
+				MainPageClearKLTestData(OBJECT_KL_ELASTIC_MODULUS);
+				MainPageClearKLTestData(OBJECT_KL_NON_PROPORTIONAL_EXTENSION_FORCE);
+				MainPageClearKLTestData(OBJECT_KL_NON_PROPORTIONAL_EXTENSION_STRENGTH);
 			
 				if ((g_mainPage.curPage!=0) && (g_testBody.curCompletePieceSerial!=0)) 
 				{
@@ -5499,6 +5770,9 @@ static void MainPageExecuteCancelLastPiece( void )
 					g_readReport.downYieldStrength[g_testBody.curCompletePieceSerial-1] = 0;
 					g_readReport.maxForceSumExtend[g_testBody.curCompletePieceSerial-1] = 0;
 					g_readReport.maxForceSumElongation[g_testBody.curCompletePieceSerial-1] = 0;
+					g_readReport.elasticModulus[g_testBody.curCompletePieceSerial-1] = 0;
+					g_readReport.nonProportionalExtensionForce[g_testBody.curCompletePieceSerial-1] = 0;
+					g_readReport.nonProportionalExtensionStrength[g_testBody.curCompletePieceSerial-1] = 0;			
 					
 					if (g_testBody.curCompletePieceSerial)
 					{
@@ -5599,6 +5873,204 @@ static float GetMaxForceSumElongation( void )
 	ECHO_ASSERT(fabs(extensometerGauge)>MIN_FLOAT_PRECISION_DIFF_VALUE,"引伸计标距除零错误！\r\n");
 	
 	return maxForceSumElongation;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : GetFloatArrayExceedValueIndex
+ * Description    : 获取FLOAT数组中超过设定值的数组索引值
+ * Input          : arrayPtr：数组基地址，arrayMaxIndex：数组最大索引，setValue：设定值
+ * Output         : arrayIndexPtr：数组索引值
+ * Return         : PASSED：找到，FAILED：未找到
+ *------------------------------------------------------------*/
+static TestStatus GetFloatArrayExceedValueIndex( float *arrayPtr, uint32_t arrayMaxIndex, float setValue, uint32_t *arrayIndexPtr )
+{
+	uint32_t i;
+	
+	*arrayIndexPtr = 0;
+	
+	for (i=0; i<arrayMaxIndex; ++i)
+	{
+		if (arrayPtr[i] > setValue)
+		{
+			*arrayIndexPtr = i;
+			
+			return PASSED;
+		}
+	}
+	
+	return FAILED;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : ComputeElasticModulus
+ * Description    : 计算弹性模量(单位GPa)
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static float ComputeElasticModulus( REPORT_TypeDef *reportPtr )
+{
+	float elasticModulus = 0;
+	float startStrength = GetElasticModulusStartStrength();
+	float endStrength = GetElasticModulusEndStrength();
+	float area = 0;
+	
+	if ( (fabs(startStrength)<MIN_FLOAT_PRECISION_DIFF_VALUE) || \
+		(fabs(endStrength)<MIN_FLOAT_PRECISION_DIFF_VALUE) )
+	{
+		return 0.0f;
+	}
+	
+	area = Get_KLJSSW_TestArea(reportPtr);
+	if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+	{
+		return 0.0f;
+	}
+	
+	/* 	
+		求弹性模量步骤：
+		弹性模量（杨氏模量） = 应力 / 应变;
+		单位：1GPa = 10^3MPa = 10^6KPa = 10^9Pa
+		1、已知弹性模量参考点P1，P2强度，将其转换为力值。
+		2、从曲线点中找出参考点对应的变形值，将变形值转换为应变。
+			应变 = 变形值 / 引伸计标距;
+		3、	应力1 = 应变1 * k + b;
+			应力2 = 应变2 * k + b;
+		求解一元二次方程计算斜率K，则K = 弹性模量；
+	*/
+	{
+		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
+		float startForce = startStrength * area;
+		float endForce = endStrength * area;
+		uint32_t startIndex = 0, endIndex = 0;
+		
+		if ( GetFloatArrayExceedValueIndex(pDrawLine->force,\
+				g_klTestBody.maxForceIndex,startForce,&startIndex) == FAILED)
+		{
+			return 0.0f;
+		}
+		if ( GetFloatArrayExceedValueIndex(pDrawLine->force,\
+				g_klTestBody.maxForceIndex,endForce,&endIndex) == FAILED)
+		{
+			return 0.0f;
+		}
+		
+		{
+			float startDeform = pDrawLine->deform[startIndex];
+			float endDeform = pDrawLine->deform[endIndex];
+			float extensometerGauge = GetExtensometerGauge();
+			
+			if (fabs(extensometerGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+			{
+				return 0.0f;
+			}
+			
+			{
+				float startStrain = startDeform / extensometerGauge;
+				float endtrain = endDeform / extensometerGauge;
+				
+				if (fabs(endtrain-startStrain) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+				{
+					return 0.0f;
+				}
+				
+				elasticModulus = (endStrength-startStrength) / (endtrain-startStrain);
+				elasticModulus /= 1000;	//MPa->GPa
+			}			
+		}
+	}
+	
+	return elasticModulus;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : ComputeNonProportionalExtensionForce
+ * Description    : 计算非比例延伸力(单位：N)
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static float ComputeNonProportionalExtensionForce( REPORT_TypeDef *reportPtr, float elasticModulusGPa )
+{
+	float nonProportionalExtensionForce = 0;
+	float area = 0;
+	
+	/* 
+		求非比例延伸力步骤：
+		非比例延伸力 = 找到弹性模量在曲线上的两点，求得直线斜率。向右平移
+			直至与X轴相交于（应变值=0.2%）的位置，此时直线与坐标曲线上的交点为
+			非比例延伸力。
+		1、已知弹性模量参考点P1，P2强度，将其转换为力值。
+		2、从曲线点中找出参考点对应的变形值，将变形值转换为应变。
+			应变 = 变形值 / 引伸计标距;
+		3、	已知弹性模量，求得直线公式：y(应力) = k(弹模) * x(应变) + b;
+			当y(应力) = 0时，x(应变) >= 0.2%，求得:
+			-》 x = (y - b) / k；(k不为0) 
+			-》-b/k >= 0.2%  
+			-》 b <= -0.2% * k;
+		4、	将坐标点(x,y)一一带入公式，b = y(应力) - k(弹模) * x(应变);
+			只要b满足上述条件，则对应的y为非比例延伸强度。
+	*/
+	if (fabs(elasticModulusGPa) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+	{
+		return 0.0f;
+	}
+	
+	area = Get_KLJSSW_TestArea(reportPtr);
+	if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+	{
+		return 0.0f;
+	}
+	
+	{
+		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
+		float elasticModulusMPa = elasticModulusGPa * 1000;
+		float targetB = (-1.0f) * elasticModulusMPa * 0.002f;
+		float nowB = 0;
+		float extensometerGauge = GetExtensometerGauge();	
+		float nowStrength = 0;	//应力
+		float nowStrain = 0;	//应变
+		uint32_t i;
+		
+		if (fabs(extensometerGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+		{
+			return 0.0f;
+		}
+		
+		for (i=0; i<g_klTestBody.maxForceIndex; ++i)
+		{
+			nowStrength = pDrawLine->force[i] / area;
+			nowStrain = pDrawLine->deform[i] / extensometerGauge;
+			
+			nowB = nowStrength - elasticModulusMPa * nowStrain;
+			if (nowB <= targetB)
+			{
+				nonProportionalExtensionForce = pDrawLine->force[i];				
+				break;
+			}
+		}
+	}
+	
+	return nonProportionalExtensionForce;
+}
+
+/*------------------------------------------------------------
+ * Function Name  : ComputeNonProportionalExtensionStrength
+ * Description    : 计算非比例延伸强度
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+static float ComputeNonProportionalExtensionStrength( REPORT_TypeDef *reportPtr, \
+				float nonProportionalExtensionForce )
+{
+	float area = Get_KLJSSW_TestArea(reportPtr);
+	if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+	{
+		return 0.0f;
+	}
+	
+	return (nonProportionalExtensionForce / area);
 }
 
 /*------------------------------------------------------------
@@ -5818,7 +6290,6 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					#endif
 					
 					g_klTestBody.maxStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.maxForce);
-					
 					if (g_klTestBody.flagExistYield == SET)
 					{
 						g_klTestBody.upYieldForce = GetDrawLineSomeTimePointForce( g_klTestBody.upYieldForceIndex );	
@@ -5827,9 +6298,12 @@ static void MainPageExecuteEndOnePieceProcess( void )
 						g_klTestBody.downYieldForce = GetDownYieldForce();
 						g_klTestBody.downYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.downYieldForce);
 					}
-					
 					g_klTestBody.maxForceSumElongation = GetMaxForceSumElongation();
-				
+					g_klTestBody.elasticModulus = ComputeElasticModulus(&g_readReport);
+					g_klTestBody.nonProportionalExtensionForce = ComputeNonProportionalExtensionForce(&g_readReport,g_klTestBody.elasticModulus);
+					g_klTestBody.nonProportionalExtensionStrength = ComputeNonProportionalExtensionStrength(&g_readReport,\
+										g_klTestBody.nonProportionalExtensionForce);			
+					
 					g_readReport.maxForce[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForce;
 					g_readReport.maxStrength[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxStrength;
 					g_readReport.upYieldForce[g_testBody.curCompletePieceSerial-1] = g_klTestBody.upYieldForce;
@@ -5838,11 +6312,17 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					g_readReport.downYieldStrength[g_testBody.curCompletePieceSerial-1] = g_klTestBody.downYieldStrength;
 					g_readReport.maxForceSumExtend[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForceSumExtend;
 					g_readReport.maxForceSumElongation[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForceSumElongation;
+					g_readReport.elasticModulus[g_testBody.curCompletePieceSerial-1] = g_klTestBody.elasticModulus;
+					g_readReport.nonProportionalExtensionForce[g_testBody.curCompletePieceSerial-1] = g_klTestBody.nonProportionalExtensionForce;
+					g_readReport.nonProportionalExtensionStrength[g_testBody.curCompletePieceSerial-1] = g_klTestBody.nonProportionalExtensionStrength;
 					
 					ECHO(DEBUG_TEST_LOAD,"最大力：%f, 抗拉强度：%f\r\n",g_klTestBody.maxForce,g_klTestBody.maxStrength);
 					ECHO(DEBUG_TEST_LOAD,"上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
 					ECHO(DEBUG_TEST_LOAD,"下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);
 					ECHO(DEBUG_TEST_LOAD,"最大力总延伸：%f, 最大力总伸长率：%f\r\n",g_klTestBody.maxForceSumExtend,g_klTestBody.maxForceSumElongation);
+					ECHO(DEBUG_TEST_LOAD,"弹性模量：%f\r\n",g_klTestBody.elasticModulus);
+					ECHO(DEBUG_TEST_LOAD,"非比例延伸力：%f\r\n",g_klTestBody.nonProportionalExtensionForce);
+					ECHO(DEBUG_TEST_LOAD,"非比例延伸强度：%f\r\n",g_klTestBody.nonProportionalExtensionStrength);
 				}
 				
 				if (g_mainPage.curPage)
@@ -5855,9 +6335,11 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					MainPageWriteKLTestDownYieldStrength(g_klTestBody.downYieldStrength);
 					MainPageWriteKLTestMaxForceAllExtend(g_klTestBody.maxForceSumExtend);
 					MainPageWriteKLTestMaxForceTotalElongation(g_klTestBody.maxForceSumElongation);
+					MainPageWriteKLTestElasticModulus(g_klTestBody.elasticModulus);
+					MainPageWriteKLTestNonProportionalExtensionForce(g_klTestBody.nonProportionalExtensionForce);
+					MainPageWriteKLTestNonProportionalExtensionStrength(g_klTestBody.nonProportionalExtensionStrength);
 					
-					Show_MainPageKLTestResultOneLevelMenuContent();
-					
+					Show_MainPageKLTestResultOneLevelMenuContent();					
 					Show_MainPageKLTestOneLevelMenuUnit();
 				}
 				break;
@@ -6350,7 +6832,8 @@ static void MainPageCoordinateDrawLineRedrawJudgeCondition( COORDINATE_DRAW_LINE
 
 /*------------------------------------------------------------
  * Function Name  : MainPageCoordinateDrawLineBodyCycle
- * Description    : 画坐标系
+ * Description    : 画坐标系（必须放在试验执行前面，因为画坐标系时
+ *				  :				会记录试验执行需要知道的数据。）
  * Input          : None
  * Output         : None
  * Return         : None
@@ -6610,6 +7093,9 @@ static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest )
 	pKlTest->downYieldStrength = 0;
 	pKlTest->maxForceSumExtend = 0;
 	pKlTest->maxForceSumElongation = 0;
+	pKlTest->elasticModulus = 0;
+	pKlTest->nonProportionalExtensionForce = 0;
+	pKlTest->nonProportionalExtensionStrength = 0;
 	
 	pKlTest->recordDisplacemen = 0;
 	pKlTest->recordDeform = 0;
@@ -6645,10 +7131,7 @@ static void MainPageCtrlCoreCycle( void )
 	/* 计算采样值 */
 	CountSampleValueCycle();
 	
-	/* 画坐标系
-		必须放在试验执行前面，因为画坐标系时
-		会记录试验执行需要知道的数据。
-	*/
+	/* 画坐标系 */
 	MainPageCoordinateDrawLineBodyCycle();
 	
 	/* 试验执行体 */

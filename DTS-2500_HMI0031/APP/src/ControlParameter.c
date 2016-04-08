@@ -24,7 +24,7 @@
 #define	COLOR_BACK						BLACK
 
 #define MAX_PARAMETER_CNT				9
-#define MAX_CONTROL_PARAMETER_PUTIN_BIT	7
+#define MAX_CONTROL_PARAMETER_PUTIN_BIT	8
 
 /* Private typedef -----------------------------------------------------------*/
 typedef enum
@@ -532,7 +532,7 @@ static void ConfigControlParameterParameterRectangleFrameCoordinate( void )
 		g_controlParameter.oneLevelMenu[i].backColor = COLOR_BACK;
 		g_controlParameter.oneLevelMenu[i].recordPointColor = COLOR_POINT;
 		g_controlParameter.oneLevelMenu[i].recordBackColor = COLOR_BACK;
-		g_controlParameter.oneLevelMenu[i].lenth = 150;
+		g_controlParameter.oneLevelMenu[i].lenth = 162;
 		g_controlParameter.oneLevelMenu[i].width = 30;
 		g_controlParameter.oneLevelMenu[i].fontSize = 24;
 		g_controlParameter.oneLevelMenu[i].rowDistance = 10;
@@ -721,19 +721,13 @@ static void ControlParameterReadParameter( void )
 			{
 				tempu8 = pHmi->break_condition[g_controlParameter.curChannel];
 				
-				switch ( tempu8 )
+				if (tempu8 > WITH_MAX_FORCE_DIFFERENCE)
 				{
-					case ATTENUATION_RATE:
-						strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[0]);
-						break;
-					case WITH_MAX_FORCE_DIFFERENCE:
-						strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[1]);
-						break;
-					default:
-						pHmi->break_condition[g_controlParameter.curChannel] = ATTENUATION_RATE;
-						strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[0]);
-						break;
+					tempu8 = ATTENUATION_RATE;
 				}
+				
+				g_controlParameter.twoLevelMenu[index].index = tempu8;			
+				strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[tempu8]);
 			}
 			
 			index = GetControlParameterIndex(OBJECT_FORCE_DECAY_RATE);
@@ -933,14 +927,9 @@ static void ControlParameterWriteParameter( void )
 			index = GetControlParameterIndex(OBJECT_BREAK_TYPE);
 			if (index != 0xff)
 			{
-				if (strcmp(g_controlParameter.parameterData[index],ControlParameterCondition[0]) == 0)
-				{
-					pHmi->break_condition[g_controlParameter.curChannel] = ATTENUATION_RATE;
-				}
-				else
-				{
-					pHmi->break_condition[g_controlParameter.curChannel] = WITH_MAX_FORCE_DIFFERENCE;
-				}
+				uint8_t index = g_controlParameter.twoLevelMenu[index].index;
+				
+				pHmi->break_condition[g_controlParameter.curChannel] = index;
 			}
 			
 			index = GetControlParameterIndex(OBJECT_FORCE_DECAY_RATE);
@@ -1470,15 +1459,9 @@ static void ControlParameterKeyProcess( void )
 					
 					if (pMenu->isSelect == YES)
 					{
-						switch (pMenu->nowIndex)
-						{
-							case ATTENUATION_RATE:
-								strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[0]);
-								break;
-							default:
-								strcpy(g_controlParameter.parameterData[index],ControlParameterCondition[1]);
-								break;
-						}
+						g_controlParameter.twoLevelMenu[index].index = pMenu->nowIndex;
+						
+						strcpy(g_controlParameter.parameterData[index],pMenu->pParameterNameArray[pMenu->nowIndex]);
 					}
 					ControlParameterUpdateStatus();
 				}
@@ -2012,18 +1995,6 @@ float GetTargetBreakStartValue( SMPL_NAME_TypeDef channel )
 	{
 		return pHmi->break_judge_value[channel];
 	}
-}
-
-/*------------------------------------------------------------
- * Function Name  : GetYieldDisturbThreshold
- * Description    : 获取屈服干扰阈值
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-uint32_t GetYieldDisturbThreshold( void )
-{
-	return pHmi->yieldDisturbThreshold;
 }
 
 

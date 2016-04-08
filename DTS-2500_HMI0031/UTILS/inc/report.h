@@ -94,6 +94,10 @@ typedef struct
 	float originalGauge;				//原始标距
 	float pipeThickness;				//管段厚度
 	float pipeOuterDiameter;			//管段外径
+	float elasticModulus[20];			//弹性模量
+	float nonProportionalExtensionForce[20];//规定非比例延伸力
+	float nonProportionalExtensionStrength[20];//规定非比例延伸强度
+	uint8_t 	yieldJudgeMode;			//屈服判断方式 
 }REPORT_TypeDef;
 
 #define RECORD_COORDINATE_PERIOD		100					//100ms记录一个点
