@@ -63,6 +63,10 @@ typedef struct
 	uint8_t 	bxUnit;										//变形单位
 	uint8_t		wyConvBx;									//位移切换为变形
 	uint32_t	yieldDisturbThreshold;						//屈服干扰阈值
+	uint8_t 	yieldJudgeMode;								//屈服判断方式
+	uint8_t 	computeElasticModulus;						//计算弹性模量
+	float 		elasticModulusStartStrength;				//弹性模量起始强度
+	float 		elasticModulusEndStrength;					//弹性模量结束强度
 }HMI_TypeDef; 
 
 //记忆功能    

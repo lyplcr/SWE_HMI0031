@@ -112,3 +112,4 @@
 ..\output\obj\pagemanage.o: ..\APP\inc\TestTypeSelect.h
 ..\output\obj\pagemanage.o: ..\APP\inc\CurveShow.h
 ..\output\obj\pagemanage.o: ..\APP\inc\FileManager.h
+..\output\obj\pagemanage.o: ..\APP\inc\ExtendParameter.h

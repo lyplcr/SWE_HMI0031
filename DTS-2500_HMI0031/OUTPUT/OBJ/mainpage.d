@@ -87,6 +87,7 @@
 ..\output\obj\mainpage.o: ..\APP\inc\UserLogin.h
 ..\output\obj\mainpage.o: ..\APP\inc\LinkMode.h
 ..\output\obj\mainpage.o: ..\APP\inc\ControlParameter.h
+..\output\obj\mainpage.o: ..\APP\inc\ExtendParameter.h
 ..\output\obj\mainpage.o: ..\APP\inc\SoftActive.h
 ..\output\obj\mainpage.o: ..\APP\inc\TestAfterDispose.h
 ..\output\obj\mainpage.o: ..\APP\inc\ChannelSelect.h

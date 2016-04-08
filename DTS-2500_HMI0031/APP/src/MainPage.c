@@ -22,6 +22,7 @@
 #include "LinkMode.h"
 #include "netconf.h"
 #include "ControlParameter.h"
+#include "ExtendParameter.h"
 #include "SoftActive.h"
 #include "TestAfterDispose.h"
 #include "ChannelSelect.h"
@@ -289,13 +290,6 @@ typedef struct
 	struct list_head *pHead;
 	const char *pSeparator;	
 }KL_TEST_PROGRESS_TypeDef;
-
-typedef enum
-{
-	YIELD_MODE_ERROR = 0,	//错误屈服模式
-	OBVIOUS_YIELD,			//明显屈服模式
-	SIGMA0_2,				//σ0.2模式
-}YIELD_JUDGE_MODE_TypeDef;
 
 typedef enum
 {
@@ -584,20 +578,15 @@ static void MainPageInit( void )
  *------------------------------------------------------------*/
 static YIELD_JUDGE_MODE_TypeDef GetYieldJudgeMode( TEST_TYPE_TypeDef testType )
 {
-	YIELD_JUDGE_MODE_TypeDef mode = YIELD_MODE_ERROR;
+	YIELD_JUDGE_MODE_TypeDef mode = NO_YIELD;
 	
 	switch ( testType )
 	{
 		case KLJSSW:
 			mode = OBVIOUS_YIELD;
 			break;
-		case KLYYLGJX:
-		case KLGJHJJT:
-		case KLGJJXJT:	
-			mode = SIGMA0_2;
-			break;
 		default:	
-			mode = YIELD_MODE_ERROR;
+			mode = NO_YIELD;
 			break;
 	}
 	
@@ -4904,12 +4893,9 @@ static void KL_TestDeformCoreCycle( void )
 			g_testBody.flagOneGroupSampleComplete = SET;
 		}
 		
-		MainPageExecuteTestEndBody();
-		
-		SetTestStatus(TEST_SAVE);
-		
+		MainPageExecuteTestEndBody();		
+		SetTestStatus(TEST_SAVE);		
 		ECHO(DEBUG_TEST_LOAD,"试验后处理！\r\n");
-		ECHO(DEBUG_TEST_LOAD,"最大力：%f, 抗拉强度：%f\r\n",g_klTestBody.maxForce,g_klTestBody.maxStrength);
 	}
 }
 
@@ -5601,16 +5587,16 @@ static float GetMaxForceSumElongation( void )
 {
 	float maxForceSumExtend = GetMaxForceSumExtend();
 	float maxForceSumElongation = 0;
-	float parallelLenth = GetParallelLenth();
+	float extensometerGauge = GetExtensometerGauge();
 	
-	if (fabs(parallelLenth) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+	if (fabs(extensometerGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
-		parallelLenth = 1;
+		extensometerGauge = 1;
 	}
 	
-	maxForceSumElongation = maxForceSumExtend / parallelLenth * 100;
+	maxForceSumElongation = maxForceSumExtend / extensometerGauge * 100;
 	
-	ECHO_ASSERT(fabs(parallelLenth)>MIN_FLOAT_PRECISION_DIFF_VALUE,"平行长度除零错误！\r\n");
+	ECHO_ASSERT(fabs(extensometerGauge)>MIN_FLOAT_PRECISION_DIFF_VALUE,"引伸计标距除零错误！\r\n");
 	
 	return maxForceSumElongation;
 }
@@ -5853,6 +5839,7 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					g_readReport.maxForceSumExtend[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForceSumExtend;
 					g_readReport.maxForceSumElongation[g_testBody.curCompletePieceSerial-1] = g_klTestBody.maxForceSumElongation;
 					
+					ECHO(DEBUG_TEST_LOAD,"最大力：%f, 抗拉强度：%f\r\n",g_klTestBody.maxForce,g_klTestBody.maxStrength);
 					ECHO(DEBUG_TEST_LOAD,"上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
 					ECHO(DEBUG_TEST_LOAD,"下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);
 					ECHO(DEBUG_TEST_LOAD,"最大力总延伸：%f, 最大力总伸长率：%f\r\n",g_klTestBody.maxForceSumExtend,g_klTestBody.maxForceSumElongation);

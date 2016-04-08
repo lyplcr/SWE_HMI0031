@@ -291,7 +291,7 @@ static void ControlParameterConfig( void )
 	{
 		case SMPL_FH_NUM:
 			/* 个数 */
-			g_controlParameter.curParameterNum = MAX_PARAMETER_CNT;	
+			g_controlParameter.curParameterNum = MAX_PARAMETER_CNT - 1;	
 		
 			/* 索引值 */
 			g_controlParameter.indexArray[INDEX_SYSTEM_MAX_VALUE] 		= OBJECT_SYSTEM_MAX_VALUE;
@@ -1368,10 +1368,11 @@ static void ControlParameterShortcutCycleTask( void )
 	{
 		g_controlParameter.refreshShortcut = DISABLE;
 			
-		pShortCut->status = SHOW_F1 | SHOW_F3 | SHOW_F4;
+		pShortCut->status = SHOW_F1 | SHOW_F2 | SHOW_F3 | SHOW_F4;
 		pShortCut->pointColor = COLOR_SHORTCUT_POINT;
 		pShortCut->backColor = COLOR_SHORTCUT_BACK;
 		pShortCut->pContent[0] = pTwoLevelMenu[6];
+		pShortCut->pContent[1] = pTwoLevelMenu[93];
 		pShortCut->pContent[2] = pTwoLevelMenu[37];
 		pShortCut->pContent[3] = pTwoLevelMenu[58];
 		
@@ -1541,6 +1542,11 @@ static void ControlParameterKeyProcess( void )
 				break;
 			case KEY_F1:
 				SetPage(CALIBRATION_TABLE);
+				g_controlParameter.leavePage.flagLeavePage = SET;
+				g_controlParameter.leavePage.flagSaveData = SET;
+				break;
+			case KEY_F2:
+				SetPage(EXTEND_PARAMETER_PAGE);
 				g_controlParameter.leavePage.flagLeavePage = SET;
 				g_controlParameter.leavePage.flagSaveData = SET;
 				break;

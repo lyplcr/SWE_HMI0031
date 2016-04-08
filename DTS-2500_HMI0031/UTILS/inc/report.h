@@ -32,9 +32,6 @@ typedef enum
 	KZYJSNJ,		//[9]压浆水泥浆抗折
 	KZTY,			//[10]通用抗折
 	KLJSSW,			//[11]金属室温拉伸
-	KLYYLGJX,		//[12]预应力钢绞线拉伸
-	KLGJHJJT,		//[13]钢筋焊接接头拉伸
-	KLGJJXJT,		//[14]钢筋机械接头拉伸
 }TEST_TYPE_TypeDef;
 
 

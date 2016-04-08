@@ -496,6 +496,11 @@
               <FilePath>..\APP\src\ControlParameter.c</FilePath>
             </File>
             <File>
+              <FileName>ExtendParameter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\src\ExtendParameter.c</FilePath>
+            </File>
+            <File>
               <FileName>CalibrationTable.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\APP\src\CalibrationTable.c</FilePath>

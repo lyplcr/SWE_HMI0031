@@ -162,6 +162,7 @@ const char * const pTwoLevelMenu[] =
 	" 开始检定 ",		//90
 	" 结束校准 ",		//91
 	" 结束检定 ",		//92
+	" 扩展参数 ",		//93
 };
 
 const char * const pUnitType[] = 
