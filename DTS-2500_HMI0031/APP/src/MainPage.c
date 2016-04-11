@@ -1175,6 +1175,11 @@ static void FromTestParameterCopyToReport( REPORT_TypeDef *pReport )
 			pReport->elasticModulus[i] = 0;
 			pReport->nonProportionalExtensionForce[i] = 0;
 			pReport->nonProportionalExtensionStrength[i] = 0;
+			pReport->yieldJudgeMode = 0;
+			pReport->yieldDisturbThreshold = 0;
+			pReport->computeElasticModulus = 0;
+			pReport->elasticModulusStartStrength = 0;
+			pReport->elasticModulusEndStrength = 0;
 		}
 	}
 }	
@@ -5956,6 +5961,8 @@ static float ComputeElasticModulus( REPORT_TypeDef *reportPtr )
 		}
 		
 		{
+			float startStrength = pDrawLine->force[startIndex] / area;
+			float endStrength = pDrawLine->force[endIndex] / area;
 			float startDeform = pDrawLine->deform[startIndex];
 			float endDeform = pDrawLine->deform[endIndex];
 			float extensometerGauge = GetExtensometerGauge();
@@ -5975,7 +5982,7 @@ static float ComputeElasticModulus( REPORT_TypeDef *reportPtr )
 				}
 				
 				elasticModulus = (endStrength-startStrength) / (endtrain-startStrain);
-				elasticModulus /= 1000;	//MPa->GPa
+				elasticModulus /= 1000.0f;	//MPa->GPa
 			}			
 		}
 	}
@@ -6024,8 +6031,8 @@ static float ComputeNonProportionalExtensionForce( REPORT_TypeDef *reportPtr, fl
 	
 	{
 		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
-		float elasticModulusMPa = elasticModulusGPa * 1000;
-		float targetB = (-1.0f) * elasticModulusMPa * 0.002f;
+		float elasticModulusMPa = elasticModulusGPa * 1000.0f;
+		float targetB = (-1.0f) * elasticModulusMPa * 0.002f;	//RP0.2 -》%0.2
 		float nowB = 0;
 		float extensometerGauge = GetExtensometerGauge();	
 		float nowStrength = 0;	//应力
@@ -6315,6 +6322,11 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					g_readReport.elasticModulus[g_testBody.curCompletePieceSerial-1] = g_klTestBody.elasticModulus;
 					g_readReport.nonProportionalExtensionForce[g_testBody.curCompletePieceSerial-1] = g_klTestBody.nonProportionalExtensionForce;
 					g_readReport.nonProportionalExtensionStrength[g_testBody.curCompletePieceSerial-1] = g_klTestBody.nonProportionalExtensionStrength;
+					g_readReport.yieldJudgeMode = pHmi->yieldJudgeMode;
+					g_readReport.yieldDisturbThreshold = pHmi->yieldDisturbThreshold;
+					g_readReport.computeElasticModulus = pHmi->computeElasticModulus;
+					g_readReport.elasticModulusStartStrength = pHmi->elasticModulusStartStrength;
+					g_readReport.elasticModulusEndStrength = pHmi->elasticModulusEndStrength;
 					
 					ECHO(DEBUG_TEST_LOAD,"最大力：%f, 抗拉强度：%f\r\n",g_klTestBody.maxForce,g_klTestBody.maxStrength);
 					ECHO(DEBUG_TEST_LOAD,"上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);

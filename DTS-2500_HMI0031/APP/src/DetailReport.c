@@ -19,6 +19,7 @@
 #include "DetailReport.h"
 #include "TestReport.h"
 #include "TestTypeSelect.h"
+#include "ExtendParameter.h"
 
 /* Private define ------------------------------------------------------------*/
 #define COLOR_POINT						WHITE
@@ -62,6 +63,9 @@ typedef enum
 	OBJECT_MAX_FORCE_TOTAL_ELONGATION,	/* 最大力总伸长率 */
 	OBJECT_PIPE_THICKNESS,		/* 管段厚度 */
 	OBJECT_PIPE_OUTER_DIAMETER,	/* 管段外直径 */
+	OBJECT_NON_PROPORTIONAL_EXTENSION_STRENGTH,/* 非比例延伸强度 */
+	OBJECT_MAX_FORCE,			/* 最大力 */
+	OBJECT_ELASTIC_MODULUS,		/* 弹性模量 */
 }DETAIL_REPORT_PATAMETER_NAME_TypeDef;
 
 typedef enum
@@ -175,52 +179,6 @@ typedef enum
 	INDEX_YJSNJKZ_TEST_PRESSURE,
 }INDEX_YJSNJKZ_TypeDef;
 
-union INDEX_JSSWKL_TypeDef
-{
-	enum JSSWKL_SAMPLE_RECTANGLE
-	{
-		INDEX_JSSWKL_RECTANGLE_SAMPLE_SERIAL = 0,
-		INDEX_JSSWKL_RECTANGLE_SHAPE,
-		INDEX_JSSWKL_RECTANGLE_THICKNESS,
-		INDEX_JSSWKL_RECTANGLE_WIDTH,
-		INDEX_JSSWKL_RECTANGLE_KL_STRENGTH,
-		INDEX_JSSWKL_RECTANGLE_UP_YIELD_STRENGTH,
-		INDEX_JSSWKL_RECTANGLE_DOWN_YIELD_STRENGTH,
-		INDEX_JSSWKL_RECTANGLE_MAX_FORCE_TOTAL_ELONGATION,
-	}JSSWKL_SHAPE_RECTANGLE;
-	enum JSSWKL_SAMPLE_ROUND
-	{
-		INDEX_JSSWKL_ROUND_SAMPLE_SERIAL = 0,
-		INDEX_JSSWKL_ROUND_SHAPE,
-		INDEX_JSSWKL_ROUND_ROUND_DIAMETER,
-		INDEX_JSSWKL_ROUND_KL_STRENGTH,
-		INDEX_JSSWKL_ROUND_UP_YIELD_STRENGTH,
-		INDEX_JSSWKL_ROUND_DOWN_YIELD_STRENGTH,
-		INDEX_JSSWKL_ROUND_MAX_FORCE_TOTAL_ELONGATION,
-	}JSSWKL_SHAPE_ROUND;
-	enum JSSWKL_SAMPLE_TUBE
-	{
-		INDEX_JSSWKL_TUBE_SAMPLE_SERIAL = 0,
-		INDEX_JSSWKL_TUBE_SHAPE,
-		INDEX_JSSWKL_TUBE_PIPE_THICKNESS,
-		INDEX_JSSWKL_TUBE_PIPE_OUTER_DIAMETER,
-		INDEX_JSSWKL_TUBE_KL_STRENGTH,
-		INDEX_JSSWKL_TUBE_UP_YIELD_STRENGTH,
-		INDEX_JSSWKL_TUBE_DOWN_YIELD_STRENGTH,
-		INDEX_JSSWKL_TUBE_MAX_FORCE_TOTAL_ELONGATION,
-	}JSSWKL_SHAPE_TUBE;
-	enum JSSWKL_SAMPLE_IRREGULAR
-	{
-		INDEX_JSSWKL_IRREGULAR_SAMPLE_SERIAL = 0,
-		INDEX_JSSWKL_IRREGULAR_SHAPE,
-		INDEX_JSSWKL_IRREGULAR_AREA,
-		INDEX_JSSWKL_IRREGULAR_KL_STRENGTH,
-		INDEX_JSSWKL_IRREGULAR_UP_YIELD_STRENGTH,
-		INDEX_JSSWKL_IRREGULAR_DOWN_YIELD_STRENGTH,
-		INDEX_JSSWKL_IRREGULAR_MAX_FORCE_TOTAL_ELONGATION,
-	}JSSWKL_SHAPE_IRREGULAR;
-};
-
 typedef struct
 {
 	char parameterData[MAX_FIELD_NUM][MAX_REPORT_NAME_BIT+1];
@@ -322,6 +280,10 @@ const char * const pDetailReportFieldName[] =
 	"上屈服",				//24
 	"下屈服",				//25
 	"总伸长率",				//26
+	"非比例延伸强度",		//27
+	"最大力",				//28
+	"弹性模量",				//29
+	"错误",					//30
 };	
 
 extern const char * const pSpecimen_sharp[];
@@ -1112,239 +1074,208 @@ static void DetailReportConfig( void )
 		case KLJSSW:
 			report_read(g_detailReport.testType,GetSelectReportFileNameAddr(),&g_readReport);
 			
-			switch (g_readReport.sample_shape_index)
 			{
-				case JSSWKL_SHAPE_RECTANGLE:
-					/* 标题 */
-					g_detailReport.pTitle = pDetailTestReportTitleName[10];
+				uint8_t indexNum = 0;
+				
+				/* 标题 */
+				g_detailReport.pTitle = pDetailTestReportTitleName[10];
+				
+				/* 索引值 */
+				g_detailReport.indexArray[indexNum++] = OBJECT_SERIAL;
+				g_detailReport.indexArray[indexNum++] = OBJECT_SAMPLE_SHAPE;		
+				switch (g_readReport.sample_shape_index)
+				{
+					case JSSWKL_SHAPE_RECTANGLE:
+						g_detailReport.indexArray[indexNum++] = OBJECT_SPECIMEN_LENTH;
+						g_detailReport.indexArray[indexNum++] = OBJECT_SPECIMEN_WIDTH;
+						break;
+					case JSSWKL_SHAPE_ROUND:
+						g_detailReport.indexArray[indexNum++] = OBJECT_ROUND_DIAMETER;
+						break;
+					case JSSWKL_SHAPE_TUBE:
+						g_detailReport.indexArray[indexNum++] = OBJECT_PIPE_THICKNESS;
+						g_detailReport.indexArray[indexNum++] = OBJECT_PIPE_OUTER_DIAMETER;
+						break;
+					case JSSWKL_SHAPE_IRREGULAR:
+						g_detailReport.indexArray[indexNum++] = OBJECT_SAMPLE_AREA;
+						break;
+					default:
+						break;
+				}
+				g_detailReport.indexArray[indexNum++] = OBJECT_KL_STRENGTH;				
+				switch (g_readReport.yieldJudgeMode)
+				{
+					case OBVIOUS_YIELD:
+						g_detailReport.indexArray[indexNum++] = OBJECT_UP_YIELD_STRENGTH;	
+						g_detailReport.indexArray[indexNum++] = OBJECT_DOWN_YIELD_STRENGTH;	
+						break;
+					case SIGMA0_2:
+						g_detailReport.indexArray[indexNum++] = OBJECT_NON_PROPORTIONAL_EXTENSION_STRENGTH;
+						break;
+					case NO_YIELD:
+						g_detailReport.indexArray[indexNum++] = OBJECT_MAX_FORCE;	
+						break;
+					default:
+						break;
+				}
+				if (g_readReport.computeElasticModulus)
+				{
+					g_detailReport.indexArray[indexNum++] = OBJECT_ELASTIC_MODULUS;	
+				}
+				/* 字段个数 */
+				g_detailReport.fieldNum = indexNum;
+				
+				/* 字段名 */
+				{
+					uint8_t i;
+					const char *pName = NULL;
 					
-					/* 字段个数 */
-					g_detailReport.fieldNum = 8;
+					for (i=0; i<g_detailReport.fieldNum; ++i)
+					{
+						switch (g_detailReport.indexArray[i])
+						{
+							case OBJECT_SERIAL:
+								pName = pDetailReportFieldName[0];
+								break;
+							case OBJECT_SAMPLE_SHAPE:
+								pName = pDetailReportFieldName[17];
+								break;
+							case OBJECT_SPECIMEN_LENTH:
+								pName = pDetailReportFieldName[19];
+								break;
+							case OBJECT_SPECIMEN_WIDTH:
+								pName = pDetailReportFieldName[20];
+								break;
+							case OBJECT_ROUND_DIAMETER:
+								pName = pDetailReportFieldName[18];
+								break;
+							case OBJECT_PIPE_THICKNESS:
+								pName = pDetailReportFieldName[21];
+								break;
+							case OBJECT_PIPE_OUTER_DIAMETER:
+								pName = pDetailReportFieldName[22];
+								break;
+							case OBJECT_SAMPLE_AREA:
+								pName = pDetailReportFieldName[16];
+								break;
+							case OBJECT_KL_STRENGTH:
+								pName = pDetailReportFieldName[23];
+								break;
+							case OBJECT_UP_YIELD_STRENGTH:
+								pName = pDetailReportFieldName[24];
+								break;
+							case OBJECT_DOWN_YIELD_STRENGTH:
+								pName = pDetailReportFieldName[25];
+								break;
+							case OBJECT_NON_PROPORTIONAL_EXTENSION_STRENGTH:
+								pName = pDetailReportFieldName[27];
+								break;
+							case OBJECT_MAX_FORCE:
+								pName = pDetailReportFieldName[28];
+								break;
+							case OBJECT_ELASTIC_MODULUS:
+								pName = pDetailReportFieldName[29];
+								break;
+							default:
+								pName = pDetailReportFieldName[30];
+								break;
+						}					
+						g_detailReport.pParameterNameArray[i] = pName;
+					}
+				}
+				
+				/* 字段显示类型 */
+				{
+					uint8_t i;
 					
-					/* 索引值 */
-					g_detailReport.indexArray[INDEX_JSSWKL_RECTANGLE_SAMPLE_SERIAL] 				= OBJECT_SERIAL;
-					g_detailReport.indexArray[INDEX_JSSWKL_RECTANGLE_SHAPE] 						= OBJECT_SAMPLE_SHAPE;
-					g_detailReport.indexArray[INDEX_JSSWKL_RECTANGLE_THICKNESS] 					= OBJECT_SPECIMEN_LENTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_RECTANGLE_WIDTH] 						= OBJECT_SPECIMEN_WIDTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_RECTANGLE_KL_STRENGTH] 					= OBJECT_KL_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_RECTANGLE_UP_YIELD_STRENGTH] 			= OBJECT_UP_YIELD_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_RECTANGLE_DOWN_YIELD_STRENGTH] 			= OBJECT_DOWN_YIELD_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_RECTANGLE_MAX_FORCE_TOTAL_ELONGATION] 	= OBJECT_MAX_FORCE_TOTAL_ELONGATION;
+					for (i=0; i<g_detailReport.fieldNum; ++i)
+					{
+						g_detailReport.oneFieldShowType[i] = SHOW_ALL;
+					}
+				}
+				
+				/* 小数点位数 */
+				{
+					uint8_t i,j;
+					uint8_t dotNum = 0;
 					
-					/* 字段名 */
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_RECTANGLE_SAMPLE_SERIAL] 				= pDetailReportFieldName[0];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_RECTANGLE_SHAPE] 						= pDetailReportFieldName[17];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_RECTANGLE_THICKNESS] 					= pDetailReportFieldName[19];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_RECTANGLE_WIDTH] 						= pDetailReportFieldName[20];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_RECTANGLE_KL_STRENGTH] 					= pDetailReportFieldName[23];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_RECTANGLE_UP_YIELD_STRENGTH]			= pDetailReportFieldName[24];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_RECTANGLE_DOWN_YIELD_STRENGTH] 			= pDetailReportFieldName[25];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_RECTANGLE_MAX_FORCE_TOTAL_ELONGATION] 	= pDetailReportFieldName[26];
-					
-					/* 一个字段显示个数 */
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_RECTANGLE_SAMPLE_SERIAL] 				= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_RECTANGLE_SHAPE]						= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_RECTANGLE_THICKNESS] 					= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_RECTANGLE_WIDTH]						= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_RECTANGLE_KL_STRENGTH] 				= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_RECTANGLE_UP_YIELD_STRENGTH]			= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_RECTANGLE_DOWN_YIELD_STRENGTH] 		= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_RECTANGLE_MAX_FORCE_TOTAL_ELONGATION] 	= SHOW_ALL;					
-					
-					/* 小数点位数 */
 					for (i=0; i<MAX_ONE_PAGE_SHOW_NUM; ++i)
 					{
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_RECTANGLE_SAMPLE_SERIAL].pointBit 				= 0;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_RECTANGLE_SHAPE].pointBit						= 0;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_RECTANGLE_THICKNESS].pointBit 					= 2;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_RECTANGLE_WIDTH].pointBit 						= 2;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_RECTANGLE_KL_STRENGTH].pointBit 				= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_RECTANGLE_UP_YIELD_STRENGTH].pointBit 			= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_RECTANGLE_DOWN_YIELD_STRENGTH].pointBit			= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_RECTANGLE_MAX_FORCE_TOTAL_ELONGATION].pointBit 	= 1;
+						for (j=0; j<g_detailReport.fieldNum; ++j)
+						{
+							switch (g_detailReport.indexArray[j])
+							{
+								case OBJECT_SERIAL:
+									dotNum = 0;
+									break;
+								case OBJECT_SAMPLE_SHAPE:
+									dotNum = 0;
+									break;
+								case OBJECT_SPECIMEN_LENTH:
+									dotNum = 2;
+									break;
+								case OBJECT_SPECIMEN_WIDTH:
+									dotNum = 2;
+									break;
+								case OBJECT_ROUND_DIAMETER:
+									dotNum = 2;
+									break;
+								case OBJECT_PIPE_THICKNESS:
+									dotNum = 2;
+									break;
+								case OBJECT_PIPE_OUTER_DIAMETER:
+									dotNum = 2;
+									break;
+								case OBJECT_SAMPLE_AREA:
+									dotNum = 2;
+									break;
+								case OBJECT_KL_STRENGTH:
+									dotNum = 1;
+									break;
+								case OBJECT_UP_YIELD_STRENGTH:
+									dotNum = 1;
+									break;
+								case OBJECT_DOWN_YIELD_STRENGTH:
+									dotNum = 1;
+									break;
+								case OBJECT_NON_PROPORTIONAL_EXTENSION_STRENGTH:
+									dotNum = 1;
+									break;
+								case OBJECT_MAX_FORCE:
+									dotNum = 2;
+									break;
+								case OBJECT_ELASTIC_MODULUS:
+									dotNum = 1;
+									break;
+								default:
+									dotNum = 0;
+									break;
+							}					
+							g_detailReport.oneLevelMenu[i][j].pointBit = dotNum;
+						}
 					}
+				}
+				
+				/* 数据对齐 */
+				{
+					uint8_t i;
+					ALIGN_TYPE_TypeDef type;
 					
-					/* 数据对齐 */
-					g_detailReport.align[INDEX_JSSWKL_RECTANGLE_SAMPLE_SERIAL] 				= ALIGN_MIDDLE;
-					g_detailReport.align[INDEX_JSSWKL_RECTANGLE_SHAPE]						= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_RECTANGLE_THICKNESS] 					= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_RECTANGLE_WIDTH] 						= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_RECTANGLE_KL_STRENGTH] 				= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_RECTANGLE_UP_YIELD_STRENGTH]			= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_RECTANGLE_DOWN_YIELD_STRENGTH] 		= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_RECTANGLE_MAX_FORCE_TOTAL_ELONGATION] = ALIGN_LEFT;
-					break;
-				case JSSWKL_SHAPE_ROUND:
-					/* 标题 */
-					g_detailReport.pTitle = pDetailTestReportTitleName[10];
-					
-					/* 字段个数 */
-					g_detailReport.fieldNum = 7;
-					
-					/* 索引值 */
-					g_detailReport.indexArray[INDEX_JSSWKL_ROUND_SAMPLE_SERIAL] 				= OBJECT_SERIAL;
-					g_detailReport.indexArray[INDEX_JSSWKL_ROUND_SHAPE] 						= OBJECT_SAMPLE_SHAPE;
-					g_detailReport.indexArray[INDEX_JSSWKL_ROUND_ROUND_DIAMETER] 				= OBJECT_ROUND_DIAMETER;
-					g_detailReport.indexArray[INDEX_JSSWKL_ROUND_KL_STRENGTH] 					= OBJECT_KL_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_ROUND_UP_YIELD_STRENGTH] 			= OBJECT_UP_YIELD_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_ROUND_DOWN_YIELD_STRENGTH] 			= OBJECT_DOWN_YIELD_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_ROUND_MAX_FORCE_TOTAL_ELONGATION] 	= OBJECT_MAX_FORCE_TOTAL_ELONGATION;
-					
-					/* 字段名 */
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_ROUND_SAMPLE_SERIAL] 				= pDetailReportFieldName[0];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_ROUND_SHAPE] 						= pDetailReportFieldName[17];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_ROUND_ROUND_DIAMETER] 				= pDetailReportFieldName[18];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_ROUND_KL_STRENGTH] 					= pDetailReportFieldName[23];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_ROUND_UP_YIELD_STRENGTH]			= pDetailReportFieldName[24];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_ROUND_DOWN_YIELD_STRENGTH] 			= pDetailReportFieldName[25];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_ROUND_MAX_FORCE_TOTAL_ELONGATION] 	= pDetailReportFieldName[26];
-					
-					/* 一个字段显示个数 */
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_ROUND_SAMPLE_SERIAL] 				= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_ROUND_SHAPE]						= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_ROUND_ROUND_DIAMETER] 				= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_ROUND_KL_STRENGTH] 				= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_ROUND_UP_YIELD_STRENGTH]			= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_ROUND_DOWN_YIELD_STRENGTH] 		= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_ROUND_MAX_FORCE_TOTAL_ELONGATION] 	= SHOW_ALL;					
-					
-					/* 小数点位数 */
-					for (i=0; i<MAX_ONE_PAGE_SHOW_NUM; ++i)
+					for (i=0; i<g_detailReport.fieldNum; ++i)
 					{
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_ROUND_SAMPLE_SERIAL].pointBit 				= 0;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_ROUND_SHAPE].pointBit						= 0;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_ROUND_ROUND_DIAMETER].pointBit 				= 2;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_ROUND_KL_STRENGTH].pointBit 				= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_ROUND_UP_YIELD_STRENGTH].pointBit 			= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_ROUND_DOWN_YIELD_STRENGTH].pointBit			= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_ROUND_MAX_FORCE_TOTAL_ELONGATION].pointBit 	= 1;
+						if (g_detailReport.indexArray[i] == OBJECT_SERIAL)
+						{
+							type = ALIGN_MIDDLE;
+						}
+						else
+						{
+							type = ALIGN_LEFT;
+						}
+						
+						g_detailReport.align[i] = type;
 					}
-					
-					/* 数据对齐 */
-					g_detailReport.align[INDEX_JSSWKL_ROUND_SAMPLE_SERIAL] 				= ALIGN_MIDDLE;
-					g_detailReport.align[INDEX_JSSWKL_ROUND_SHAPE]						= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_ROUND_ROUND_DIAMETER] 			= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_ROUND_KL_STRENGTH] 				= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_ROUND_UP_YIELD_STRENGTH]			= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_ROUND_DOWN_YIELD_STRENGTH] 		= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_ROUND_MAX_FORCE_TOTAL_ELONGATION] = ALIGN_LEFT;
-					break;
-				case JSSWKL_SHAPE_TUBE:
-					/* 标题 */
-					g_detailReport.pTitle = pDetailTestReportTitleName[10];
-					
-					/* 字段个数 */
-					g_detailReport.fieldNum = 8;
-					
-					/* 索引值 */
-					g_detailReport.indexArray[INDEX_JSSWKL_TUBE_SAMPLE_SERIAL] 					= OBJECT_SERIAL;
-					g_detailReport.indexArray[INDEX_JSSWKL_TUBE_SHAPE] 							= OBJECT_SAMPLE_SHAPE;
-					g_detailReport.indexArray[INDEX_JSSWKL_TUBE_PIPE_THICKNESS] 				= OBJECT_PIPE_THICKNESS;
-					g_detailReport.indexArray[INDEX_JSSWKL_TUBE_PIPE_OUTER_DIAMETER] 			= OBJECT_PIPE_OUTER_DIAMETER;
-					g_detailReport.indexArray[INDEX_JSSWKL_TUBE_KL_STRENGTH] 					= OBJECT_KL_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_TUBE_UP_YIELD_STRENGTH] 				= OBJECT_UP_YIELD_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_TUBE_DOWN_YIELD_STRENGTH] 			= OBJECT_DOWN_YIELD_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_TUBE_MAX_FORCE_TOTAL_ELONGATION] 	= OBJECT_MAX_FORCE_TOTAL_ELONGATION;
-					
-					/* 字段名 */
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_TUBE_SAMPLE_SERIAL] 				= pDetailReportFieldName[0];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_TUBE_SHAPE] 						= pDetailReportFieldName[17];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_TUBE_PIPE_THICKNESS] 				= pDetailReportFieldName[21];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_TUBE_PIPE_OUTER_DIAMETER] 			= pDetailReportFieldName[22];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_TUBE_KL_STRENGTH] 					= pDetailReportFieldName[23];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_TUBE_UP_YIELD_STRENGTH]				= pDetailReportFieldName[24];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_TUBE_DOWN_YIELD_STRENGTH] 			= pDetailReportFieldName[25];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_TUBE_MAX_FORCE_TOTAL_ELONGATION] 	= pDetailReportFieldName[26];
-					
-					/* 一个字段显示个数 */
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_TUBE_SAMPLE_SERIAL] 				= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_TUBE_SHAPE]						= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_TUBE_PIPE_THICKNESS] 				= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_TUBE_PIPE_OUTER_DIAMETER]			= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_TUBE_KL_STRENGTH] 					= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_TUBE_UP_YIELD_STRENGTH]			= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_TUBE_DOWN_YIELD_STRENGTH] 			= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_TUBE_MAX_FORCE_TOTAL_ELONGATION] 	= SHOW_ALL;					
-					
-					/* 小数点位数 */
-					for (i=0; i<MAX_ONE_PAGE_SHOW_NUM; ++i)
-					{
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_TUBE_SAMPLE_SERIAL].pointBit 				= 0;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_TUBE_SHAPE].pointBit						= 0;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_TUBE_PIPE_THICKNESS].pointBit 				= 2;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_TUBE_PIPE_OUTER_DIAMETER].pointBit 			= 2;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_TUBE_KL_STRENGTH].pointBit 					= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_TUBE_UP_YIELD_STRENGTH].pointBit 			= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_TUBE_DOWN_YIELD_STRENGTH].pointBit			= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_TUBE_MAX_FORCE_TOTAL_ELONGATION].pointBit 	= 1;
-					}
-					
-					/* 数据对齐 */
-					g_detailReport.align[INDEX_JSSWKL_TUBE_SAMPLE_SERIAL] 				= ALIGN_MIDDLE;
-					g_detailReport.align[INDEX_JSSWKL_TUBE_SHAPE]						= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_TUBE_PIPE_THICKNESS] 				= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_TUBE_PIPE_OUTER_DIAMETER] 		= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_TUBE_KL_STRENGTH] 				= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_TUBE_UP_YIELD_STRENGTH]			= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_TUBE_DOWN_YIELD_STRENGTH] 		= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_TUBE_MAX_FORCE_TOTAL_ELONGATION] 	= ALIGN_LEFT;
-					break;
-				case JSSWKL_SHAPE_IRREGULAR:
-					/* 标题 */
-					g_detailReport.pTitle = pDetailTestReportTitleName[10];
-					
-					/* 字段个数 */
-					g_detailReport.fieldNum = 7;
-					
-					/* 索引值 */
-					g_detailReport.indexArray[INDEX_JSSWKL_IRREGULAR_SAMPLE_SERIAL] 				= OBJECT_SERIAL;
-					g_detailReport.indexArray[INDEX_JSSWKL_IRREGULAR_SHAPE] 						= OBJECT_SAMPLE_SHAPE;
-					g_detailReport.indexArray[INDEX_JSSWKL_IRREGULAR_AREA] 							= OBJECT_SAMPLE_AREA;
-					g_detailReport.indexArray[INDEX_JSSWKL_IRREGULAR_KL_STRENGTH] 					= OBJECT_KL_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_IRREGULAR_UP_YIELD_STRENGTH] 			= OBJECT_UP_YIELD_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_IRREGULAR_DOWN_YIELD_STRENGTH] 			= OBJECT_DOWN_YIELD_STRENGTH;
-					g_detailReport.indexArray[INDEX_JSSWKL_IRREGULAR_MAX_FORCE_TOTAL_ELONGATION] 	= OBJECT_MAX_FORCE_TOTAL_ELONGATION;
-					
-					/* 字段名 */
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_IRREGULAR_SAMPLE_SERIAL] 				= pDetailReportFieldName[0];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_IRREGULAR_SHAPE] 						= pDetailReportFieldName[17];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_IRREGULAR_AREA] 						= pDetailReportFieldName[16];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_IRREGULAR_KL_STRENGTH] 					= pDetailReportFieldName[23];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_IRREGULAR_UP_YIELD_STRENGTH]			= pDetailReportFieldName[24];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_IRREGULAR_DOWN_YIELD_STRENGTH] 			= pDetailReportFieldName[25];
-					g_detailReport.pParameterNameArray[INDEX_JSSWKL_IRREGULAR_MAX_FORCE_TOTAL_ELONGATION] 	= pDetailReportFieldName[26];
-					
-					/* 一个字段显示个数 */
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_IRREGULAR_SAMPLE_SERIAL] 				= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_IRREGULAR_SHAPE]						= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_IRREGULAR_AREA] 						= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_IRREGULAR_KL_STRENGTH] 				= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_IRREGULAR_UP_YIELD_STRENGTH]			= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_IRREGULAR_DOWN_YIELD_STRENGTH] 		= SHOW_ALL;
-					g_detailReport.oneFieldShowType[INDEX_JSSWKL_IRREGULAR_MAX_FORCE_TOTAL_ELONGATION] 	= SHOW_ALL;					
-					
-					/* 小数点位数 */
-					for (i=0; i<MAX_ONE_PAGE_SHOW_NUM; ++i)
-					{
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_IRREGULAR_SAMPLE_SERIAL].pointBit 				= 0;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_IRREGULAR_SHAPE].pointBit						= 0;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_IRREGULAR_AREA].pointBit 						= 2;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_IRREGULAR_KL_STRENGTH].pointBit 				= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_IRREGULAR_UP_YIELD_STRENGTH].pointBit 			= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_IRREGULAR_DOWN_YIELD_STRENGTH].pointBit			= 1;
-						g_detailReport.oneLevelMenu[i][INDEX_JSSWKL_IRREGULAR_MAX_FORCE_TOTAL_ELONGATION].pointBit 	= 1;
-					}
-					
-					/* 数据对齐 */
-					g_detailReport.align[INDEX_JSSWKL_IRREGULAR_SAMPLE_SERIAL] 				= ALIGN_MIDDLE;
-					g_detailReport.align[INDEX_JSSWKL_IRREGULAR_SHAPE]						= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_IRREGULAR_AREA] 						= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_IRREGULAR_KL_STRENGTH] 				= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_IRREGULAR_UP_YIELD_STRENGTH]			= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_IRREGULAR_DOWN_YIELD_STRENGTH] 		= ALIGN_LEFT;
-					g_detailReport.align[INDEX_JSSWKL_IRREGULAR_MAX_FORCE_TOTAL_ELONGATION] = ALIGN_LEFT;
-					break;
-			}
+				}
+			}			
 			break;
 		default:
 			break;
@@ -1712,6 +1643,43 @@ static void DetailReportReadParameter( void )
 			floattochar(MAX_REPORT_NAME_BIT,g_detailReport.oneLevelMenu[i][index].pointBit,g_readReport.pipeOuterDiameter,g_detailReport.fieldData[i].parameterData[index]);
 		}
 	}
+	
+	index = GetDetailReportFieldIndex(OBJECT_NON_PROPORTIONAL_EXTENSION_STRENGTH);
+	if (index != 0xff)
+	{
+		for (i=0; i<g_detailReport.curPageSampleNum; ++i)
+		{					
+			floattochar(MAX_REPORT_NAME_BIT,g_detailReport.oneLevelMenu[i][index].pointBit,\
+				g_readReport.nonProportionalExtensionStrength[baseIndex+i],g_detailReport.fieldData[i].parameterData[index]);
+		}
+	}
+	
+	index = GetDetailReportFieldIndex(OBJECT_MAX_FORCE);
+	if (index != 0xff)
+	{
+		float force = 0;
+		
+		for (i=0; i<g_detailReport.curPageSampleNum; ++i)
+		{	
+			force = g_readReport.maxForce[baseIndex+i];
+			if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
+			{
+				force /= 1000;
+			}			
+			floattochar(MAX_REPORT_NAME_BIT,g_detailReport.oneLevelMenu[i][index].pointBit,\
+				force,g_detailReport.fieldData[i].parameterData[index]);
+		}
+	}
+	
+	index = GetDetailReportFieldIndex(OBJECT_ELASTIC_MODULUS);
+	if (index != 0xff)
+	{
+		for (i=0; i<g_detailReport.curPageSampleNum; ++i)
+		{					
+			floattochar(MAX_REPORT_NAME_BIT,g_detailReport.oneLevelMenu[i][index].pointBit,\
+				g_readReport.elasticModulus[baseIndex+i],g_detailReport.fieldData[i].parameterData[index]);
+		}
+	}
 }
 
 /*------------------------------------------------------------
@@ -1879,7 +1847,18 @@ static void ConfigDetailReportOneFieldRectangleFrameCoordinate( uint8_t rowIndex
 		case OBJECT_PRESSURE:
 			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 124;
 			break;
-		 
+		case OBJECT_NON_PROPORTIONAL_EXTENSION_STRENGTH:
+			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 172;
+			break;
+		case OBJECT_MAX_FORCE:
+			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 100;
+			break; 
+		case OBJECT_ELASTIC_MODULUS:
+			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 100;
+			break;
+		default:
+			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 0;
+			break;
 	}
 }
 

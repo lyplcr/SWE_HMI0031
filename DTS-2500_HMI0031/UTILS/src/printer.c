@@ -16,6 +16,7 @@
 #include "global.h"
 #include "printer.h"
 #include "ForceCalibration.h"
+#include "ExtendParameter.h"
 
 
 /* Private define ------------------------------------------------------------*/
@@ -826,10 +827,12 @@ ErrorStatus PrintTestReport( TEST_TYPE_TypeDef test_type, TEST_ATTRIBUTE_TypeDef
 			print(print_buff);
 			PrintWordsAndLineFeed("mm");
 			
-			print("平行长度：");			
-			floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->parallelLenth,print_buff);			
-			print(print_buff);
-			PrintWordsAndLineFeed("mm");
+			#if 0
+				print("平行长度：");			
+				floattochar(MAX_SHOW_BIT,BIT_AREA_DOT,report->parallelLenth,print_buff);			
+				print(print_buff);
+				PrintWordsAndLineFeed("mm");
+			#endif
 			
 			print("试件根数：");			
 			numtochar(MAX_SHOW_BIT,report->sample_num,print_buff);			
@@ -935,52 +938,98 @@ ErrorStatus PrintTestReport( TEST_TYPE_TypeDef test_type, TEST_ATTRIBUTE_TypeDef
 					PrintWordsAndLineFeed("MPa");
 				}
 				
-				{
-					float force = report->upYieldForce[i];
+				switch (report->yieldJudgeMode)
+				{	
+					case OBVIOUS_YIELD:
+						{
+							float force = report->upYieldForce[i];
+							
+							print("上屈服：");
+							
+							AccordUnitConvValue(SMPL_FH_NUM,&force,(pFunctionDevide)FloatDivisionTen);
+							
+							floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force,print_buff);
+							print(print_buff);
+							
+							PrintUnit(SMPL_FH_NUM);
+						}
+						
+						{
+							float force = report->downYieldForce[i];
+							
+							print("下屈服：");
+							
+							AccordUnitConvValue(SMPL_FH_NUM,&force,(pFunctionDevide)FloatDivisionTen);
+							
+							floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force,print_buff);
+							print(print_buff);
+							
+							PrintUnit(SMPL_FH_NUM);
+						}
+						
+						{
+							float strength = report->upYieldStrength[i];
+							
+							print("上屈服强度：");				
+							
+							floattochar(MAX_SHOW_BIT,1,strength,print_buff);
+							print(print_buff);
+							
+							PrintWordsAndLineFeed("MPa");
+						}				
+						
+						{
+							float strength = report->downYieldStrength[i];
+							
+							print("下屈服强度：");				
+							
+							floattochar(MAX_SHOW_BIT,1,strength,print_buff);
+							print(print_buff);
+							
+							PrintWordsAndLineFeed("MPa");
+						}
+						break;
 					
-					print("上屈服：");
-					
-					AccordUnitConvValue(SMPL_FH_NUM,&force,(pFunctionDevide)FloatDivisionTen);
-					
-					floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force,print_buff);
-					print(print_buff);
-					
-					PrintUnit(SMPL_FH_NUM);
-				}
+					case SIGMA0_2:
+						{
+							float force = report->nonProportionalExtensionForce[i];
+							
+							print("规定非比例延伸力：");
+							
+							AccordUnitConvValue(SMPL_FH_NUM,&force,(pFunctionDevide)FloatDivisionTen);
+							
+							floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force,print_buff);
+							print(print_buff);
+							
+							PrintUnit(SMPL_FH_NUM);
+						}
+						
+						{
+							float strength = report->nonProportionalExtensionStrength[i];
+							
+							print("规定非比例延伸强度：");				
+							
+							floattochar(MAX_SHOW_BIT,1,strength,print_buff);
+							print(print_buff);
+							
+							PrintWordsAndLineFeed("MPa");
+						}
+						break;
+						
+					case NO_YIELD:
+						break;
+				}				
 				
+				if (report->computeElasticModulus)
 				{
-					float force = report->downYieldForce[i];
+					float elasticModulus = report->elasticModulus[i];
+							
+					print("弹性模量：");				
 					
-					print("下屈服：");
-					
-					AccordUnitConvValue(SMPL_FH_NUM,&force,(pFunctionDevide)FloatDivisionTen);
-					
-					floattochar(MAX_SHOW_BIT,BIT_FORCE_DOT,force,print_buff);
+					floattochar(MAX_SHOW_BIT,1,elasticModulus,print_buff);
 					print(print_buff);
 					
-					PrintUnit(SMPL_FH_NUM);
-				}
-				
-				{
-					float strength = report->upYieldStrength[i];
-					
-					print("上屈服强度：");				
-					
-					floattochar(MAX_SHOW_BIT,1,strength,print_buff);
-					print(print_buff);
-					
-					PrintWordsAndLineFeed("MPa");
-				}
-				
-				{
-					float strength = report->downYieldStrength[i];
-					
-					print("下屈服强度：");				
-					
-					floattochar(MAX_SHOW_BIT,1,strength,print_buff);
-					print(print_buff);
-					
-					PrintWordsAndLineFeed("MPa");
+					PrintWordsAndLineFeed("GPa");
 				}
 				
 				{
@@ -1003,7 +1052,7 @@ ErrorStatus PrintTestReport( TEST_TYPE_TypeDef test_type, TEST_ATTRIBUTE_TypeDef
 					print(print_buff);
 					
 					PrintWordsAndLineFeed("%");
-				}		
+				}	
 			}
 			break;
 			

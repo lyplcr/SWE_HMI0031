@@ -85,3 +85,4 @@
 ..\output\obj\detailreport.o: ..\APP\inc\DetailReport.h
 ..\output\obj\detailreport.o: ..\APP\inc\TestReport.h
 ..\output\obj\detailreport.o: ..\APP\inc\TestTypeSelect.h
+..\output\obj\detailreport.o: ..\APP\inc\ExtendParameter.h

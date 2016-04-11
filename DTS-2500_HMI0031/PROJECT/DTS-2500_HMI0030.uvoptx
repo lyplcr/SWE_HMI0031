@@ -192,27 +192,60 @@
           <Name>-O207 -S0 -C0 -FO7  -FN1 -FC1000 -FD20000000 -FF0STM32F4xx_512 -FL080000 -FS08000000 -FP0($$Device:STM32F407VE$CMSIS\Flash\STM32F4xx_512.FLM)</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint/>
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>1078</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134406402</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\APP\src\DetailReport.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\DTS_2500_HMI0030\../APP/src/DetailReport.c\1078</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>6053</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134367494</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\APP\src\MainPage.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\DTS_2500_HMI0030\../APP/src/MainPage.c\6053</Expression>
+        </Bp>
+      </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>pCurve</ItemText>
+          <ItemText>pDrawLine</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>pDrawLine</ItemText>
+          <ItemText>endStrength</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_CalibrationBody.calibrationStatus</ItemText>
+          <ItemText>nowB</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_CalibrationBody.calibrationStatus</ItemText>
+          <ItemText>targetB</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>

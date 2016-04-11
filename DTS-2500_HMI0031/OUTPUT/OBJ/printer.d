@@ -83,3 +83,4 @@
 ..\output\obj\printer.o: ..\UTILS\inc\list.h
 ..\output\obj\printer.o: ..\UTILS\inc\printer.h
 ..\output\obj\printer.o: ..\APP\inc\ForceCalibration.h
+..\output\obj\printer.o: ..\APP\inc\ExtendParameter.h

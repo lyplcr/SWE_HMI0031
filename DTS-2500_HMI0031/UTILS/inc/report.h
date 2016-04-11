@@ -81,23 +81,27 @@ typedef struct
 	float	yx_diameter;				//圆形直径
 	
 	/* 万能机参数 */
-	float maxForce[20];					//最大力
-	float maxStrength[20];				//最大强度
-	float upYieldForce[20];				//上屈服力
-	float downYieldForce[20];			//下屈服力
-	float upYieldStrength[20];			//上屈服强度
-	float downYieldStrength[20];		//下屈服强度
-	float maxForceSumExtend[20];		//最大力总延伸
-	float maxForceSumElongation[20];	//最大力总伸长率
-	float parallelLenth;				//平行长度
-	float extensometerGauge;			//引伸计标距
-	float originalGauge;				//原始标距
-	float pipeThickness;				//管段厚度
-	float pipeOuterDiameter;			//管段外径
-	float elasticModulus[20];			//弹性模量
-	float nonProportionalExtensionForce[20];//规定非比例延伸力
-	float nonProportionalExtensionStrength[20];//规定非比例延伸强度
-	uint8_t 	yieldJudgeMode;			//屈服判断方式 
+	float 		maxForce[20];							//最大力
+	float 		maxStrength[20];						//最大强度
+	float 		upYieldForce[20];						//上屈服力
+	float 		downYieldForce[20];						//下屈服力
+	float 		upYieldStrength[20];					//上屈服强度
+	float 		downYieldStrength[20];					//下屈服强度
+	float 		maxForceSumExtend[20];					//最大力总延伸
+	float 		maxForceSumElongation[20];				//最大力总伸长率
+	float 		parallelLenth;							//平行长度
+	float 		extensometerGauge;						//引伸计标距
+	float 		originalGauge;							//原始标距
+	float 		pipeThickness;							//管段厚度
+	float 		pipeOuterDiameter;						//管段外径
+	float 		elasticModulus[20];						//弹性模量
+	float 		nonProportionalExtensionForce[20];		//规定非比例延伸力
+	float 		nonProportionalExtensionStrength[20];	//规定非比例延伸强度
+	uint8_t 	yieldJudgeMode;							//屈服判断方式
+	uint32_t	yieldDisturbThreshold;					//屈服干扰阈值
+	uint8_t 	computeElasticModulus;					//计算弹性模量
+	float 		elasticModulusStartStrength;			//弹性模量起始强度
+	float 		elasticModulusEndStrength;				//弹性模量结束强度		
 }REPORT_TypeDef;
 
 #define RECORD_COORDINATE_PERIOD		100					//100ms记录一个点
