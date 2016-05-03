@@ -55,6 +55,7 @@ typedef enum
 	OBJECT_ORIGINAL_GAUGE,		/* 原始标距 */
 	OBJECT_PIPE_THICKNESS,		/* 管段厚度 */
 	OBJECT_PIPE_OUTER_DIAMETER,	/* 管段外直径 */
+	OBJECT_PLASTIC_EXTENSION_RATE,/* 规定塑性延伸率 */
 }ALL_PATAMETER_NAME_TypeDef;
 
 typedef enum				//水泥胶砂抗折
@@ -82,11 +83,9 @@ typedef enum				 //压浆水泥浆抗折
 typedef enum				 //通用抗折
 {
 	TEST_SERIAL_KZTY = 0,	//试验编号
-	STRANG_GRADE_KZTY,		//强度等级
-	SAMPLE_AGE_KZTY,		//试件龄期
 	SAMPLE_WIDTH_KZTY,		//试件宽度
 	SAMPLE_HIGH_KZTY,		//试件高度
-	ZFX_SPAN_KZTY,			//跨距
+	SAMPLE_SPAN_KZTY,		//试件跨距	
 	SAMPLE_NUM_KZTY,		//试件块数
 }KZTY_PARA_NAME_TypeDef; 
 
@@ -182,6 +181,7 @@ union KLJSSW_PARA_NAME_TypeDef		//金属室温拉伸
 		ORIGINAL_CROSS_AREA_RECTANGLE_KLJSSW,		//原始截面积
 		EXTERNSOMETER_GAUGE_RECTANGLE_KLJSSW,		//引伸计标距
 		ORIGINAL_GAUGE_RECTANGLE_KLJSSW,			//原始标距
+		PLASTIC_EXTENSION_RATE_RECTANGLE_KLJSSW,	//塑性延伸率
 		SAMPLE_NUM_RECTANGLE_KLJSSW,				//试件根数
 		PARALLEL_LENTH_RECTANGLE_KLJSSW,			//平行长度
 	}KYTY_SHAPE_RECTANGLE;
@@ -193,6 +193,7 @@ union KLJSSW_PARA_NAME_TypeDef		//金属室温拉伸
 		ORIGINAL_CROSS_AREA_ROUND_KLJSSW,		//原始截面积
 		EXTERNSOMETER_GAUGE_ROUND_KLJSSW,		//引伸计标距
 		ORIGINAL_GAUGE_ROUND_KLJSSW,			//原始标距
+		PLASTIC_EXTENSION_RATE_ROUND_KLJSSW,	//塑性延伸率
 		SAMPLE_NUM_ROUND_KLJSSW,				//试件根数
 		PARALLEL_LENTH_ROUND_KLJSSW,			//平行长度
 	}KLJSSW_SHAPE_ROUND;
@@ -205,6 +206,7 @@ union KLJSSW_PARA_NAME_TypeDef		//金属室温拉伸
 		ORIGINAL_CROSS_AREA_TUBE_KLJSSW,		//原始截面积
 		EXTERNSOMETER_GAUGE_TUBE_KLJSSW,		//引伸计标距
 		ORIGINAL_GAUGE_TUBE_KLJSSW,				//原始标距
+		PLASTIC_EXTENSION_RATE_TUBE_KLJSSW,		//塑性延伸率
 		SAMPLE_NUM_TUBE_KLJSSW,					//试件根数
 		PARALLEL_LENTH_TUBE_KLJSSW,				//平行长度
 	}KYTY_SHAPE_TUBE;
@@ -215,6 +217,7 @@ union KLJSSW_PARA_NAME_TypeDef		//金属室温拉伸
 		ORIGINAL_CROSS_AREA_RIRREGULAR_KLJSSW,			//原始截面积
 		EXTERNSOMETER_GAUGE_RIRREGULAR_KLJSSW,			//引伸计标距
 		ORIGINAL_GAUGE_RIRREGULAR_KLJSSW,				//原始标距
+		PLASTIC_EXTENSION_RATE_RIRREGULAR_KLJSSW,		//塑性延伸率
 		SAMPLE_NUM_RIRREGULAR_KLJSSW,					//试件根数
 		PARALLEL_LENTH_RIRREGULAR_KLJSSW,				//平行长度
 	}KYTY_SHAPE_RIRREGULAR;
@@ -269,6 +272,7 @@ const char * const pTestStandard[] =
 	"JGJ/T 70-2009",	  	//建筑砂浆抗压
 	"GB/T 2542-2012",	  	//砌墙砖抗压
 	"GB/T 228.1-2010",		//金属室温拉伸
+	"GB/T xxx-xxxx",	 	//通用试验标准
 };
 
 /* 水泥胶砂抗压参数名称显示 */
@@ -438,6 +442,7 @@ const char * const pValue_KLJSSW[] =
 	"管段厚度：",		//10
 	"管段外径：",		//11
 	"试件形状：",		//12
+	"塑性延伸率：",		//13
 };
 
 
@@ -950,6 +955,7 @@ const char * const pSampleNumRangeCue[] =
 	"试件跨距不能为0！",					//12
 	"管段厚度不能为0！",					//13
 	"管段外径不能为0！",					//14
+	"塑性延伸率输入范围：(0~100)",		//15
 };
 
 const char * const pSerialPutinCue[] = 
@@ -1067,15 +1073,6 @@ static void TestParameterInit( void )
 	GetTestContent();
 	
 	g_testParameter.testType = (TEST_TYPE_TypeDef)pHmi->test_standard_index;
-	
-	if (pHmi->test_standard_index == KZTY)
-	{
-		pHmi->test_standard_index = KZSNJS;
-		
-		GetTestContent();
-		
-		pcm_save();
-	}
 	
 	if (g_testParameter.testType == NONE_TEST)
 	{
@@ -1503,9 +1500,9 @@ static void TestParameterConfig( void )
 		{
 			TYKY_TEST_SHAPE_TypeDef sampleShape;
 			
-			if (pTest->sample_type_index > TYKY_SHAPE_IRREGULAR)
+			if (pTest->sample_shape_index > TYKY_SHAPE_IRREGULAR)
 			{
-				pTest->sample_type_index = TYKY_SHAPE_RECTANGLE;
+				pTest->sample_shape_index = TYKY_SHAPE_RECTANGLE;
 			}
 			
 			sampleShape = (TYKY_TEST_SHAPE_TypeDef)pTest->sample_shape_index;
@@ -1514,7 +1511,7 @@ static void TestParameterConfig( void )
 			g_testParameter.pTitle = pTestParameterTitleName[6];
 			
 			/* 试验标准 */
-			g_testParameter.pTestStandard = "------";
+			g_testParameter.pTestStandard = pTestStandard[5];
 		
 			switch ( sampleShape )
 			{
@@ -1890,15 +1887,78 @@ static void TestParameterConfig( void )
             g_testParameter.oneLevelMenu[SAMPLE_NUM_YJSNJ].pointBit 	= 0;
 			break;
 		case KZTY:
+			/* 标题 */
+			g_testParameter.pTitle = pTestParameterTitleName[9];
 			
+			/* 试验标准 */
+			g_testParameter.pTestStandard = pTestStandard[5];
+		
+			/* 个数 */
+			g_testParameter.curParameterNum = 5;
+			
+			/* 索引值 */
+			g_testParameter.indexArray[TEST_SERIAL_KZTY] 	    = OBJECT_SPECIMEN_SERIAL;		/* 试件编号 */	
+			g_testParameter.indexArray[SAMPLE_WIDTH_KZTY] 	    = OBJECT_SPECIMEN_WIDTH;		/* 试件宽度 */
+			g_testParameter.indexArray[SAMPLE_HIGH_KZTY] 		= OBJECT_SPECIMEN_HIGH;			/* 试件高度 */
+			g_testParameter.indexArray[SAMPLE_SPAN_KZTY] 		= OBJECT_SPECIMEN_SPAN;			/* 试件跨距 */
+			g_testParameter.indexArray[SAMPLE_NUM_KZTY] 	    = OBJECT_SPECIMEN_NUMS;			/* 试件个数 */
+			
+			/* 参数名称 */
+			g_testParameter.pParameterNameArray[TEST_SERIAL_KZTY] 		= pValue_KZTY[1];
+			g_testParameter.pParameterNameArray[SAMPLE_WIDTH_KZTY] 	    = pValue_KZTY[4];
+			g_testParameter.pParameterNameArray[SAMPLE_HIGH_KZTY] 		= pValue_KZTY[5];
+			g_testParameter.pParameterNameArray[SAMPLE_SPAN_KZTY] 		= pValue_KZTY[6];
+			g_testParameter.pParameterNameArray[SAMPLE_NUM_KZTY] 		= pValue_KZTY[8];
+			
+			/* 单位 */
+			g_testParameter.pParameterUnitArray[TEST_SERIAL_KZTY] 		= "NULL";
+			g_testParameter.pParameterUnitArray[SAMPLE_WIDTH_KZTY] 	    = pUnitType[4];
+			g_testParameter.pParameterUnitArray[SAMPLE_HIGH_KZTY]		= pUnitType[4];
+			g_testParameter.pParameterUnitArray[SAMPLE_SPAN_KZTY] 		= pUnitType[4];
+			g_testParameter.pParameterUnitArray[SAMPLE_NUM_KZTY] 		= "NULL";
+			
+			/* 二级菜单参数个数 */
+			g_testParameter.twoLevelMenu[TEST_SERIAL_KZTY].parameterCnt 	= 0;
+			g_testParameter.twoLevelMenu[SAMPLE_WIDTH_KZTY].parameterCnt	= 0;
+			g_testParameter.twoLevelMenu[SAMPLE_HIGH_KZTY].parameterCnt 	= 0;
+			g_testParameter.twoLevelMenu[SAMPLE_SPAN_KZTY].parameterCnt 	= 0;
+			g_testParameter.twoLevelMenu[SAMPLE_NUM_KZTY].parameterCnt 	    = 7;
+			
+			/* 二级菜单类型 */
+			g_testParameter.twoLevelMenu[TEST_SERIAL_KZTY].parameterType 	= IMMEDIATELY_PUTIN_SHIFT;
+			g_testParameter.twoLevelMenu[SAMPLE_WIDTH_KZTY].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+			g_testParameter.twoLevelMenu[SAMPLE_HIGH_KZTY].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+			g_testParameter.twoLevelMenu[SAMPLE_SPAN_KZTY].parameterType 	= IMMEDIATELY_PUTIN_NONE;
+			g_testParameter.twoLevelMenu[SAMPLE_NUM_KZTY].parameterType 	= USE_USER_DEFINE;
+			
+			/* 二级菜单参数名 */
+			g_testParameter.twoLevelMenu[TEST_SERIAL_KZTY].pParameterNameArray 		= NULL;
+			g_testParameter.twoLevelMenu[SAMPLE_WIDTH_KZTY].pParameterNameArray 	= NULL;
+			g_testParameter.twoLevelMenu[SAMPLE_HIGH_KZTY].pParameterNameArray 		= NULL;
+			g_testParameter.twoLevelMenu[SAMPLE_SPAN_KZTY].pParameterNameArray 		= NULL;
+			g_testParameter.twoLevelMenu[SAMPLE_NUM_KZTY].pParameterNameArray 		= pSample_num;
+            
+			/* 数据保存类型 */
+			g_testParameter.oneLevelMenu[TEST_SERIAL_KZTY].saveType 	= TYPE_CHAR;
+			g_testParameter.oneLevelMenu[SAMPLE_WIDTH_KZTY].saveType 	= TYPE_FLOAT;
+			g_testParameter.oneLevelMenu[SAMPLE_HIGH_KZTY].saveType 	= TYPE_FLOAT;
+			g_testParameter.oneLevelMenu[SAMPLE_SPAN_KZTY].saveType 	= TYPE_FLOAT;
+			g_testParameter.oneLevelMenu[SAMPLE_NUM_KZTY].saveType 		= TYPE_INT;
+
+			/* 小数点位数 */
+			g_testParameter.oneLevelMenu[TEST_SERIAL_KZTY].pointBit 	= 0;
+			g_testParameter.oneLevelMenu[SAMPLE_WIDTH_KZTY].pointBit 	= 2;
+			g_testParameter.oneLevelMenu[SAMPLE_HIGH_KZTY].pointBit 	= 2;
+			g_testParameter.oneLevelMenu[SAMPLE_SPAN_KZTY].pointBit 	= 2;
+			g_testParameter.oneLevelMenu[SAMPLE_NUM_KZTY].pointBit 		= 0;		
 			break;
 		case KLJSSW:
 			{
 				JSSWKL_TEST_SHAPE_TypeDef sampleShape;
 				
-				if (pTest->sample_type_index > JSSWKL_SHAPE_IRREGULAR)
+				if (pTest->sample_shape_index > JSSWKL_SHAPE_IRREGULAR)
 				{
-					pTest->sample_type_index = JSSWKL_SHAPE_RECTANGLE;
+					pTest->sample_shape_index = JSSWKL_SHAPE_RECTANGLE;
 				}
 				
 				sampleShape = (JSSWKL_TEST_SHAPE_TypeDef)pTest->sample_shape_index;
@@ -1913,7 +1973,7 @@ static void TestParameterConfig( void )
 				{
 					case JSSWKL_SHAPE_RECTANGLE:
 						/* 试块个数 */
-						g_testParameter.curParameterNum = 8;
+						g_testParameter.curParameterNum = 9;
 						
 						/* 索引值 */
 						g_testParameter.indexArray[TEST_SERIAL_RECTANGLE_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
@@ -1925,6 +1985,7 @@ static void TestParameterConfig( void )
 						g_testParameter.indexArray[ORIGINAL_GAUGE_RECTANGLE_KLJSSW] 	        = OBJECT_ORIGINAL_GAUGE;		/* 原始标距 	 */
 						g_testParameter.indexArray[PARALLEL_LENTH_RECTANGLE_KLJSSW] 	        = OBJECT_PARALLEL_LENTH;		/* 平行长度 	 */
 						g_testParameter.indexArray[SAMPLE_NUM_RECTANGLE_KLJSSW] 	        	= OBJECT_SPECIMEN_NUMS;			/* 试件根数 	 */
+						g_testParameter.indexArray[PLASTIC_EXTENSION_RATE_RECTANGLE_KLJSSW]     = OBJECT_PLASTIC_EXTENSION_RATE;/* 规定塑性延伸率 */
 					
 						/* 参数名称 */
 						g_testParameter.pParameterNameArray[TEST_SERIAL_RECTANGLE_KLJSSW] 			= pValue_KLJSSW[1];
@@ -1936,6 +1997,7 @@ static void TestParameterConfig( void )
 						g_testParameter.pParameterNameArray[ORIGINAL_GAUGE_RECTANGLE_KLJSSW] 		= pValue_KLJSSW[7];
 						g_testParameter.pParameterNameArray[PARALLEL_LENTH_RECTANGLE_KLJSSW] 	    = pValue_KLJSSW[6];		
 						g_testParameter.pParameterNameArray[SAMPLE_NUM_RECTANGLE_KLJSSW] 	       	= pValue_KLJSSW[5];
+						g_testParameter.pParameterNameArray[PLASTIC_EXTENSION_RATE_RECTANGLE_KLJSSW]= pValue_KLJSSW[13];
 						
 						/* 单位 */
 						g_testParameter.pParameterUnitArray[TEST_SERIAL_RECTANGLE_KLJSSW] 			= "NULL";
@@ -1947,6 +2009,7 @@ static void TestParameterConfig( void )
 						g_testParameter.pParameterUnitArray[ORIGINAL_GAUGE_RECTANGLE_KLJSSW] 		= pUnitType[4];
 						g_testParameter.pParameterUnitArray[PARALLEL_LENTH_RECTANGLE_KLJSSW] 	    = pUnitType[4];
 						g_testParameter.pParameterUnitArray[SAMPLE_NUM_RECTANGLE_KLJSSW] 	       	= "NULL";
+						g_testParameter.pParameterUnitArray[PLASTIC_EXTENSION_RATE_RECTANGLE_KLJSSW]= pUnitType[10];
 						
 						/* 二级菜单参数个数 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_RECTANGLE_KLJSSW].parameterCnt 			= 0;
@@ -1958,6 +2021,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RECTANGLE_KLJSSW].parameterCnt 	    	= 0;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RECTANGLE_KLJSSW].parameterCnt  	   	= 0;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KLJSSW].parameterCnt  	       	= 7;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_RECTANGLE_KLJSSW].parameterCnt  = 0;
 						
 						/* 二级菜单类型 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_RECTANGLE_KLJSSW].parameterType 			= IMMEDIATELY_PUTIN_SHIFT;
@@ -1969,6 +2033,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RECTANGLE_KLJSSW].parameterType 	    = IMMEDIATELY_PUTIN_NONE;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RECTANGLE_KLJSSW].parameterType  	   	= IMMEDIATELY_PUTIN_NONE;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KLJSSW].parameterType  	       	= USE_USER_DEFINE;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_RECTANGLE_KLJSSW].parameterType = IMMEDIATELY_PUTIN_NONE;						
 						
 						/* 二级菜单参数名 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_RECTANGLE_KLJSSW].pParameterNameArray 			= NULL;
@@ -1980,6 +2045,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RECTANGLE_KLJSSW].pParameterNameArray 		= NULL;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RECTANGLE_KLJSSW].pParameterNameArray  	   	= NULL;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_RECTANGLE_KLJSSW].pParameterNameArray  	       	= pSample_num;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_RECTANGLE_KLJSSW].pParameterNameArray= NULL;
 						
 						/* 数据保存类型 */
 						g_testParameter.oneLevelMenu[TEST_SERIAL_RECTANGLE_KLJSSW].saveType 			= TYPE_CHAR;
@@ -1991,6 +2057,7 @@ static void TestParameterConfig( void )
 						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_RECTANGLE_KLJSSW].saveType 			= TYPE_FLOAT;
 						g_testParameter.oneLevelMenu[PARALLEL_LENTH_RECTANGLE_KLJSSW].saveType  	   	= TYPE_FLOAT;
 						g_testParameter.oneLevelMenu[SAMPLE_NUM_RECTANGLE_KLJSSW].saveType  	       	= TYPE_INT;
+						g_testParameter.oneLevelMenu[PLASTIC_EXTENSION_RATE_RECTANGLE_KLJSSW].saveType  = TYPE_FLOAT;
 
 						/* 小数点位数 */
 						g_testParameter.oneLevelMenu[TEST_SERIAL_RECTANGLE_KLJSSW].pointBit 			= 0;
@@ -2002,10 +2069,11 @@ static void TestParameterConfig( void )
 						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_RECTANGLE_KLJSSW].pointBit 			= 2;
 						g_testParameter.oneLevelMenu[PARALLEL_LENTH_RECTANGLE_KLJSSW].pointBit  	   	= 2;
 						g_testParameter.oneLevelMenu[SAMPLE_NUM_RECTANGLE_KLJSSW].pointBit  	       	= 0;
+						g_testParameter.oneLevelMenu[PLASTIC_EXTENSION_RATE_RECTANGLE_KLJSSW].pointBit  = 1;
 						break;
 					case JSSWKL_SHAPE_ROUND:
 						/* 试块个数 */
-						g_testParameter.curParameterNum = 7;
+						g_testParameter.curParameterNum = 8;
 						
 						/* 索引值 */
 						g_testParameter.indexArray[TEST_SERIAL_ROUND_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
@@ -2016,6 +2084,7 @@ static void TestParameterConfig( void )
 						g_testParameter.indexArray[ORIGINAL_GAUGE_ROUND_KLJSSW] 	        = OBJECT_ORIGINAL_GAUGE;		/* 原始标距 	 */
 						g_testParameter.indexArray[PARALLEL_LENTH_ROUND_KLJSSW] 	        = OBJECT_PARALLEL_LENTH;		/* 平行长度 	 */
 						g_testParameter.indexArray[SAMPLE_NUM_ROUND_KLJSSW] 	        	= OBJECT_SPECIMEN_NUMS;			/* 试件根数 	 */
+						g_testParameter.indexArray[PLASTIC_EXTENSION_RATE_ROUND_KLJSSW]     = OBJECT_PLASTIC_EXTENSION_RATE;/* 规定塑性延伸率 */
 					
 						/* 参数名称 */
 						g_testParameter.pParameterNameArray[TEST_SERIAL_ROUND_KLJSSW] 					= pValue_KLJSSW[1];
@@ -2026,6 +2095,7 @@ static void TestParameterConfig( void )
 						g_testParameter.pParameterNameArray[ORIGINAL_GAUGE_ROUND_KLJSSW] 				= pValue_KLJSSW[7];
 						g_testParameter.pParameterNameArray[PARALLEL_LENTH_ROUND_KLJSSW] 	   		 	= pValue_KLJSSW[6];		
 						g_testParameter.pParameterNameArray[SAMPLE_NUM_ROUND_KLJSSW] 	      		 	= pValue_KLJSSW[5];
+						g_testParameter.pParameterNameArray[PLASTIC_EXTENSION_RATE_ROUND_KLJSSW]		= pValue_KLJSSW[13];
 						
 						/* 单位 */
 						g_testParameter.pParameterUnitArray[TEST_SERIAL_ROUND_KLJSSW] 					= "NULL";
@@ -2036,6 +2106,7 @@ static void TestParameterConfig( void )
 						g_testParameter.pParameterUnitArray[ORIGINAL_GAUGE_ROUND_KLJSSW] 				= pUnitType[4];
 						g_testParameter.pParameterUnitArray[PARALLEL_LENTH_ROUND_KLJSSW] 	   			= pUnitType[4];
 						g_testParameter.pParameterUnitArray[SAMPLE_NUM_ROUND_KLJSSW] 	       			= "NULL";
+						g_testParameter.pParameterUnitArray[PLASTIC_EXTENSION_RATE_ROUND_KLJSSW]		= pUnitType[10];
 						
 						/* 二级菜单参数个数 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KLJSSW].parameterCnt 					= 0;
@@ -2046,6 +2117,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_ROUND_KLJSSW].parameterCnt 	    			= 0;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_ROUND_KLJSSW].parameterCnt  	   			= 0;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KLJSSW].parameterCnt  	       			= 7;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_ROUND_KLJSSW].parameterCnt  		= 0;
 						
 						/* 二级菜单类型 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KLJSSW].parameterType 				= IMMEDIATELY_PUTIN_SHIFT;
@@ -2056,6 +2128,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_ROUND_KLJSSW].parameterType 	    	= IMMEDIATELY_PUTIN_NONE;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_ROUND_KLJSSW].parameterType  	   		= IMMEDIATELY_PUTIN_NONE;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KLJSSW].parameterType  	       		= USE_USER_DEFINE;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_ROUND_KLJSSW].parameterType 	= IMMEDIATELY_PUTIN_NONE;
 						
 						/* 二级菜单参数名 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_ROUND_KLJSSW].pParameterNameArray 					= NULL;
@@ -2066,6 +2139,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_ROUND_KLJSSW].pParameterNameArray 				= NULL;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_ROUND_KLJSSW].pParameterNameArray  	   			= NULL;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_ROUND_KLJSSW].pParameterNameArray  	       			= pSample_num;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_ROUND_KLJSSW].pParameterNameArray		= NULL;
 						
 						/* 数据保存类型 */
 						g_testParameter.oneLevelMenu[TEST_SERIAL_ROUND_KLJSSW].saveType 					= TYPE_CHAR;
@@ -2076,6 +2150,7 @@ static void TestParameterConfig( void )
 						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_ROUND_KLJSSW].saveType 					= TYPE_FLOAT;
 						g_testParameter.oneLevelMenu[PARALLEL_LENTH_ROUND_KLJSSW].saveType  	   			= TYPE_FLOAT;
 						g_testParameter.oneLevelMenu[SAMPLE_NUM_ROUND_KLJSSW].saveType  	       			= TYPE_INT;
+						g_testParameter.oneLevelMenu[PLASTIC_EXTENSION_RATE_ROUND_KLJSSW].saveType  		= TYPE_FLOAT;
 
 						/* 小数点位数 */
 						g_testParameter.oneLevelMenu[TEST_SERIAL_ROUND_KLJSSW].pointBit 					= 0;
@@ -2086,10 +2161,11 @@ static void TestParameterConfig( void )
 						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_ROUND_KLJSSW].pointBit 					= 2;
 						g_testParameter.oneLevelMenu[PARALLEL_LENTH_ROUND_KLJSSW].pointBit  	   			= 2;
 						g_testParameter.oneLevelMenu[SAMPLE_NUM_ROUND_KLJSSW].pointBit  	   				= 0;
+						g_testParameter.oneLevelMenu[PLASTIC_EXTENSION_RATE_ROUND_KLJSSW].pointBit  		= 1;
 						break;
 					case JSSWKL_SHAPE_TUBE:
 						/* 试块个数 */
-						g_testParameter.curParameterNum = 8;
+						g_testParameter.curParameterNum = 9;
 						
 						/* 索引值 */
 						g_testParameter.indexArray[TEST_SERIAL_TUBE_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
@@ -2101,6 +2177,7 @@ static void TestParameterConfig( void )
 						g_testParameter.indexArray[ORIGINAL_GAUGE_TUBE_KLJSSW] 	        	= OBJECT_ORIGINAL_GAUGE;		/* 原始标距 	 */
 						g_testParameter.indexArray[PARALLEL_LENTH_TUBE_KLJSSW] 	        	= OBJECT_PARALLEL_LENTH;		/* 平行长度 	 */
 						g_testParameter.indexArray[SAMPLE_NUM_TUBE_KLJSSW] 	        		= OBJECT_SPECIMEN_NUMS;			/* 试件根数 	 */
+						g_testParameter.indexArray[PLASTIC_EXTENSION_RATE_TUBE_KLJSSW]     	= OBJECT_PLASTIC_EXTENSION_RATE;/* 规定塑性延伸率 */
 					
 						/* 参数名称 */
 						g_testParameter.pParameterNameArray[TEST_SERIAL_TUBE_KLJSSW] 					= pValue_KLJSSW[1];
@@ -2112,6 +2189,7 @@ static void TestParameterConfig( void )
 						g_testParameter.pParameterNameArray[ORIGINAL_GAUGE_TUBE_KLJSSW] 				= pValue_KLJSSW[7];
 						g_testParameter.pParameterNameArray[PARALLEL_LENTH_TUBE_KLJSSW] 	   		 	= pValue_KLJSSW[6];		
 						g_testParameter.pParameterNameArray[SAMPLE_NUM_TUBE_KLJSSW] 	      		 	= pValue_KLJSSW[5];
+						g_testParameter.pParameterNameArray[PLASTIC_EXTENSION_RATE_TUBE_KLJSSW]			= pValue_KLJSSW[13];
 						
 						/* 单位 */
 						g_testParameter.pParameterUnitArray[TEST_SERIAL_TUBE_KLJSSW] 					= "NULL";
@@ -2123,6 +2201,7 @@ static void TestParameterConfig( void )
 						g_testParameter.pParameterUnitArray[ORIGINAL_GAUGE_TUBE_KLJSSW] 				= pUnitType[4];
 						g_testParameter.pParameterUnitArray[PARALLEL_LENTH_TUBE_KLJSSW] 	   			= pUnitType[4];
 						g_testParameter.pParameterUnitArray[SAMPLE_NUM_TUBE_KLJSSW] 	       			= "NULL";
+						g_testParameter.pParameterUnitArray[PLASTIC_EXTENSION_RATE_TUBE_KLJSSW]			= pUnitType[10];
 						
 						/* 二级菜单参数个数 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_TUBE_KLJSSW].parameterCnt 					= 0;
@@ -2134,6 +2213,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_TUBE_KLJSSW].parameterCnt 	    		= 0;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_TUBE_KLJSSW].parameterCnt  	   			= 0;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_TUBE_KLJSSW].parameterCnt  	       			= 7;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_TUBE_KLJSSW].parameterCnt  		= 0;
 						
 						/* 二级菜单类型 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_TUBE_KLJSSW].parameterType 				= IMMEDIATELY_PUTIN_SHIFT;
@@ -2145,6 +2225,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_TUBE_KLJSSW].parameterType 	    		= IMMEDIATELY_PUTIN_NONE;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_TUBE_KLJSSW].parameterType  	   		= IMMEDIATELY_PUTIN_NONE;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_TUBE_KLJSSW].parameterType  	       		= USE_USER_DEFINE;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_TUBE_KLJSSW].parameterType 		= IMMEDIATELY_PUTIN_NONE;
 						
 						/* 二级菜单参数名 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_TUBE_KLJSSW].pParameterNameArray 					= NULL;
@@ -2156,6 +2237,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_TUBE_KLJSSW].pParameterNameArray 				= NULL;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_TUBE_KLJSSW].pParameterNameArray  	   			= NULL;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_TUBE_KLJSSW].pParameterNameArray  	       			= pSample_num;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_TUBE_KLJSSW].pParameterNameArray		= NULL;
 						
 						/* 数据保存类型 */
 						g_testParameter.oneLevelMenu[TEST_SERIAL_TUBE_KLJSSW].saveType 					= TYPE_CHAR;
@@ -2167,7 +2249,8 @@ static void TestParameterConfig( void )
 						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_TUBE_KLJSSW].saveType 				= TYPE_FLOAT;
 						g_testParameter.oneLevelMenu[PARALLEL_LENTH_TUBE_KLJSSW].saveType  	   			= TYPE_FLOAT;
 						g_testParameter.oneLevelMenu[SAMPLE_NUM_TUBE_KLJSSW].saveType  	       			= TYPE_INT;
-
+						g_testParameter.oneLevelMenu[PLASTIC_EXTENSION_RATE_TUBE_KLJSSW].saveType  		= TYPE_FLOAT;
+						
 						/* 小数点位数 */
 						g_testParameter.oneLevelMenu[TEST_SERIAL_TUBE_KLJSSW].pointBit 					= 0;
 						g_testParameter.oneLevelMenu[SAMPLE_SHAPE_TUBE_KLJSSW].pointBit 				= 0;
@@ -2178,10 +2261,11 @@ static void TestParameterConfig( void )
 						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_TUBE_KLJSSW].pointBit 				= 2;
 						g_testParameter.oneLevelMenu[PARALLEL_LENTH_TUBE_KLJSSW].pointBit  	   			= 2;
 						g_testParameter.oneLevelMenu[SAMPLE_NUM_TUBE_KLJSSW].pointBit  	       			= 0;
+						g_testParameter.oneLevelMenu[PLASTIC_EXTENSION_RATE_TUBE_KLJSSW].pointBit 	 	= 1;
 						break;
 					case JSSWKL_SHAPE_IRREGULAR:
 						/* 试块个数 */
-						g_testParameter.curParameterNum = 6;
+						g_testParameter.curParameterNum = 7;
 						
 						/* 索引值 */
 						g_testParameter.indexArray[TEST_SERIAL_RIRREGULAR_KLJSSW] 	    		= OBJECT_SPECIMEN_SERIAL;		/* 试件编号  */	
@@ -2191,6 +2275,7 @@ static void TestParameterConfig( void )
 						g_testParameter.indexArray[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW] 	        = OBJECT_ORIGINAL_GAUGE;		/* 原始标距 	 */
 						g_testParameter.indexArray[PARALLEL_LENTH_RIRREGULAR_KLJSSW] 	        = OBJECT_PARALLEL_LENTH;		/* 平行长度 	 */
 						g_testParameter.indexArray[SAMPLE_NUM_RIRREGULAR_KLJSSW] 	        	= OBJECT_SPECIMEN_NUMS;			/* 试件根数 	 */
+						g_testParameter.indexArray[PLASTIC_EXTENSION_RATE_RIRREGULAR_KLJSSW]    = OBJECT_PLASTIC_EXTENSION_RATE;/* 规定塑性延伸率 */
 					
 						/* 参数名称 */
 						g_testParameter.pParameterNameArray[TEST_SERIAL_RIRREGULAR_KLJSSW] 					= pValue_KLJSSW[1];
@@ -2200,6 +2285,7 @@ static void TestParameterConfig( void )
 						g_testParameter.pParameterNameArray[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW] 				= pValue_KLJSSW[7];
 						g_testParameter.pParameterNameArray[PARALLEL_LENTH_RIRREGULAR_KLJSSW] 	   		 	= pValue_KLJSSW[6];		
 						g_testParameter.pParameterNameArray[SAMPLE_NUM_RIRREGULAR_KLJSSW] 	      		 	= pValue_KLJSSW[5];
+						g_testParameter.pParameterNameArray[PLASTIC_EXTENSION_RATE_RIRREGULAR_KLJSSW]		= pValue_KLJSSW[13];
 						
 						/* 单位 */
 						g_testParameter.pParameterUnitArray[TEST_SERIAL_RIRREGULAR_KLJSSW] 					= "NULL";
@@ -2209,6 +2295,7 @@ static void TestParameterConfig( void )
 						g_testParameter.pParameterUnitArray[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW] 				= pUnitType[4];
 						g_testParameter.pParameterUnitArray[PARALLEL_LENTH_RIRREGULAR_KLJSSW] 	   			= pUnitType[4];
 						g_testParameter.pParameterUnitArray[SAMPLE_NUM_RIRREGULAR_KLJSSW] 	       			= "NULL";
+						g_testParameter.pParameterUnitArray[PLASTIC_EXTENSION_RATE_RIRREGULAR_KLJSSW]		= pUnitType[10];
 						
 						/* 二级菜单参数个数 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_RIRREGULAR_KLJSSW].parameterCnt 					= 0;
@@ -2218,6 +2305,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW].parameterCnt 	    		= 0;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RIRREGULAR_KLJSSW].parameterCnt  	   			= 0;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_RIRREGULAR_KLJSSW].parameterCnt  	       			= 7;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_RIRREGULAR_KLJSSW].parameterCnt  		= 0;
 						
 						/* 二级菜单类型 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_RIRREGULAR_KLJSSW].parameterType 				= IMMEDIATELY_PUTIN_SHIFT;
@@ -2227,6 +2315,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW].parameterType 	    	= IMMEDIATELY_PUTIN_NONE;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RIRREGULAR_KLJSSW].parameterType  	   		= IMMEDIATELY_PUTIN_NONE;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_RIRREGULAR_KLJSSW].parameterType  	       		= USE_USER_DEFINE;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_RIRREGULAR_KLJSSW].parameterType 	= IMMEDIATELY_PUTIN_NONE;	
 						
 						/* 二级菜单参数名 */
 						g_testParameter.twoLevelMenu[TEST_SERIAL_RIRREGULAR_KLJSSW].pParameterNameArray 				= NULL;
@@ -2236,6 +2325,7 @@ static void TestParameterConfig( void )
 						g_testParameter.twoLevelMenu[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW].pParameterNameArray 				= NULL;
 						g_testParameter.twoLevelMenu[PARALLEL_LENTH_RIRREGULAR_KLJSSW].pParameterNameArray  	   		= NULL;
 						g_testParameter.twoLevelMenu[SAMPLE_NUM_RIRREGULAR_KLJSSW].pParameterNameArray  	       		= pSample_num;
+						g_testParameter.twoLevelMenu[PLASTIC_EXTENSION_RATE_RIRREGULAR_KLJSSW].pParameterNameArray		= NULL;
 						
 						/* 数据保存类型 */
 						g_testParameter.oneLevelMenu[TEST_SERIAL_RIRREGULAR_KLJSSW].saveType 					= TYPE_CHAR;
@@ -2245,7 +2335,8 @@ static void TestParameterConfig( void )
 						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW].saveType 				= TYPE_FLOAT;
 						g_testParameter.oneLevelMenu[PARALLEL_LENTH_RIRREGULAR_KLJSSW].saveType  	   			= TYPE_FLOAT;
 						g_testParameter.oneLevelMenu[SAMPLE_NUM_RIRREGULAR_KLJSSW].saveType  	       			= TYPE_INT;
-
+						g_testParameter.oneLevelMenu[PLASTIC_EXTENSION_RATE_RIRREGULAR_KLJSSW].saveType  		= TYPE_FLOAT;
+						
 						/* 小数点位数 */
 						g_testParameter.oneLevelMenu[TEST_SERIAL_RIRREGULAR_KLJSSW].pointBit 					= 0;
 						g_testParameter.oneLevelMenu[SAMPLE_SHAPE_RIRREGULAR_KLJSSW].pointBit 					= 0;
@@ -2254,6 +2345,7 @@ static void TestParameterConfig( void )
 						g_testParameter.oneLevelMenu[ORIGINAL_GAUGE_RIRREGULAR_KLJSSW].pointBit 				= 2;
 						g_testParameter.oneLevelMenu[PARALLEL_LENTH_RIRREGULAR_KLJSSW].pointBit  	   			= 2;
 						g_testParameter.oneLevelMenu[SAMPLE_NUM_RIRREGULAR_KLJSSW].pointBit  	   				= 0;
+						g_testParameter.oneLevelMenu[PLASTIC_EXTENSION_RATE_RIRREGULAR_KLJSSW].pointBit  		= 1;
 						break;
 				}
 				break;
@@ -2468,6 +2560,12 @@ static void TestParameterReadParameter( void )
 				break;		
 		}	
 	}
+	
+	index = GetTestParameterIndex(OBJECT_PLASTIC_EXTENSION_RATE);
+	if (index != 0xff)
+	{
+		floattochar(MAX_TEST_PARAMETER_PUTIN_BIT,g_testParameter.oneLevelMenu[index].pointBit,pCurTest->plasticExtensionRate,g_testParameter.parameterData[index]);
+	}
 }
 
 /*------------------------------------------------------------
@@ -2642,6 +2740,12 @@ static void TestParameterWriteParameter( void )
 			default:
 				break;
 		}
+	}
+	
+	index = GetTestParameterIndex(OBJECT_PLASTIC_EXTENSION_RATE);
+	if (index != 0xff)
+	{
+		pCurTest->plasticExtensionRate = str2float(g_testParameter.parameterData[index]);
 	}
 	
 	pcm_save();
@@ -3405,6 +3509,22 @@ static TestStatus TestParameterCheckPutinData( uint8_t nowIndex )
 			if (fabs(tempf) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{
 				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[14]);
+			
+				return FAILED;
+			}
+		}
+	}
+	
+	checkIndex = GetTestParameterIndex(OBJECT_PLASTIC_EXTENSION_RATE);
+	if (checkIndex != 0xff)
+	{
+		if (nowIndex == checkIndex)
+		{
+			float tempf = *GetPutinFloatDataAddr();
+				
+			if ((tempf<MIN_FLOAT_PRECISION_DIFF_VALUE) || (tempf>100.0f))
+			{
+				SetPopWindowsInfomation(POP_PCM_CUE,1,&pSampleNumRangeCue[15]);
 			
 				return FAILED;
 			}

@@ -403,17 +403,29 @@ static void CheckSystemParameterOverflow( void )
 {
 	uint32_t len = 0;
 	
-	len = len;
-	
 	#if (SUPPORT_TEST_NUM > TEST_NUM)
+	{
 		#error "Test num overflow."
+	}
 	#endif
 	
 	len = sizeof(HMI_TypeDef);
-	ECHO(DEBUG_PARAMETER_LEN,"PCM  最大长度：%d ,当前长度：%d\r\n",200,len);
+	if (len > 300)
+	{
+		while(1);
+	}
+	
+	len = sizeof(TEST_TypeDef);
+	if (len != 300)
+	{
+		while(1);
+	}
+	
+	len = sizeof(HMI_TypeDef);
+	ECHO(DEBUG_PARAMETER_LEN,"PCM  最大长度：%d ,当前长度：%d\r\n",300,len);
 	
 	len = TEST_NUM * sizeof(TEST_TypeDef);
-	ECHO(DEBUG_PARAMETER_LEN,"TEST 最大长度：%d ,当前长度：%d\r\n",3000,len);
+	ECHO(DEBUG_PARAMETER_LEN,"TEST 最大长度：%d ,当前长度：%d\r\n",6300,len);
 	
 	len = sizeof(SYS_PRM_TypeDef);
 	ECHO(DEBUG_PARAMETER_LEN,"PRM 当前长度：%d\r\n",len);	

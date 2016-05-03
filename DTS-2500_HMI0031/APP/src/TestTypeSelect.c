@@ -478,7 +478,6 @@ TEST_ATTRIBUTE_TypeDef GetTestAttribute( uint8_t testIndex )
 		case KYSNJS:
 		case KYJZSJ:
 		case KYHNT:
-		case KZHNT:
 		case KYQQZ:
 		case KYZJDH:
 		case KYTY:
@@ -486,6 +485,7 @@ TEST_ATTRIBUTE_TypeDef GetTestAttribute( uint8_t testIndex )
 			break;
 		case KZSNJS:
 		case KZYJSNJ:
+		case KZHNT:
 		case KZTY:
 			testAttribute = BENDING_TEST;
 			break;

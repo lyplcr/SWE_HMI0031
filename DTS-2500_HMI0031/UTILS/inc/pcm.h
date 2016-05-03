@@ -16,7 +16,7 @@
 
 
 /* 宏定义---------------------------------------------------------------------*/
-#define		TEST_NUM		15   		//试验种类数量
+#define		TEST_NUM		20   		//试验种类数量
 #define		STEP_NUM		10   		//可编辑步骤数
 
 /* 数据类型声明---------------------------------------------------------------*/
@@ -65,8 +65,8 @@ typedef struct
 	uint32_t	yieldDisturbThreshold;						//屈服干扰阈值
 	uint8_t 	yieldJudgeMode;								//屈服判断方式
 	uint8_t 	computeElasticModulus;						//计算弹性模量
-	float 		elasticModulusStartStrength;				//弹性模量起始强度
-	float 		elasticModulusEndStrength;					//弹性模量结束强度
+	float 		elasticModulusStartRate;					//弹性模量起始率
+	float 		elasticModulusEndRate;						//弹性模量结束率
 }HMI_TypeDef; 
 
 //记忆功能    
@@ -135,25 +135,26 @@ typedef struct
 	float		originalGauge;					//原始标距
 	float		pipeThickness;					//管段厚度
 	float		pipeOuterDiameter;				//管段外径
-	uint8_t 	rsv[11];
-}TEST_TypeDef; 	/* 194Byte(0XC2) */	
+	float 		plasticExtensionRate;			//规定塑性延伸率
+	uint8_t 	rsv[113];
+}TEST_TypeDef; 	/* 300Byte(0X12C) */	
     
         
 //上位机参数结构体 		    
 typedef struct
 { 
 	HMI_TypeDef pcm_hmi;						//人机界面的杂项参数
-	uint8_t rev1[200-sizeof(HMI_TypeDef)];		//保留参数
+	uint8_t rev1[300-sizeof(HMI_TypeDef)];		//保留参数
 	
 	TEST_TypeDef pcm_test[TEST_NUM];			//试验参数
-	uint8_t rev2[3000-(TEST_NUM*sizeof(TEST_TypeDef))];	//保留参数
+	uint8_t rev2[6100-(TEST_NUM*sizeof(TEST_TypeDef))];	//保留参数
 	
 	STEP_TypeDef pcm_step[STEP_NUM];			//可编辑的步骤数量
 	uint8_t rev3[500-(STEP_NUM*sizeof(STEP_TypeDef))];		//保留参数
 	
 	MEMORY_TypeDef memory_func;					//记忆功能参数
 	uint8_t rev4[100-sizeof(MEMORY_TypeDef)];	//保留参数
-}PCM_TypeDef;  		/* 共3800Byte */
+}PCM_TypeDef;  		/* 共7000Byte(0x1B58) */
 
 #define		PCM_MEM_SIZE		sizeof(PCM_TypeDef)
 

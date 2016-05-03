@@ -100,8 +100,9 @@ typedef struct
 	uint8_t 	yieldJudgeMode;							//屈服判断方式
 	uint32_t	yieldDisturbThreshold;					//屈服干扰阈值
 	uint8_t 	computeElasticModulus;					//计算弹性模量
-	float 		elasticModulusStartStrength;			//弹性模量起始强度
-	float 		elasticModulusEndStrength;				//弹性模量结束强度		
+	float 		elasticModulusStartRate;				//弹性模量起始率
+	float 		elasticModulusEndRate;					//弹性模量结束率	
+	float 		plasticExtensionRate;					//规定塑性延伸率
 }REPORT_TypeDef;
 
 #define RECORD_COORDINATE_PERIOD		100					//100ms记录一个点

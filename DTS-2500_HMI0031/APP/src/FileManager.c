@@ -32,7 +32,7 @@ typedef enum
 	OBJECT_SYSTEM_FILE,
 	OBJECT_TEST_REPORT,
 	OBJECT_TEST_CURVE,
-	OBJECT_ALL_FILL,
+	OBJECT_ALL_FILE,
 }OBJECT_SYSTEM_SET_TypeDef;
 
 typedef enum
@@ -43,7 +43,7 @@ typedef enum
 	INDEX_SYSTEM_FILE,
 	INDEX_TEST_REPORT,
 	INDEX_TEST_CURVE,
-	INDEX_ALL_FILL,
+	INDEX_ALL_FILE,
 }INDEX_SYSTEM_SET_TypeDef;
 
 typedef struct
@@ -194,7 +194,7 @@ static void FileManagerConfig( void )
 	g_fileManager.indexArray[INDEX_SYSTEM_FILE] 	= OBJECT_SYSTEM_FILE;			
 	g_fileManager.indexArray[INDEX_TEST_REPORT] 	= OBJECT_TEST_REPORT;
 	g_fileManager.indexArray[INDEX_TEST_CURVE] 		= OBJECT_TEST_CURVE;
-	g_fileManager.indexArray[INDEX_ALL_FILL] 		= OBJECT_ALL_FILL;
+	g_fileManager.indexArray[INDEX_ALL_FILE] 		= OBJECT_ALL_FILE;
 	
 	/* Ãû³Æ */
 	g_fileManager.pParameterNameArray[INDEX_CHINESE_FONT]	= g_fileManagerNamePtr[0];	
@@ -203,7 +203,7 @@ static void FileManagerConfig( void )
 	g_fileManager.pParameterNameArray[INDEX_SYSTEM_FILE] 	= g_fileManagerNamePtr[3];			
 	g_fileManager.pParameterNameArray[INDEX_TEST_REPORT] 	= g_fileManagerNamePtr[4];
 	g_fileManager.pParameterNameArray[INDEX_TEST_CURVE] 	= g_fileManagerNamePtr[5];
-	g_fileManager.pParameterNameArray[INDEX_ALL_FILL] 		= g_fileManagerNamePtr[6];
+	g_fileManager.pParameterNameArray[INDEX_ALL_FILE] 		= g_fileManagerNamePtr[6];
 }
 
 /*------------------------------------------------------------
@@ -498,7 +498,7 @@ static void FileManagerKeyProcess( void )
 					case OBJECT_TEST_CURVE:
 						status = DeleteFolderFromDevices("0:/curve",GUI_ShowFileNameCallBack);
 						break;
-					case OBJECT_ALL_FILL:
+					case OBJECT_ALL_FILE:
 						status = DeleteFolderFromDevices("0:",GUI_ShowFileNameCallBack);
 						break;
 					default:
@@ -549,7 +549,7 @@ static void FileManagerKeyProcess( void )
 					case OBJECT_TEST_CURVE:
 						status = CopyFolderFromDevices("1:/curve","0:/curve",GUI_ShowFileNameCallBack);
 						break;
-					case OBJECT_ALL_FILL:
+					case OBJECT_ALL_FILE:
 						status = CopyFolderFromDevices("1:","0:",GUI_ShowFileNameCallBack);
 						break;
 					default:
@@ -600,7 +600,7 @@ static void FileManagerKeyProcess( void )
 					case OBJECT_TEST_CURVE:
 						status = CopyFolderFromDevices("0:/curve","1:/curve",GUI_ShowFileNameCallBack);
 						break;
-					case OBJECT_ALL_FILL:
+					case OBJECT_ALL_FILE:
 						status = CopyFolderFromDevices("0:","1:",GUI_ShowFileNameCallBack);
 						break;
 					default:

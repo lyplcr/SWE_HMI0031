@@ -178,7 +178,7 @@ BoolStatus IsPressKey( void )
 {
 	if ((g_key.status==STATUS_KEY_SHORT_PRESS) || (g_key.status==STATUS_KEY_LONG_PRESS))
 	{
-		#ifdef ENABLE_BEEP
+		#if (ENABLE_BEEP == 0x01U)
 			BEEP_RING_ONE();
 		#endif
 		

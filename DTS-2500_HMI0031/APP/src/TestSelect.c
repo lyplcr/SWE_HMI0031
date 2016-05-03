@@ -32,18 +32,15 @@ typedef enum
 	INDEX_KYSNJS = 0,
 	INDEX_KYJZSJ,
 	INDEX_KYHNT,
-	INDEX_KZHNT,
 	INDEX_KYQQZ,
 	INDEX_KYTY,
-	INDEX_KZSNJS,
-	INDEX_KZYJSNJ,
-	INDEX_KZTY,
 }REAL_TEST_INDEX_TypeDef;
 
 typedef enum
 {
 	INDEX_KZ_MODEL_KZSNJS = 0,
 	INDEX_KZ_MODEL_KZYJSNJ,
+	INDEX_KZ_KZHNT,
 	INDEX_KZ_MODEL_KZTY,
 }INDEX_KZ_MODEL_TypeDef;
 
@@ -76,19 +73,16 @@ const char * const pTestSelectName[] =
 	"1、水泥胶砂抗压",
 	"2、建筑砂浆抗压",
 	"3、混凝土抗压",
-	"4、混凝土抗折",
-	"5、砌墙砖抗压",
-	"6、通用抗压",
-	"7、水泥胶砂抗折",
-	"8、压浆水泥浆抗折",
-	"9、通用抗折",		
+	"4、砌墙砖抗压",
+	"5、通用抗压",		
 };
 
 const char * const pModelKZTestSelectName[] = 
 {
 	"1、水泥胶砂抗折",
 	"2、压浆水泥浆抗折",
-	"3、通用抗折",		
+	"3、混凝土抗折",
+	"4、通用抗折",		
 };
 
 const char * const pKLTestSelectName[] = 
@@ -256,45 +250,45 @@ static void TestSelectConfig( void )
 	{
 		case COMPRESSION_TEST:
 			/* 试块个数 */
-			g_testSelect.testCnt = 6;
+			g_testSelect.testCnt = 5;
 			
 			/* 行列数 */
-			g_testSelect.rowNum = 6;
+			g_testSelect.rowNum = 5;
 			g_testSelect.columnNum = 1;
 			
 			/* 索引值 */		
 			g_testSelect.indexArray[INDEX_KYSNJS] 	= KYSNJS;	
 			g_testSelect.indexArray[INDEX_KYJZSJ] 	= KYJZSJ;		
-			g_testSelect.indexArray[INDEX_KYHNT] 	= KYHNT;		
-			g_testSelect.indexArray[INDEX_KZHNT] 	= KZHNT;			
+			g_testSelect.indexArray[INDEX_KYHNT] 	= KYHNT;					
 			g_testSelect.indexArray[INDEX_KYQQZ] 	= KYQQZ;
 			g_testSelect.indexArray[INDEX_KYTY] 	= KYTY;		
 			
 			/* 名称 */
 			g_testSelect.pParameterNameArray[INDEX_KYSNJS] 	= pTestSelectName[0];	
 			g_testSelect.pParameterNameArray[INDEX_KYJZSJ] 	= pTestSelectName[1];		
-			g_testSelect.pParameterNameArray[INDEX_KYHNT] 	= pTestSelectName[2];		
-			g_testSelect.pParameterNameArray[INDEX_KZHNT] 	= pTestSelectName[3];			
-			g_testSelect.pParameterNameArray[INDEX_KYQQZ] 	= pTestSelectName[4];
-			g_testSelect.pParameterNameArray[INDEX_KYTY] 	= pTestSelectName[5];
+			g_testSelect.pParameterNameArray[INDEX_KYHNT] 	= pTestSelectName[2];				
+			g_testSelect.pParameterNameArray[INDEX_KYQQZ] 	= pTestSelectName[3];
+			g_testSelect.pParameterNameArray[INDEX_KYTY] 	= pTestSelectName[4];
 			break;
 		case BENDING_TEST:
 			/* 试块个数 */
-			g_testSelect.testCnt = 3;
+			g_testSelect.testCnt = 4;
 			
 			/* 行数 */
-			g_testSelect.rowNum = 3;
+			g_testSelect.rowNum = 4;
 			g_testSelect.columnNum = 1;
 			
 			/* 索引值 */		
 			g_testSelect.indexArray[INDEX_KZ_MODEL_KZSNJS] 	= KZSNJS;	
-			g_testSelect.indexArray[INDEX_KZ_MODEL_KZYJSNJ] = KZYJSNJ;		
+			g_testSelect.indexArray[INDEX_KZ_MODEL_KZYJSNJ] = KZYJSNJ;	
+			g_testSelect.indexArray[INDEX_KZ_KZHNT] 		= KZHNT;
 			g_testSelect.indexArray[INDEX_KZ_MODEL_KZTY] 	= KZTY;			
 			
 			/* 名称 */
 			g_testSelect.pParameterNameArray[INDEX_KZ_MODEL_KZSNJS] 	= pModelKZTestSelectName[0];	
 			g_testSelect.pParameterNameArray[INDEX_KZ_MODEL_KZYJSNJ] 	= pModelKZTestSelectName[1];		
-			g_testSelect.pParameterNameArray[INDEX_KZ_MODEL_KZTY] 		= pModelKZTestSelectName[2];
+			g_testSelect.pParameterNameArray[INDEX_KZ_KZHNT] 			= pModelKZTestSelectName[2];	
+			g_testSelect.pParameterNameArray[INDEX_KZ_MODEL_KZTY] 		= pModelKZTestSelectName[3];
 			break;
 		case STRETCH_TEST:
 			/* 试块个数 */

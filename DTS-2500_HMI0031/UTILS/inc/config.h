@@ -13,11 +13,13 @@
 #ifndef __CONFIG_H
 #define	__CONFIG_H	
 
-/* 宏定义软件为正式版本 */
-//#define		VERSION_RELEASE	
+/* 宏定义软件版本：0x00U--预览版，0x01U--正式版 */
+#define		VERSION_RELEASE				0x00U	
 
-#ifdef VERSION_RELEASE
-	#define ENABLE_BEEP
+#if (VERSION_RELEASE == 0x01U)
+	#define ENABLE_BEEP					0x01U
+#else
+	#define ENABLE_BEEP					0x00U
 #endif
 
 #define 	USER_PROGRAM_START_ADDR	0x08020000							//应用程序起始地址
@@ -34,7 +36,7 @@
 #define		FLASH_FONT_PASSWORD		0x2F8E4A7D							//FLASH字库密码
 
 #define		SYSTEM_MODEL			"SWE"								//系统型号
-#define		SOFT_VERSION			"1.2.0.0"							//上位机软件版本	
+#define		SOFT_VERSION			"1.3.0.0"							//上位机软件版本	
 #define		PCB_VERSION				"HMI0031"							//上位机PCB版本
 
 #define 	CLI()     			 	__disable_irq()

@@ -872,15 +872,20 @@ static void ControlParameterWriteParameter( void )
 	switch ( g_controlParameter.curChannel )
 	{
 		case SMPL_FH_NUM:
-			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
-			if (index != 0xff)
 			{
-				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
+				float maxForce = 0;
+				
+				index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
+				if (index != 0xff)
 				{
-					tempu *= 1000;
+					maxForce = ustrtoul(g_controlParameter.parameterData[index],0,10);
+					if (g_controlParameter.fhChannelUnit == FH_UNIT_kN)
+					{
+						maxForce *= 1000;
+					}
+					smpl_ctrl_full_p_set(g_controlParameter.curChannel,maxForce);
+					smpl_ctrl_full_n_set(g_controlParameter.curChannel,-maxForce);
 				}
-				smpl_ctrl_full_p_set(g_controlParameter.curChannel,tempu);
 			}
 			
 			index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
@@ -959,29 +964,34 @@ static void ControlParameterWriteParameter( void )
 			}
 			break;
 		case SMPL_WY_NUM:
-			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
-			if (index != 0xff)
 			{
-				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				switch ( g_controlParameter.wyChannelUnit )
+				float maxValue = 0;
+				
+				index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
+				if (index != 0xff)
 				{
-					case WY_UNIT_MM:						
-						break;
-					case WY_UNIT_CM:
-						tempu *= 10; 	
-						break;
-					case WY_UNIT_DM:
-						tempu *= 100;	
-						break;
-					case WY_UNIT_M:
-						tempu *= 1000;	
-						break; 
-					default:
-						break;
+					maxValue = ustrtoul(g_controlParameter.parameterData[index],0,10);
+					switch ( g_controlParameter.wyChannelUnit )
+					{
+						case WY_UNIT_MM:						
+							break;
+						case WY_UNIT_CM:
+							maxValue *= 10; 	
+							break;
+						case WY_UNIT_DM:
+							maxValue *= 100;	
+							break;
+						case WY_UNIT_M:
+							maxValue *= 1000;	
+							break; 
+						default:
+							break;
+					}
+					smpl_ctrl_full_p_set(g_controlParameter.curChannel,maxValue);
+					smpl_ctrl_full_n_set(g_controlParameter.curChannel,-maxValue);
 				}
-				smpl_ctrl_full_p_set(g_controlParameter.curChannel,tempu);
 			}
-
+			
 			index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
 			if (index != 0xff)
 			{
@@ -1006,29 +1016,34 @@ static void ControlParameterWriteParameter( void )
 			}
 			break;
 		case SMPL_BX_NUM:
-			index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
-			if (index != 0xff)
 			{
-				tempu = ustrtoul(g_controlParameter.parameterData[index],0,10);
-				switch ( g_controlParameter.bxChannelUnit )
+				float maxValue = 0;
+				
+				index = GetControlParameterIndex(OBJECT_SYSTEM_MAX_VALUE);
+				if (index != 0xff)
 				{
-					case BX_UNIT_MM:						
-						break;
-					case BX_UNIT_CM:
-						tempu *= 10; 	
-						break;
-					case BX_UNIT_DM:
-						tempu *= 100;	
-						break;
-					case BX_UNIT_M:
-						tempu *= 1000;	
-						break; 
-					default:
-						break;
+					maxValue = ustrtoul(g_controlParameter.parameterData[index],0,10);
+					switch ( g_controlParameter.bxChannelUnit )
+					{
+						case BX_UNIT_MM:						
+							break;
+						case BX_UNIT_CM:
+							maxValue *= 10; 	
+							break;
+						case BX_UNIT_DM:
+							maxValue *= 100;	
+							break;
+						case BX_UNIT_M:
+							maxValue *= 1000;	
+							break; 
+						default:
+							break;
+					}
+					smpl_ctrl_full_p_set(g_controlParameter.curChannel,maxValue);
+					smpl_ctrl_full_n_set(g_controlParameter.curChannel,-maxValue);
 				}
-				smpl_ctrl_full_p_set(g_controlParameter.curChannel,tempu);
 			}
-
+			
 			index = GetControlParameterIndex(OBJECT_LOAD_START_VALUE);
 			if (index != 0xff)
 			{

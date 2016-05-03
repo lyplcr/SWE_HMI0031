@@ -739,9 +739,31 @@ ErrorStatus PrintTestReport( TEST_TYPE_TypeDef test_type, TEST_ATTRIBUTE_TypeDef
 			break;
 		
 		case KZTY:
-			PrintWordsAndLineFeed("暂且不支持通用抗折试验！");		
+			print("标准：");
+			PrintWordsAndLineFeed(report->test_standard);
+		
+			print("编号：");
+			PrintWordsAndLineFeed(test_info->fname);
+		
+			print("宽度：");
+			floattochar(MAX_SHOW_BIT,BIT_LENTH_DOT,report->width,print_buff);
+			print(print_buff);
+			PrintWordsAndLineFeed("mm");
+		
+			print("高度：");
+			floattochar(MAX_SHOW_BIT,BIT_LENTH_DOT,report->high,print_buff);
+			print(print_buff);
+			PrintWordsAndLineFeed("mm");
 			
-			return ERROR;	
+			print("跨距：");
+			floattochar(MAX_SHOW_BIT,BIT_LENTH_DOT,report->sample_span,print_buff);
+			print(print_buff);
+			PrintWordsAndLineFeed("mm");
+			
+			print("试件块数：");
+			numtochar(MAX_SHOW_BIT,report->sample_num,print_buff);
+			PrintWordsAndLineFeed(print_buff);				
+			break;	
 		
 		case KLJSSW:
 			print("标准：");

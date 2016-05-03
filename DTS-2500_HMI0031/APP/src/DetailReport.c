@@ -179,6 +179,16 @@ typedef enum
 	INDEX_YJSNJKZ_TEST_PRESSURE,
 }INDEX_YJSNJKZ_TypeDef;
 
+typedef enum
+{
+	INDEX_TYKZ_TEST_SERIAL = 0,
+	INDEX_TYKZ_TEST_WIDTH,
+	INDEX_TYKZ_TEST_HIGH,
+	INDEX_TYKZ_TEST_SPAN,
+	INDEX_TYKZ_TEST_FORCE,
+	INDEX_TYKZ_TEST_PRESSURE,
+}INDEX_TYKZ_TypeDef;
+
 typedef struct
 {
 	char parameterData[MAX_FIELD_NUM][MAX_REPORT_NAME_BIT+1];
@@ -1069,7 +1079,62 @@ static void DetailReportConfig( void )
 			g_detailReport.align[INDEX_YJSNJKZ_TEST_PRESSURE] 	= ALIGN_LEFT;
 			break;
 		case KZTY:
+			/* 索引值 */
+			g_detailReport.indexArray[INDEX_TYKZ_TEST_SERIAL] 	= OBJECT_SERIAL;
+			g_detailReport.indexArray[INDEX_TYKZ_TEST_WIDTH] 	= OBJECT_SPECIMEN_WIDTH;
+			g_detailReport.indexArray[INDEX_TYKZ_TEST_HIGH] 	= OBJECT_SPECIMEN_HIGH;
+			g_detailReport.indexArray[INDEX_TYKZ_TEST_SPAN] 	= OBJECT_SPECIMEN_SPAN;
+			g_detailReport.indexArray[INDEX_TYKZ_TEST_FORCE] 	= OBJECT_FORCE;
+			g_detailReport.indexArray[INDEX_TYKZ_TEST_PRESSURE] = OBJECT_PRESSURE;
 			
+			/* 字段名 */
+			g_detailReport.pParameterNameArray[INDEX_TYKZ_TEST_SERIAL] 		= pDetailReportFieldName[0];
+			g_detailReport.pParameterNameArray[INDEX_TYKZ_TEST_WIDTH] 		= pDetailReportFieldName[8];
+			g_detailReport.pParameterNameArray[INDEX_TYKZ_TEST_HIGH] 		= pDetailReportFieldName[9];
+			g_detailReport.pParameterNameArray[INDEX_TYKZ_TEST_SPAN] 		= pDetailReportFieldName[6];
+			
+			if (g_detailReport.fhChannelUnit == FH_UNIT_kN)
+			{
+				g_detailReport.pParameterNameArray[INDEX_TYKZ_TEST_FORCE] 	= pDetailReportFieldName[12];
+			}
+			else
+			{
+				g_detailReport.pParameterNameArray[INDEX_TYKZ_TEST_FORCE] 	= pDetailReportFieldName[11];
+			}
+			g_detailReport.pParameterNameArray[INDEX_TYKZ_TEST_PRESSURE] 	= pDetailReportFieldName[13];
+			
+			/* 标题 */
+			g_detailReport.pTitle = pDetailTestReportTitleName[9];
+			
+			/* 字段个数 */
+			g_detailReport.fieldNum = 6;
+			
+			/* 一个字段显示个数 */
+			g_detailReport.oneFieldShowType[INDEX_TYKZ_TEST_SERIAL] 	= SHOW_ALL;
+			g_detailReport.oneFieldShowType[INDEX_TYKZ_TEST_WIDTH] 		= SHOW_SINGLE;
+			g_detailReport.oneFieldShowType[INDEX_TYKZ_TEST_HIGH]		= SHOW_SINGLE;
+			g_detailReport.oneFieldShowType[INDEX_TYKZ_TEST_SPAN] 		= SHOW_SINGLE;
+			g_detailReport.oneFieldShowType[INDEX_TYKZ_TEST_FORCE] 		= SHOW_ALL;
+			g_detailReport.oneFieldShowType[INDEX_TYKZ_TEST_PRESSURE] 	= SHOW_ALL;
+			
+			/* 小数点位数 */
+			for (i=0; i<MAX_ONE_PAGE_SHOW_NUM; ++i)
+			{
+				g_detailReport.oneLevelMenu[i][INDEX_TYKZ_TEST_SERIAL].pointBit 		= 0;
+				g_detailReport.oneLevelMenu[i][INDEX_TYKZ_TEST_WIDTH].pointBit 			= 2;
+				g_detailReport.oneLevelMenu[i][INDEX_TYKZ_TEST_HIGH].pointBit 			= 2;
+				g_detailReport.oneLevelMenu[i][INDEX_TYKZ_TEST_SPAN].pointBit 			= 2;
+				g_detailReport.oneLevelMenu[i][INDEX_TYKZ_TEST_FORCE].pointBit	 		= 2;
+				g_detailReport.oneLevelMenu[i][INDEX_TYKZ_TEST_PRESSURE].pointBit 		= 1;
+			}
+			
+			/* 数据对齐 */
+			g_detailReport.align[INDEX_TYKZ_TEST_SERIAL] 		= ALIGN_MIDDLE;
+			g_detailReport.align[INDEX_TYKZ_TEST_WIDTH] 		= ALIGN_LEFT;
+			g_detailReport.align[INDEX_TYKZ_TEST_HIGH] 			= ALIGN_LEFT;
+			g_detailReport.align[INDEX_TYKZ_TEST_SPAN] 			= ALIGN_LEFT;
+			g_detailReport.align[INDEX_TYKZ_TEST_FORCE] 		= ALIGN_LEFT;
+			g_detailReport.align[INDEX_TYKZ_TEST_PRESSURE] 		= ALIGN_LEFT;
 			break;
 		case KLJSSW:
 			report_read(g_detailReport.testType,GetSelectReportFileNameAddr(),&g_readReport);
@@ -1841,11 +1906,25 @@ static void ConfigDetailReportOneFieldRectangleFrameCoordinate( uint8_t rowIndex
 			break;
 		
 		case OBJECT_FORCE:
-			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 100;
+			if (g_detailReport.testType == KZTY)
+			{
+				g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 200;
+			}
+			else
+			{
+				g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 100;
+			}
 			break;
 		
 		case OBJECT_PRESSURE:
-			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 124;
+			if (g_detailReport.testType == KZTY)
+			{
+				g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 200;
+			}
+			else
+			{
+				g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 124;
+			}
 			break;
 		case OBJECT_NON_PROPORTIONAL_EXTENSION_STRENGTH:
 			g_detailReport.oneLevelMenu[rowIndex][fieldIndex].lenth = 172;

@@ -373,13 +373,8 @@
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>USER</GroupName>
+          <GroupName>Includes</GroupName>
           <Files>
-            <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\USER\main.c</FilePath>
-            </File>
             <File>
               <FileName>global.h</FileName>
               <FileType>5</FileType>
@@ -401,14 +396,14 @@
               <FilePath>..\UTILS\inc\pcm.h</FilePath>
             </File>
             <File>
+              <FileName>prm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\UTILS\inc\prm.h</FilePath>
+            </File>
+            <File>
               <FileName>gui.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\UTILS\inc\gui.h</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_lcd.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\BSP\inc\bsp_lcd.h</FilePath>
             </File>
             <File>
               <FileName>report.h</FileName>
@@ -416,14 +411,14 @@
               <FilePath>..\UTILS\inc\report.h</FilePath>
             </File>
             <File>
+              <FileName>bsp_lcd.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\inc\bsp_lcd.h</FilePath>
+            </File>
+            <File>
               <FileName>cmd.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\UTILS\inc\cmd.h</FilePath>
-            </File>
-            <File>
-              <FileName>prm.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\UTILS\inc\prm.h</FilePath>
             </File>
             <File>
               <FileName>prm_struct.h</FileName>
@@ -439,6 +434,16 @@
               <FileName>MY_DEBUG.H</FileName>
               <FileType>5</FileType>
               <FilePath>..\USER\MY_DEBUG.H</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>USER</GroupName>
+          <Files>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\USER\main.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1144,11 +1149,6 @@
               <FileName>BUG日志.txt</FileName>
               <FileType>5</FileType>
               <FilePath>..\Doc\BUG日志.txt</FilePath>
-            </File>
-            <File>
-              <FileName>程序标准格式.txt</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Doc\程序标准格式.txt</FilePath>
             </File>
           </Files>
         </Group>

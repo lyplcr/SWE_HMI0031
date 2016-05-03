@@ -2,9 +2,12 @@
 #define __MY_DEBUG_H
 
 /* 调试总开关 */
-#ifndef VERSION_RELEASE
-	#define __DEBUG__
-	#define __ASSERT__
+#if (VERSION_RELEASE == 0x01U)
+	#define __DEBUG__						0x00U	
+	#define __ASSERT__						0x00U	
+#else
+	#define __DEBUG__						0x01U	
+	#define __ASSERT__						0x00U	
 #endif
 
 #define DEBUG_ON           					0x80U
@@ -33,7 +36,7 @@
 #define DEBUG_YIELD_DEFORM					DEBUG_ON
 
 
-#ifdef __DEBUG__
+#if (__DEBUG__ == 0x01U)
 	#define ECHO(debug,...) do{\
 								if ((debug) & DEBUG_ON)\
 								{\
@@ -44,7 +47,7 @@
 	#define ECHO(debug,...) ((void)0)
 #endif
 	
-#ifdef __ASSERT__
+#if (__ASSERT__ == 0x01U)
 	#define ECHO_ASSERT(assertion,...) do { if(!(assertion)) \
 		printf(__VA_ARGS__); } while(0)
 #else

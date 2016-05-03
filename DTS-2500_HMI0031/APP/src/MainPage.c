@@ -513,7 +513,7 @@ static void InitKL_TestBody( KL_TEST_BODY_TypeDef *pKlTest );
  * Return         : None
  *------------------------------------------------------------*/
 void LoadMainPage( void )
-{		
+{	
 	/* 关闭屏幕 */
 	SetBackLightEffectClose(COLOR_BACK);
 
@@ -1178,8 +1178,9 @@ static void FromTestParameterCopyToReport( REPORT_TypeDef *pReport )
 			pReport->yieldJudgeMode = 0;
 			pReport->yieldDisturbThreshold = 0;
 			pReport->computeElasticModulus = 0;
-			pReport->elasticModulusStartStrength = 0;
-			pReport->elasticModulusEndStrength = 0;
+			pReport->elasticModulusStartRate = 0;
+			pReport->elasticModulusEndRate = 0;
+			pReport->plasticExtensionRate = 0;
 		}
 	}
 }	
@@ -4665,14 +4666,14 @@ static float AccordDispalcementGetDeformIncrement( float originalDispalcement, f
 	float deformIncrement = 0;
 	const float COF = 1.0f;
 	
+	ECHO_ASSERT(fabs(originalGauge)>MIN_FLOAT_PRECISION_DIFF_VALUE,"原始标距除零错误！\r\n");
+	
 	if (fabs(originalGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
-		originalGauge = 1;
+		return 0.0f;
 	}
 	
 	deformIncrement = COF * (extensometerGauge / originalGauge) * (nowDispalcement - originalDispalcement);
-	
-	ECHO_ASSERT(fabs(originalGauge)>MIN_FLOAT_PRECISION_DIFF_VALUE,"原始标距除零错误！\r\n");
 	
 	return deformIncrement;
 }
@@ -4931,7 +4932,7 @@ static void MainPageJudgeBreakCoreCycle( void )
 		
 		SetTestStatus(TEST_BREAK);
 		
-		#ifdef ENABLE_BEEP
+		#if (ENABLE_BEEP == 0x01U)
 			BEEP_RING_ONE();
 		#endif
 	}
@@ -4975,8 +4976,13 @@ static void KL_TestLoadCoreCycle( void )
 	
 	if (force < startLoadForce)
 	{											
-		SetTestStatus(TEST_DEFORM);		
-		ECHO(DEBUG_TEST_LOAD,"拉伸试验跳过屈服阶段！\r\n");
+//		SetTestStatus(TEST_DEFORM);		
+//		ECHO(DEBUG_TEST_LOAD,"拉伸试验跳过屈服阶段！\r\n");
+		
+		/* 拉伸试验，如果力值没有到达起判力，将得不到试验结果 */
+		g_mainPage.refreshShortcut = ENABLE;		
+		SetTestStatus(TEST_IDLE);	
+		ECHO(DEBUG_TEST_LOAD,"试验停止！\r\n");
 	}
 	else if (force > yieldStartValue)
 	{
@@ -5572,9 +5578,8 @@ TestStatus JudgeStrengthAvail( TEST_TYPE_TypeDef type, uint8_t num,float *pAvail
 			break;
 		
 		case KZTY:	
-			*pAvail_press = 0.0f;
-			
-			return FAILED;
+			*pAvail_press = 0.0f;			
+			break;
 		
 		default:
 			*pAvail_press = 0.0f;
@@ -5868,14 +5873,14 @@ static float GetMaxForceSumElongation( void )
 	float maxForceSumElongation = 0;
 	float extensometerGauge = GetExtensometerGauge();
 	
+	ECHO_ASSERT(fabs(extensometerGauge)>MIN_FLOAT_PRECISION_DIFF_VALUE,"引伸计标距除零错误！\r\n");
+	
 	if (fabs(extensometerGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
-		extensometerGauge = 1;
+		return 0.0f;
 	}
 	
 	maxForceSumElongation = maxForceSumExtend / extensometerGauge * 100;
-	
-	ECHO_ASSERT(fabs(extensometerGauge)>MIN_FLOAT_PRECISION_DIFF_VALUE,"引伸计标距除零错误！\r\n");
 	
 	return maxForceSumElongation;
 }
@@ -5913,11 +5918,11 @@ static TestStatus GetFloatArrayExceedValueIndex( float *arrayPtr, uint32_t array
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static float ComputeElasticModulus( REPORT_TypeDef *reportPtr )
+static float ComputeElasticModulus( REPORT_TypeDef *reportPtr, float maxStrength )
 {
 	float elasticModulus = 0;
-	float startStrength = GetElasticModulusStartStrength();
-	float endStrength = GetElasticModulusEndStrength();
+	float startStrength = maxStrength * 0.01f * GetElasticModulusStartRate();
+	float endStrength = maxStrength * 0.01f *GetElasticModulusEndRate();
 	float area = 0;
 	
 	if ( (fabs(startStrength)<MIN_FLOAT_PRECISION_DIFF_VALUE) || \
@@ -6032,7 +6037,7 @@ static float ComputeNonProportionalExtensionForce( REPORT_TypeDef *reportPtr, fl
 	{
 		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
 		float elasticModulusMPa = elasticModulusGPa * 1000.0f;
-		float targetB = (-1.0f) * elasticModulusMPa * 0.002f;	//RP0.2 -》%0.2
+		float targetB = (-1.0f) * elasticModulusMPa * (pTest->plasticExtensionRate/100.0f);	//RP0.2 -》0.2%
 		float nowB = 0;
 		float extensometerGauge = GetExtensometerGauge();	
 		float nowStrength = 0;	//应力
@@ -6306,7 +6311,7 @@ static void MainPageExecuteEndOnePieceProcess( void )
 						g_klTestBody.downYieldStrength = FromForceGetStrength(g_mainPage.testType,&g_readReport,g_klTestBody.downYieldForce);
 					}
 					g_klTestBody.maxForceSumElongation = GetMaxForceSumElongation();
-					g_klTestBody.elasticModulus = ComputeElasticModulus(&g_readReport);
+					g_klTestBody.elasticModulus = ComputeElasticModulus(&g_readReport,g_klTestBody.maxStrength);
 					g_klTestBody.nonProportionalExtensionForce = ComputeNonProportionalExtensionForce(&g_readReport,g_klTestBody.elasticModulus);
 					g_klTestBody.nonProportionalExtensionStrength = ComputeNonProportionalExtensionStrength(&g_readReport,\
 										g_klTestBody.nonProportionalExtensionForce);			
@@ -6325,8 +6330,9 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					g_readReport.yieldJudgeMode = pHmi->yieldJudgeMode;
 					g_readReport.yieldDisturbThreshold = pHmi->yieldDisturbThreshold;
 					g_readReport.computeElasticModulus = pHmi->computeElasticModulus;
-					g_readReport.elasticModulusStartStrength = pHmi->elasticModulusStartStrength;
-					g_readReport.elasticModulusEndStrength = pHmi->elasticModulusEndStrength;
+					g_readReport.elasticModulusStartRate = pHmi->elasticModulusStartRate;
+					g_readReport.elasticModulusEndRate = pHmi->elasticModulusEndRate;
+					g_readReport.plasticExtensionRate = pTest->plasticExtensionRate;
 					
 					ECHO(DEBUG_TEST_LOAD,"最大力：%f, 抗拉强度：%f\r\n",g_klTestBody.maxForce,g_klTestBody.maxStrength);
 					ECHO(DEBUG_TEST_LOAD,"上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);

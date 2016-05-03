@@ -71,8 +71,8 @@ const char * const ExtendParameterNamePtr[] =
 	"屈服判断方式：",		//0
 	"屈服干扰阈值：",		//1
 	"计算弹性模量：",		//2
-	"弹性模量起始强度：",	//3
-	"弹性模量终止强度：",	//4
+	"弹性模量起始率：",		//3
+	"弹性模量终止率：",		//4
 };	
 
 const char * const YieldJudgeModeNamePtr[] =
@@ -90,10 +90,10 @@ const char * const ComputeLasticModulusNamePtr[] =
 
 const char * const ExtendParamErrInfo[] = 
 {
-	"弹性模量起始强度输入范围：",		//0
-	"(1 ~ )",
-	"弹性模量终止强度必须大于",
-	"起始强度。",					//2
+	"弹性模量起始率输入范围：",		//0
+	"(1 ~ 100)",
+	"弹性模量终止率必须大于",		//2
+	"起始率，输入范围：(1~100)",		
 };
 
 /* Private macro -------------------------------------------------------------*/
@@ -251,8 +251,8 @@ static void ExtendParameterConfig( void )
 	g_extendParameter.pParameterUnitArray[INDEX_YIELD_JUDGE_MODE] 				= "NULL";
 	g_extendParameter.pParameterUnitArray[INDEX_YIELD_DISTURB_THRESHOLD] 		= "NULL";
 	g_extendParameter.pParameterUnitArray[INDEX_COMPUTE_ELASTIC_MODULUS] 		= "NULL";
-	g_extendParameter.pParameterUnitArray[INDEX_ELASTIC_MODULUS_START_STRENGTH] = pUnitType[15];
-	g_extendParameter.pParameterUnitArray[INDEX_ELASTIC_MODULUS_END_STRENGTH] 	= pUnitType[15];
+	g_extendParameter.pParameterUnitArray[INDEX_ELASTIC_MODULUS_START_STRENGTH] = pUnitType[10];
+	g_extendParameter.pParameterUnitArray[INDEX_ELASTIC_MODULUS_END_STRENGTH] 	= pUnitType[10];
 	
 	/* 数据保存类型 */
 	g_extendParameter.oneLevelMenu[INDEX_YIELD_JUDGE_MODE].saveType 				= TYPE_INT;
@@ -477,17 +477,17 @@ static void ExtendParameterReadParameter( void )
 	index = GetExtendParameterIndex(OBJECT_ELASTIC_MODULUS_START_STRENGTH);
 	if (index != 0xff)
 	{
-		uint32_t elasticModulusStartStrength = pHmi->elasticModulusStartStrength;
+		uint32_t elasticModulusStartRate = pHmi->elasticModulusStartRate;
 		
-		numtochar(MAX_EXTEND_PARAMETER_PUTIN_BIT,elasticModulusStartStrength,g_extendParameter.parameterData[index]);
+		numtochar(MAX_EXTEND_PARAMETER_PUTIN_BIT,elasticModulusStartRate,g_extendParameter.parameterData[index]);
 	}
 	
 	index = GetExtendParameterIndex(OBJECT_ELASTIC_MODULUS_END_STRENGTH);
 	if (index != 0xff)
 	{
-		uint32_t elasticModulusEndStrength = pHmi->elasticModulusEndStrength;
+		uint32_t elasticModulusEndRate = pHmi->elasticModulusEndRate;
 		
-		numtochar(MAX_EXTEND_PARAMETER_PUTIN_BIT,elasticModulusEndStrength,g_extendParameter.parameterData[index]);
+		numtochar(MAX_EXTEND_PARAMETER_PUTIN_BIT,elasticModulusEndRate,g_extendParameter.parameterData[index]);
 	}
 }
 
@@ -523,13 +523,13 @@ static void ExtendParameterWriteParameter( void )
 	index = GetExtendParameterIndex(OBJECT_ELASTIC_MODULUS_START_STRENGTH);
 	if (index != 0xff)
 	{
-		pHmi->elasticModulusStartStrength = ustrtoul(g_extendParameter.parameterData[index],0,10);
+		pHmi->elasticModulusStartRate = ustrtoul(g_extendParameter.parameterData[index],0,10);
 	}
 	
 	index = GetExtendParameterIndex(OBJECT_ELASTIC_MODULUS_END_STRENGTH);
 	if (index != 0xff)
 	{
-		pHmi->elasticModulusEndStrength = ustrtoul(g_extendParameter.parameterData[index],0,10);
+		pHmi->elasticModulusEndRate = ustrtoul(g_extendParameter.parameterData[index],0,10);
 	}
 	
 	pcm_save();
@@ -1091,7 +1091,7 @@ static TestStatus ExtendParameterCheckData( uint8_t index )
 			{
 				uint32_t startStrength = ustrtoul(g_extendParameter.parameterData[index],0,10);
 				
-				if (startStrength == 0)
+				if ((startStrength==0) || (startStrength>100))
 				{
 					SetPopWindowsInfomation(POP_PCM_CUE,2,&ExtendParamErrInfo[0]);
 							
@@ -1105,7 +1105,7 @@ static TestStatus ExtendParameterCheckData( uint8_t index )
 				uint8_t startStrengthIndex = GetExtendParameterIndex(OBJECT_ELASTIC_MODULUS_START_STRENGTH);
 				uint32_t startStrength = ustrtoul(g_extendParameter.parameterData[startStrengthIndex],0,10);
 				
-				if (startStrength >= endStrength)
+				if ((endStrength==0) || (endStrength>100) || (startStrength>=endStrength))
 				{
 					SetPopWindowsInfomation(POP_PCM_CUE,2,&ExtendParamErrInfo[2]);
 							
@@ -1171,27 +1171,27 @@ COMPUTE_LASTIC_MODULUS_TypeDef GetComputeLasticModulusMode( void )
 }
 
 /*------------------------------------------------------------
- * Function Name  : GetElasticModulusStartStrength
- * Description    : 获取弹性模量起始强度
+ * Function Name  : GetElasticModulusStartRate
+ * Description    : 获取弹性模量起始率
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetElasticModulusStartStrength( void )
+float GetElasticModulusStartRate( void )
 {
-	return pHmi->elasticModulusStartStrength;
+	return pHmi->elasticModulusStartRate;
 }
 
 /*------------------------------------------------------------
- * Function Name  : GetElasticModulusEndStrength
- * Description    : 获取弹性模量终止强度
+ * Function Name  : GetElasticModulusEndRate
+ * Description    : 获取弹性模量终止率
  * Input          : None
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-float GetElasticModulusEndStrength( void )
+float GetElasticModulusEndRate( void )
 {
-	return pHmi->elasticModulusEndStrength;
+	return pHmi->elasticModulusEndRate;
 }
 
 

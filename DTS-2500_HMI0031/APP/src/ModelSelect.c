@@ -675,6 +675,11 @@ static void DefaultParameterSet( MODEL_ATTRIBUTE_TypeDef type, uint16_t ton, \
 	pHmi->wyUnit = WY_UNIT_MM;
 	pHmi->bxUnit = BX_UNIT_MM;
 	pHmi->wyConvBx = 0;
+	pHmi->yieldDisturbThreshold = 100;
+	pHmi->yieldJudgeMode = 0;
+	pHmi->computeElasticModulus = 0;
+	pHmi->elasticModulusStartRate = 25;
+	pHmi->elasticModulusEndRate = 50;
 	
 	for (index=0; index<USE_CHANNEL; ++index)
 	{

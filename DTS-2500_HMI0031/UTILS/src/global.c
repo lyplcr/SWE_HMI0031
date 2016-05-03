@@ -1682,25 +1682,24 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 	{
 		case KYSNJS:
 			area = GetSampleSpecificationArea(report->sample_spec,temp);
+			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 		
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{												
-				area = 1;
+				return 0.0f;
 			}
 			MPa = CurForce / area;
-
-			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			break;
 			 
 		case KYJZSJ:
 			area = GetSampleSpecificationArea(report->sample_spec,temp);
+			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
+			
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{											
-				area = 1;
+				return 0.0f;
 			}
 			MPa = report->correct_cof * CurForce / area;
-			
-			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			break;
 
 		case KYHNT:		//混凝土抗折/抗压需要手动设置修正系数，根据修正系数计算最终的强度值
@@ -1710,15 +1709,13 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			{
 				area = GetCircularArea(temp[0]);
 			}
+			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{											
-				area = 1;
-			}
-			
+				return 0.0f;
+			}			
 			MPa = report->correct_cof * CurForce / area;
-			
-			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			break;
 
 		case KZHNT:
@@ -1726,29 +1723,25 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 			high = temp[0];
 			width = temp[1];
 			span = high * 3;
-			if ((fabs(high) < MIN_FLOAT_PRECISION_DIFF_VALUE) || (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE))
-			{												
-				high = 1;
-				width = 1;
-			}
-			MPa = (report->correct_cof * CurForce * span) / (width * high * high);
-			
 			ECHO_ASSERT(fabs(high)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件高度除零错误！\r\n");
 			ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
+			if ((fabs(high) < MIN_FLOAT_PRECISION_DIFF_VALUE) || (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE))
+			{												
+				return 0.0f;
+			}
+			MPa = (report->correct_cof * CurForce * span) / (width * high * high);
 			break;
 
 		case KYQQZ:			
 			lenth = report->length;
 			width = report->width;
-			if ((fabs(lenth) < MIN_FLOAT_PRECISION_DIFF_VALUE) || (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE))
-			{							
-				lenth = 1;
-				width = 1;
-			}
-			MPa = CurForce / (lenth * width);
-			
 			ECHO_ASSERT(fabs(lenth)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件长度除零错误！\r\n");
 			ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
+			if ((fabs(lenth) < MIN_FLOAT_PRECISION_DIFF_VALUE) || (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE))
+			{							
+				return 0.0f;
+			}
+			MPa = CurForce / (lenth * width);
 			break;
 		
 		case KYZJDH:
@@ -1766,55 +1759,66 @@ float FromForceGetStrength( TEST_TYPE_TypeDef type, REPORT_TypeDef *report, floa
 					area = report->bgz_area;
 					break;
 			}
+			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			
 			if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{									
-				area = 1;
+				return 0.0f;
 			}
 			MPa = report->correct_cof * CurForce / area;
-			
-			ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			break;
 		}
 
 		case KZSNJS:
 			width = report->length;
 			span = report->sample_span;
+			ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
 			if (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{												
-				width = 1;
+				return 0.0f;
 			}
 			MPa = 1.5f * CurForce * span / (width * width * width);
-			
-			ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
 			break;
 
 		case KZYJSNJ:
 			width = report->length;
 			span = report->sample_span;
+			ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
 			if (fabs(width) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 			{							
-				width = 1;
+				return 0.0f;
 			}
 			MPa = 1.5f * CurForce * span / (width * width * width);
-			
-			ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
 			break;
  
 		case KZTY:
+			{
+				float width = report->width;
+				float high = report->high;
+				float span = report->sample_span;
+				
+				ECHO_ASSERT(fabs(width)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件宽度除零错误！\r\n");
+				ECHO_ASSERT(fabs(high)>MIN_FLOAT_PRECISION_DIFF_VALUE,"试件高度除零错误！\r\n");
+				
+				if ((fabs(width)<MIN_FLOAT_PRECISION_DIFF_VALUE) || (fabs(high)<MIN_FLOAT_PRECISION_DIFF_VALUE))
+				{							
+					return 0.0f;
+				}
+				
+				MPa = 3.0f * CurForce * span / (2.0f * width * high * high);
+			}
 			break;
 		
 		case KLJSSW:
 			{
 				float area = Get_KLJSSW_TestArea(report);
+				ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 				
 				if (fabs(area) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 				{													
-					area = 1;
+					return 0.0f;
 				}
 				MPa = CurForce / area;
-				
-				ECHO_ASSERT(fabs(area)>MIN_FLOAT_PRECISION_DIFF_VALUE,"面积除零错误！\r\n");
 			}
 			break;
 		
