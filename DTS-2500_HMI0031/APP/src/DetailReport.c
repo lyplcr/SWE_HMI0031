@@ -1742,7 +1742,7 @@ static void DetailReportReadParameter( void )
 		for (i=0; i<g_detailReport.curPageSampleNum; ++i)
 		{					
 			floattochar(MAX_REPORT_NAME_BIT,g_detailReport.oneLevelMenu[i][index].pointBit,\
-				g_readReport.elasticModulus[baseIndex+i],g_detailReport.fieldData[i].parameterData[index]);
+				g_readReport.elasticModulus[baseIndex+i]/1000.0f,g_detailReport.fieldData[i].parameterData[index]);
 		}
 	}
 }

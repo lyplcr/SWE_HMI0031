@@ -209,9 +209,10 @@ static void CurveShowReadParameter( void )
 	ECHO(DEBUG_CURVE_SHOW,"下屈服强度：%f\r\n",readReport.downYieldStrength[g_curveShow.curPage-1]);
 	ECHO(DEBUG_CURVE_SHOW,"弹性模量起始率：%f\r\n",readReport.elasticModulusStartRate);
 	ECHO(DEBUG_CURVE_SHOW,"弹性模量终止率：%f\r\n",readReport.elasticModulusEndRate);
+	ECHO(DEBUG_CURVE_SHOW,"规定塑性延伸率：%f\r\n",readReport.plasticExtensionRate);
 	ECHO(DEBUG_CURVE_SHOW,"非比例延伸力：%f\r\n",readReport.nonProportionalExtensionForce[g_curveShow.curPage-1]);
 	ECHO(DEBUG_CURVE_SHOW,"非比例延伸强度：%f\r\n",readReport.nonProportionalExtensionStrength[g_curveShow.curPage-1]);
-	ECHO(DEBUG_CURVE_SHOW,"弹性模量：%f\r\n",readReport.elasticModulus[g_curveShow.curPage-1]);
+	ECHO(DEBUG_CURVE_SHOW,"弹性模量(MPa)：%f\r\n",readReport.elasticModulus[g_curveShow.curPage-1]);
 	
 	#if (DEBUG_CURVE_SHOW == DEBUG_ON)
 	{

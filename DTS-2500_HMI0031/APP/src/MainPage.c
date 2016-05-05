@@ -448,6 +448,9 @@ const char * const pMainPageWarning[] =
 	"请按“<- ->”键，将页面切换至",	//17
 	"已做试样的最后一页！",
 	"坐标点数据保存失败！",			//19
+	"到达曲线最大记录时间5分钟，",	//20
+	"本次试验结果作废！请卸载后",		
+	"再清除警告。",					
 };	
 
 const char * const pKLTestResultName[] = 
@@ -1947,7 +1950,7 @@ static void MainPageWriteKLParameter( void )
 	MainPageWriteKLTestDownYieldStrength(g_readReport.downYieldStrength[g_mainPage.curPage-1]);
 	MainPageWriteKLTestMaxForceAllExtend(g_readReport.maxForceSumExtend[g_mainPage.curPage-1]);
 	MainPageWriteKLTestMaxForceTotalElongation(g_readReport.maxForceSumElongation[g_mainPage.curPage-1]);
-	MainPageWriteKLTestElasticModulus(g_readReport.elasticModulus[g_mainPage.curPage-1]);
+	MainPageWriteKLTestElasticModulus(g_readReport.elasticModulus[g_mainPage.curPage-1]/1000.0f);
 	MainPageWriteKLTestNonProportionalExtensionForce(g_readReport.nonProportionalExtensionForce[g_mainPage.curPage-1]);
 	MainPageWriteKLTestNonProportionalExtensionStrength(g_readReport.nonProportionalExtensionStrength[g_mainPage.curPage-1]);
 }
@@ -4401,7 +4404,12 @@ static void SetDynamicContentPeak( void )
 			{
 				g_testBody.breakPeak = GetPeakValue(SMPL_FH_NUM);
 			}
-		
+			
+			/* 
+				必须保证试验状态为空闲，才能进行下一步操作。
+				如果一组试验结束，正准备保存数据时，调用函数LoadDefaultCoordinate(),
+				该函数将坐标点数据清除，那么，试验保存的坐标点数据将被损坏。			
+			*/
 			if (GetTestStatus() == TEST_IDLE)
 			{
 				s_peakDelayTime = GetCurveStayTime() * CTRL_FREQ;
@@ -4419,6 +4427,7 @@ static void SetDynamicContentPeak( void )
 			if (GetTestStatus() == TEST_LOAD)
 			{
 				g_testBody.peakStatus = STATUS_PEAK_IDLE;
+				break;
 			}
 			
 			if (s_peakDelayTime)
@@ -5913,7 +5922,7 @@ static TestStatus GetFloatArrayExceedValueIndex( float *arrayPtr, uint32_t array
 
 /*------------------------------------------------------------
  * Function Name  : ComputeElasticModulus
- * Description    : 计算弹性模量(单位GPa)
+ * Description    : 计算弹性模量(单位MPa)
  * Input          : None
  * Output         : None
  * Return         : None
@@ -5987,7 +5996,6 @@ static float ComputeElasticModulus( REPORT_TypeDef *reportPtr, float maxStrength
 				}
 				
 				elasticModulus = (endStrength-startStrength) / (endtrain-startStrain);
-				elasticModulus /= 1000.0f;	//MPa->GPa
 			}			
 		}
 	}
@@ -6002,28 +6010,20 @@ static float ComputeElasticModulus( REPORT_TypeDef *reportPtr, float maxStrength
  * Output         : None
  * Return         : None
  *------------------------------------------------------------*/
-static float ComputeNonProportionalExtensionForce( REPORT_TypeDef *reportPtr, float elasticModulusGPa )
+static float ComputeNonProportionalExtensionForce( REPORT_TypeDef *reportPtr, \
+				float elasticModulusMPa, float maxForce )
 {
 	float nonProportionalExtensionForce = 0;
+	float extensometerGauge = GetExtensometerGauge();	
 	float area = 0;
 	
 	/* 
 		求非比例延伸力步骤：
 		非比例延伸力 = 找到弹性模量在曲线上的两点，求得直线斜率。向右平移
-			直至与X轴相交于（应变值=0.2%）的位置，此时直线与坐标曲线上的交点为
+			与X轴交点，将直线从该点向右平移“规定塑性延伸率”个长度，此时直线与坐标曲线上的交点为
 			非比例延伸力。
-		1、已知弹性模量参考点P1，P2强度，将其转换为力值。
-		2、从曲线点中找出参考点对应的变形值，将变形值转换为应变。
-			应变 = 变形值 / 引伸计标距;
-		3、	已知弹性模量，求得直线公式：y(应力) = k(弹模) * x(应变) + b;
-			当y(应力) = 0时，x(应变) >= 0.2%，求得:
-			-》 x = (y - b) / k；(k不为0) 
-			-》-b/k >= 0.2%  
-			-》 b <= -0.2% * k;
-		4、	将坐标点(x,y)一一带入公式，b = y(应力) - k(弹模) * x(应变);
-			只要b满足上述条件，则对应的y为非比例延伸强度。
 	*/
-	if (fabs(elasticModulusGPa) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+	if (fabs(elasticModulusMPa) < MIN_FLOAT_PRECISION_DIFF_VALUE)
 	{
 		return 0.0f;
 	}
@@ -6034,35 +6034,80 @@ static float ComputeNonProportionalExtensionForce( REPORT_TypeDef *reportPtr, fl
 		return 0.0f;
 	}
 	
+	if (fabs(extensometerGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+	{
+		return 0.0f;
+	}
+	
+	/* 计算弹性模量2点坐标 */
 	{
 		COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();
-		float elasticModulusMPa = elasticModulusGPa * 1000.0f;
-		float targetB = (-1.0f) * elasticModulusMPa * (pTest->plasticExtensionRate/100.0f);	//RP0.2 -》0.2%
-		float nowB = 0;
-		float extensometerGauge = GetExtensometerGauge();	
-		float nowStrength = 0;	//应力
-		float nowStrain = 0;	//应变
-		uint32_t i;
+		float elasticModulusStartForce = maxForce * 0.01f * GetElasticModulusStartRate();
+		float elasticModulusEndForce = maxForce * 0.01f * GetElasticModulusEndRate();
+		uint32_t startIndex = 0, endIndex = 0;
 		
-		if (fabs(extensometerGauge) < MIN_FLOAT_PRECISION_DIFF_VALUE)
+		if ( GetFloatArrayExceedValueIndex(pDrawLine->force,\
+				g_klTestBody.maxForceIndex,elasticModulusStartForce,&startIndex) == FAILED)
+		{
+			return 0.0f;
+		}
+		if ( GetFloatArrayExceedValueIndex(pDrawLine->force,\
+				g_klTestBody.maxForceIndex,elasticModulusEndForce,&endIndex) == FAILED)
 		{
 			return 0.0f;
 		}
 		
-		for (i=0; i<g_klTestBody.maxForceIndex; ++i)
+		/* 从坐标点数据库提取数据 */
 		{
-			nowStrength = pDrawLine->force[i] / area;
-			nowStrain = pDrawLine->deform[i] / extensometerGauge;
+			float startStrength = pDrawLine->force[startIndex] / area;
+			float startStrain = pDrawLine->deform[startIndex]/ extensometerGauge;
+			float originB = 0.0f;
+			float targetB = 0.0f;
+			float originX = 0.0f;	
+			float targetX = 0.0f;				
 			
-			nowB = nowStrength - elasticModulusMPa * nowStrain;
-			if (nowB <= targetB)
+			/* 
+				直线定义：y = k * x + b;
+				因为弹性模量的值为k，带入弹性模量任意一点的值，
+				可求取直线方程。
+			*/
+			originB = startStrength - elasticModulusMPa * startStrain;
+			
+			/* 根据直线方程确认直线交于“应力--应变”坐标系 X轴点坐标（X，0） */
+			originX = -1.0f * originB / elasticModulusMPa;
+			
+			/* 向右平移“塑性延伸率”设置的值 */
+			targetX = originX + (pTest->plasticExtensionRate/100.0f);	
+			
+			/* 得到移位后的直线交于Y轴的坐标 */
+			targetB = -1.0f * elasticModulusMPa * targetX;
+			
+			/* 从坐标点数据库中，选取坐标点带入方程，找到每一点对应的nowB,与targetB进行比较 */
 			{
-				nonProportionalExtensionForce = pDrawLine->force[i];				
-				break;
+				COORDINATE_DRAW_LINE_TypeDef *pDrawLine = GetDrawLineAddr();			
+				float nowB = 0;	
+				float nowStrength = 0;	//强度
+				float nowStrain = 0;	//应变
+				uint32_t i;
+				
+				/* 从弹性模量终止点开始比较 */
+				for (i=endIndex; i<g_klTestBody.maxForceIndex; ++i)
+				{
+					nowStrength = pDrawLine->force[i] / area;
+					nowStrain = pDrawLine->deform[i] / extensometerGauge;
+					
+					nowB = nowStrength - elasticModulusMPa * nowStrain;
+					if (nowB <= targetB)
+					{
+						nonProportionalExtensionForce = pDrawLine->force[i];				
+						break;
+					}
+				}
 			}
+			
 		}
 	}
-	
+
 	return nonProportionalExtensionForce;
 }
 
@@ -6312,7 +6357,8 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					}
 					g_klTestBody.maxForceSumElongation = GetMaxForceSumElongation();
 					g_klTestBody.elasticModulus = ComputeElasticModulus(&g_readReport,g_klTestBody.maxStrength);
-					g_klTestBody.nonProportionalExtensionForce = ComputeNonProportionalExtensionForce(&g_readReport,g_klTestBody.elasticModulus);
+					g_klTestBody.nonProportionalExtensionForce = ComputeNonProportionalExtensionForce(&g_readReport,\
+										g_klTestBody.elasticModulus,g_klTestBody.maxForce);
 					g_klTestBody.nonProportionalExtensionStrength = ComputeNonProportionalExtensionStrength(&g_readReport,\
 										g_klTestBody.nonProportionalExtensionForce);			
 					
@@ -6338,7 +6384,7 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					ECHO(DEBUG_TEST_LOAD,"上屈服力值：%f, 上屈服强度：%f\r\n",g_klTestBody.upYieldForce,g_klTestBody.upYieldStrength);
 					ECHO(DEBUG_TEST_LOAD,"下屈服力值：%f, 下屈服强度：%f\r\n",g_klTestBody.downYieldForce,g_klTestBody.downYieldStrength);
 					ECHO(DEBUG_TEST_LOAD,"最大力总延伸：%f, 最大力总伸长率：%f\r\n",g_klTestBody.maxForceSumExtend,g_klTestBody.maxForceSumElongation);
-					ECHO(DEBUG_TEST_LOAD,"弹性模量：%f\r\n",g_klTestBody.elasticModulus);
+					ECHO(DEBUG_TEST_LOAD,"弹性模量(GPa)：%f\r\n",g_klTestBody.elasticModulus/1000.0f);
 					ECHO(DEBUG_TEST_LOAD,"非比例延伸力：%f\r\n",g_klTestBody.nonProportionalExtensionForce);
 					ECHO(DEBUG_TEST_LOAD,"非比例延伸强度：%f\r\n",g_klTestBody.nonProportionalExtensionStrength);
 				}
@@ -6353,7 +6399,7 @@ static void MainPageExecuteEndOnePieceProcess( void )
 					MainPageWriteKLTestDownYieldStrength(g_klTestBody.downYieldStrength);
 					MainPageWriteKLTestMaxForceAllExtend(g_klTestBody.maxForceSumExtend);
 					MainPageWriteKLTestMaxForceTotalElongation(g_klTestBody.maxForceSumElongation);
-					MainPageWriteKLTestElasticModulus(g_klTestBody.elasticModulus);
+					MainPageWriteKLTestElasticModulus(g_klTestBody.elasticModulus/1000.0f);
 					MainPageWriteKLTestNonProportionalExtensionForce(g_klTestBody.nonProportionalExtensionForce);
 					MainPageWriteKLTestNonProportionalExtensionStrength(g_klTestBody.nonProportionalExtensionStrength);
 					
@@ -6738,7 +6784,12 @@ static void MainPageCoordinateDrawLineJudgeCondition( COORDINATE_DRAW_LINE_TypeD
 	switch ( pDrawLine->status )
 	{
 		case STATUS_DRAW_LINE_IDLE:
-			if (force > curveShowStartForce)
+			/* 
+				必须保证试验状态为空闲，才能进行下一步操作。
+				如果一组试验结束，正准备保存数据时，调用函数LoadDefaultCoordinate(),
+				该函数将坐标点数据清除，那么，试验保存的坐标点数据将被损坏。			
+			*/
+			if ((force>curveShowStartForce) && (GetTestStatus()==TEST_IDLE))
 			{			
 				InitSampleProcess(SMPL_FH_NUM);
 				
@@ -6880,7 +6931,13 @@ static void MainPageCoordinateDrawLineBodyCycle( void )
 	/* 记录力值信息 */
 	pDrawLine->nowTimePoint++;
 	if (IsCoordinateRecordPointOverflow(pDrawLine) == YES)
-	{
+	{		
+		SetPopWindowsInfomation(POP_PCM_CUE,3,&pMainPageWarning[20]);
+		g_mainPage.leavePage.flagLeavePage = SET;
+		g_mainPage.leavePage.flagSaveData = RESET;
+		SetTestStatus(TEST_IDLE);	
+		ECHO(DEBUG_TEST_LOAD,"记录曲线点坐标时间超过最大时间限制！\r\n");
+		
 		pDrawLine->nowTimePoint = DECORD_COORDINATE_FORCE_NUM - 1;
 		
 		return;

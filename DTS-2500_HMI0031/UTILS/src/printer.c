@@ -1044,7 +1044,7 @@ ErrorStatus PrintTestReport( TEST_TYPE_TypeDef test_type, TEST_ATTRIBUTE_TypeDef
 				
 				if (report->computeElasticModulus)
 				{
-					float elasticModulus = report->elasticModulus[i];
+					float elasticModulus = report->elasticModulus[i] / 1000.0f;
 							
 					print("µ¯ÐÔÄ£Á¿£º");				
 					
