@@ -14,7 +14,9 @@ void * GetEthernetRxDataAddr( void );
 uint16_t UDP_GetDataLen( void );
 BoolStatus UDP_IsFindUntreatedData( void );
 void UDP_SetUntreatedDataStatus( BoolStatus NewStatus );
-extern void SetBindingPort( void );
+void UDP_BindRemoteIP(void);
+void UDP_UnbundRemoteIP(void);
+
 #endif
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

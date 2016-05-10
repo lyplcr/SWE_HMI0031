@@ -33,6 +33,7 @@ void LwIP_Pkt_Handle(void);
 void LwIP_Periodic_Handle(__IO uint32_t localtime);
 void Link_tmr(void);  
 BoolStatus GetEthLinkStatus( void );
+void UDP_SetLocalIP( const uint8_t *ipAddr );
 
 #ifdef __cplusplus
 }

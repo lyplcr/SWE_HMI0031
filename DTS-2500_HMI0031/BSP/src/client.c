@@ -29,8 +29,8 @@
 
 
 /* Private typedef -----------------------------------------------------------*/
-#define UDP_SERVER_PORT      7777
-#define UDP_CLIENT_PORT      9999
+#define UDP_SERVER_PORT      9999		//下位机是服务器
+#define UDP_CLIENT_PORT      7777		//上位机是客户端
 #define TCP_PORT      4
 
 /* Private define ------------------------------------------------------------*/
@@ -50,7 +50,6 @@ __IO static unsigned short DestPort;						//目标端口
 static struct udp_pcb *UdpPcb = NULL;	
 static struct pbuf *pbuf_p = NULL;						//发送pbuf
 
-__IO static BoolStatus g_BindingTarget = NO;
 
 /* Private function prototypes -----------------------------------------------*/
 void udp_client_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, struct ip_addr *addr, u16_t port);
@@ -71,31 +70,39 @@ static void GetDataFromEthernet( __IO uint8_t *pBuff, struct pbuf *p);
   */
 void client_init(void)
 {
-   struct pbuf *p;					
+	struct pbuf *p;					
+
+	/* Create a new UDP control block  */
+	UdpPcb = udp_new();   
+
+	/* Bind the upcb to any IP address and the UDP_PORT port*/
+	udp_bind(UdpPcb, IP_ADDR_ANY, UDP_SERVER_PORT);
+
+	/* Set a receive callback for the upcb */
+	udp_recv(UdpPcb, udp_client_callback, NULL);
 	
-   /* Create a new UDP control block  */
-   UdpPcb = udp_new();   
-	
-	/* Connect the upcb  */
-   udp_connect(UdpPcb, IP_ADDR_BROADCAST, UDP_SERVER_PORT);
-   
-   /* Bind the upcb to any IP address and the UDP_PORT port*/
-   udp_bind(UdpPcb, IP_ADDR_ANY, UDP_CLIENT_PORT);
-   
-   /* Set a receive callback for the upcb */
-   udp_recv(UdpPcb, udp_client_callback, NULL);
+	/* 
+		1、下面程序段可用可不用，因为本机作为服务器不需要主动与上位机通讯，
+		只要在收到上位机下发的数据包后，记录它的IP、端口号，需要回复数据时，
+		向该IP、端口发数据就可以。
+		2、本机必须调用 udp_connect() 才能与上位机通讯。如果不使用 udp_disconnect()
+		释放连接，将不能与其他IP地址的上位机进行通讯。
+	*/
+	#if 1
+		/* Connect the upcb  */
+		udp_connect(UdpPcb, IP_ADDR_BROADCAST, UDP_CLIENT_PORT);
 
-   p = pbuf_alloc(PBUF_TRANSPORT, 0, PBUF_RAM);
+		p = pbuf_alloc(PBUF_TRANSPORT, 0, PBUF_RAM);
 
-   /* Send out an UDP datagram to inform the server that we have strated a client application */
-   udp_send(UdpPcb, p);   
+		/* Send out an UDP datagram to inform the server that we have strated a client application */
+		udp_send(UdpPcb, p);   
 
-   /* Reset the upcb */
-   udp_disconnect(UdpPcb);
-   
-   /* Free the p buffer */
-  pbuf_free(p); 
+		/* Reset the upcb */
+		udp_disconnect(UdpPcb);
 
+		/* Free the p buffer */
+		pbuf_free(p); 
+	#endif
 }
 
 /**
@@ -111,20 +118,8 @@ void udp_client_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, struct
 {
 	if (p != NULL)
 	{
-		if (g_BindingTarget == NO)
-		{			
-			DestAddr = *addr;
-			DestPort = port;
-		}
-		else	
-		{
-			if ((DestAddr.addr!=addr->addr) || (DestPort!=port))
-			{
-				pbuf_free(p);	
-				
-				return;
-			}
-		}
+		DestAddr = *addr;
+		DestPort = port;
 	
 		if (g_flagUntreatedData == NO)
 		{
@@ -139,18 +134,6 @@ void udp_client_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, struct
 	}
 }
 
-
-/*------------------------------------------------------------
- * Function Name  : SetBindingPort
- * Description    : 绑定端口
- * Input          : None
- * Output         : None
- * Return         : None
- *------------------------------------------------------------*/
-void SetBindingPort( void )
-{
-	g_BindingTarget = YES;
-}
 
 /*------------------------------------------------------------
  * Function Name  : GetDataFromEthernet
@@ -252,5 +235,30 @@ uint16_t UDP_GetDataLen( void )
 {
 	return g_udpRxDataLenth;
 }
+
+/*------------------------------------------------------------
+ * Function Name  : UDP_BindRemoteIP
+ * Description    : 绑定远程IP
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void UDP_BindRemoteIP(void)
+{
+	udp_connect(UdpPcb,(struct ip_addr *)&DestAddr,DestPort);    
+}
+
+/*------------------------------------------------------------
+ * Function Name  : UDP_UnbundRemoteIP
+ * Description    : 解绑远程IP
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void UDP_UnbundRemoteIP(void)
+{
+	udp_disconnect(UdpPcb);  
+}
+
 
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/

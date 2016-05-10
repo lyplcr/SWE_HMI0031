@@ -831,13 +831,25 @@ static void OnlineParameterLeavePageCheckCycle( void )
 				
 			OnlineParameterWriteParameter();
 			
-			/* 选择是否重启 */
-			SetSelectPopWindowsInfomation(POP_PCM_ASKING,2,&pOnlineParameterErrorCue[1],pOnlineParameterSelectMenuCue);
-			PopWindowsProcessCycle();
-			if ( GetPopWindowsSelectResult() == YES)
 			{
-				SystemSoftwareReset();
+				uint8_t IP_Array[4];
+				uint32_t IP = devc_ip_get();
+				
+				IP_Array[0] = (IP >> 24) & 0xff;
+				IP_Array[1] = (IP >> 16) & 0xff;
+				IP_Array[2] = (IP >> 8) & 0xff;
+				IP_Array[3] = (IP >> 0) & 0xff;
+				
+				UDP_SetLocalIP(IP_Array);
 			}
+			
+			/* 选择是否重启 */
+//			SetSelectPopWindowsInfomation(POP_PCM_ASKING,2,&pOnlineParameterErrorCue[1],pOnlineParameterSelectMenuCue);
+//			PopWindowsProcessCycle();
+//			if ( GetPopWindowsSelectResult() == YES)
+//			{
+//				SystemSoftwareReset();
+//			}
 		}
 	}
 }

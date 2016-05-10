@@ -44,7 +44,6 @@ static BoolStatus EthLinkStatus = NO;
 #ifdef LWIP_DHCP
 __IO uint32_t DHCPfineTimer = 0;
 __IO uint32_t DHCPcoarseTimer = 0;
-//static uint32_t IPaddress = 0;
 #endif 
 
 
@@ -81,20 +80,28 @@ void bsp_InitEthernet(void)
 	uint8_t pucIPAddress[4];
 	uint8_t macaddress[6];
 	uint32_t ip = 0;
-	
-	/* MAC层芯片初始化 	*/
+
+	/* 网卡初始化 	*/
 	bsp_InitLan8720();
-	
+
 	/* Initializes the dynamic memory heap defined by MEM_SIZE.*/
 	mem_init();
 
 	/* Initializes the memory pools defined by MEMP_NUM_x.*/
 	memp_init();
 
+	/*  
+		1、如何跨网段访问设备： 如果上位机使用IP：192.168.0.73，下位机使用IP：192.168.1.234
+			因为不在同一个子网，不能使用广播查找，需要以下设置：
+			(1) 将电脑端子网掩码设置：255.255.0.0
+			(2) 将控制器子网掩码设置：255.255.0.0
+			这样两个子网域又变成了同一个子网，可以正常通信。
+	*/
+	
 	#if LWIP_DHCP
-	  ipaddr.addr = 0;
-	  netmask.addr = 0;
-	  gw.addr = 0; 
+		ipaddr.addr = 0;
+		netmask.addr = 0;
+		gw.addr = 0; 
 	#else   
 		prm_read();
 		ip = devc_ip_get();
@@ -112,53 +119,71 @@ void bsp_InitEthernet(void)
 		IP4_ADDR(&ipaddr, pucIPAddress[0], pucIPAddress[1], pucIPAddress[2], pucIPAddress[3]);
 		IP4_ADDR(&netmask, 255, 255, 255, 0);
 		IP4_ADDR(&gw, pucIPAddress[0], pucIPAddress[1], pucIPAddress[2], 1);
+		#endif
+
+		//获取MAC
+		GetMACAdress(macaddress);
+
+		if ( (macaddress[0] == 0xff) && (macaddress[1] == 0xff) && (macaddress[2] == 0xff) \
+			&& (macaddress[3] == 0xff)  && (macaddress[4] == 0xff)  && (macaddress[5] == 0xff) )
+		{
+			macaddress[0] = 0x00;
+			macaddress[0] = 0x80;
+			macaddress[0] = 0xE1;
+			macaddress[0] = 0x2F;
+			macaddress[0] = 0x02;
+			macaddress[0] = 0x75;
+		}
+		Set_MAC_Address(macaddress);
+
+		/* - netif_add(struct netif *netif, struct ip_addr *ipaddr,
+			struct ip_addr *netmask, struct ip_addr *gw,
+			void *state, err_t (* init)(struct netif *netif),
+			err_t (* input)(struct pbuf *p, struct netif *netif))
+
+		Adds your network interface to the netif_list. Allocate a struct
+		netif and pass a pointer to this structure as the first argument.
+		Give pointers to cleared ip_addr structures when using DHCP,
+		or fill them with sane numbers otherwise. The state pointer may be NULL.
+
+		The init function pointer must point to a initialization function for
+		your ethernet netif interface. The following code illustrates it's use.*/  
+		netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &ethernet_input);
+
+		/*  Registers the default network interface.*/
+		netif_set_default(&netif);
+
+		#if LWIP_DHCP
+		/*  Creates a new DHCP client for this interface on the first call.
+		Note: you must call dhcp_fine_tmr() and dhcp_coarse_tmr() at
+		the predefined regular intervals after starting the client.
+		You can peek in the netif->dhcp struct for the actual DHCP status.*/
+		dhcp_start(&netif);
 	#endif
 
-  //获取MAC
-	GetMACAdress(macaddress);
+	/*  When the netif is fully configured this function must be called.
+		该函数设置NETIF_FLAG_UP标记，并在链路已up的情况下发送arp探测。
+		如果你的网络使用静态IP，那么在lwip初始化时调用该函数；
+		如果你的网络使用DHCP，那么DHCP成功后会帮你调用netif_set_up。
+	*/
+	netif_set_up(&netif);
+
+	client_init();
+}
+
+/*------------------------------------------------------------
+ * Function Name  : UDP_SetLocalIP
+ * Description    : 设置本地IP
+ * Input          : None
+ * Output         : None
+ * Return         : None
+ *------------------------------------------------------------*/
+void UDP_SetLocalIP( const uint8_t *ipAddr )
+{
+	struct ip_addr ipaddr;
 	
-	if ( (macaddress[0] == 0xff) && (macaddress[1] == 0xff) && (macaddress[2] == 0xff) \
-			&& (macaddress[3] == 0xff)  && (macaddress[4] == 0xff)  && (macaddress[5] == 0xff) )
-	{
-		macaddress[0] = 0x00;
-		macaddress[0] = 0x80;
-		macaddress[0] = 0xE1;
-		macaddress[0] = 0x2F;
-		macaddress[0] = 0x02;
-		macaddress[0] = 0x75;
-	}
-	Set_MAC_Address(macaddress);
-
-  /* - netif_add(struct netif *netif, struct ip_addr *ipaddr,
-            struct ip_addr *netmask, struct ip_addr *gw,
-            void *state, err_t (* init)(struct netif *netif),
-            err_t (* input)(struct pbuf *p, struct netif *netif))
-    
-   Adds your network interface to the netif_list. Allocate a struct
-  netif and pass a pointer to this structure as the first argument.
-  Give pointers to cleared ip_addr structures when using DHCP,
-  or fill them with sane numbers otherwise. The state pointer may be NULL.
-
-  The init function pointer must point to a initialization function for
-  your ethernet netif interface. The following code illustrates it's use.*/  
-  netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &ethernet_input);
-
-  /*  Registers the default network interface.*/
-  netif_set_default(&netif);
-
-#if LWIP_DHCP
-  /*  Creates a new DHCP client for this interface on the first call.
-  Note: you must call dhcp_fine_tmr() and dhcp_coarse_tmr() at
-  the predefined regular intervals after starting the client.
-  You can peek in the netif->dhcp struct for the actual DHCP status.*/
-  dhcp_start(&netif);
-#endif
-
-  /*  When the netif is fully configured this function must be called.*/
-  netif_set_up(&netif);
-
-  client_init();
-
+	IP4_ADDR(&ipaddr, ipAddr[0], ipAddr[1], ipAddr[2], ipAddr[3]);
+	netif_set_ipaddr(&netif,&ipaddr);
 }
 
 

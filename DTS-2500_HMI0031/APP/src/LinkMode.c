@@ -232,6 +232,8 @@ static void LinkModeLeavePageCheckCycle( void )
 				prm_save();
 			}
 			
+			UDP_UnbundRemoteIP();
+			
 			SystemSoftwareReset();
 		}
 	}
@@ -308,9 +310,9 @@ BoolStatus CheckLinkStatus( void )
 		
 		if ((cmd == CMD_SIGN_ON) || (cmd == CMD_DEVICE_VERSION))
 		{			
-			ECHO(DEBUG_LINK_MODE,"UDP->UART：握手验证成功！\r\n");			
-			
-			SetBindingPort();
+			ECHO(DEBUG_LINK_MODE,"UDP->UART：握手验证成功！\r\n");
+
+			UDP_BindRemoteIP();
 			
 			return YES;
 		}
