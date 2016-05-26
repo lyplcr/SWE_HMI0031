@@ -1333,7 +1333,7 @@ static void MainPageWriteAvailForce( float force )
  *------------------------------------------------------------*/
 static void MainPageWriteAvailStrength( float strength )
 {
-	if (strength > 999)
+	if (strength > 9999999)
 	{
 		strcpy(g_mainPage.testResultAvailData.availStrength,"---");
 		

@@ -194,11 +194,10 @@ void * GetEthernetTxDataAddr( void )
 void UDP_SendStr(void *str_p, uint16_t len)
 { 
 	pbuf_p = pbuf_alloc(PBUF_RAW,len,PBUF_RAM);
-	pbuf_p->payload = (void *)str_p; 
+	memcpy(pbuf_p->payload,str_p,len);
 	udp_sendto(UdpPcb,pbuf_p,(struct ip_addr *)&DestAddr,DestPort);     
 	pbuf_free(pbuf_p); 
 }
-
 
 /*------------------------------------------------------------
  * Function Name  : UDP_SetUntreatedDataStatus

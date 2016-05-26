@@ -226,11 +226,13 @@ static void LinkModeLeavePageCheckCycle( void )
 	{
 		if (g_linkMode.leavePage.flagSaveData == SET)
 		{
+			#if 0
 			if (g_linkMode.flagUpdateSystemParameter == SET)
 			{
 				ECHO(DEBUG_LINK_MODE,"保存下位机参数！\r\n");
 				prm_save();
 			}
+			#endif
 			
 			UDP_UnbundRemoteIP();
 			
@@ -336,7 +338,7 @@ static void UDPConvUSARTFormate( void *pHead )
 	UART_TAIL_Typdef *UsartTail  = NULL;
 	
 	pUsartHead->start = pUdpHead->start;
-	pUsartHead->addr  = pUdpHead->addr;
+	pUsartHead->addr  = COM_ADD_UART;
 	pUsartHead->index = pUdpHead->index;
 	pUsartHead->size  = pUdpHead->size;
 	pUsartHead->token = pUdpHead->token;
@@ -405,7 +407,7 @@ static void USARTConvUDPFormate( void *pHead )
 	UART_TAIL_Typdef *UsartTail  = NULL;
 	
 	pUdpHead->start   = pUsartHead->start;
-	pUdpHead->addr	  = 0x00;//pUsartHead->addr;
+	pUdpHead->addr	  = COM_ADD_UDP;
 	pUdpHead->index	  = pUsartHead->index;
 	pUdpHead->rsv1	  = 0x00;
 	pUdpHead->size	  = pUsartHead->size;
@@ -423,7 +425,7 @@ static void USARTConvUDPFormate( void *pHead )
 								 + pUdpHead->size);
 	UdpTail->end = UsartTail->end;
 }
-
+#if 0
 /*------------------------------------------------------------
  * Function Name  : PRM_UpdateParameter
  * Description    : 更新下位机参数
@@ -469,7 +471,7 @@ static void PRV_UpdateParameter(const uint8_t * const pReceiveData )
 		ECHO(DEBUG_LINK_MODE,"写特权参数：地址溢出！\r\n");
 	}
 }
-
+#endif
 /*------------------------------------------------------------
  * Function Name  : UDP_GetPackageCycle
  * Description    : 获取UDP数据包
@@ -504,6 +506,7 @@ static void UDP_GetPackageCycle( void )
 				
 					ECHO(DEBUG_LINK_MODE,"UDP->UART：退出联机模式！\r\n");
 					return;
+				#if 0
 				case CMD_WRITE_PRM:
 					{
 						const UDP_HEAD_Typdef * p = (UDP_HEAD_Typdef *)pHead;
@@ -518,6 +521,7 @@ static void UDP_GetPackageCycle( void )
 						PRV_UpdateParameter((const uint8_t *)(&p->data));
 					}
 					break;
+				#endif
 				default:
 					break;
 			}

@@ -38,7 +38,9 @@ typedef struct
 	uint16_t ctrl_min_one;				//单次最小控制量
 	uint32_t ctrl_open;					//开环控制量
 	uint32_t ctrl_back;					//回退量
-	uint8_t  exc_dir;					//进程时横梁的运行方向，向上或者向下		 
+	uint8_t  exc_dir;					//进程时横梁的运行方向，向上或者向下	
+	uint32_t ctrl_middle;				//中间控制量
+	uint32_t ctrl_unloaddelay;			//卸载延时(s)
 }
 PRM_CTRL_TypeDef;
 
@@ -125,6 +127,7 @@ typedef struct
 	float cof_keep_brk;						//保持制动系数	4
 	float crash_threshold;					//预碰撞安全值	4 
 	float overspeed;						//传感器过速值	4
+	uint8_t channelmap;						//通道映射
 }PRM_SMPL_CTRL_TypeDef;
 		
 //PID结构体
@@ -195,11 +198,12 @@ typedef struct
 	uint16_t	instrct_dire;				//指令方向，指令和控制量的关系
 	uint16_t 	sensor_valid;				//可用传感器
 	uint16_t 	sensor_used;				//以用传感器
-	uint16_t  	gain[6];	 				//增益	
+	uint16_t  	gain[6];	 
 	uint32_t 	electronic_gear;			//电子齿轮值，即电机转一圈所需的脉冲数 
 	uint32_t  	devc_key;					//设备钥匙
-	uint8_t 	rsv[100-26];
-}SYS_PRV_TypeDef;	/* 共100字节 */
+	uint8_t  	machine_type;				//位移源   A3H：取自编码器0  A4H：取自编码器1 A5H：取自编码器2 A2H：取自导电塑料通道 
+	uint8_t  	rsv[100];
+}SYS_PRV_TypeDef;	
   
   
 #pragma pack()  

@@ -181,9 +181,14 @@ void bsp_InitEthernet(void)
 void UDP_SetLocalIP( const uint8_t *ipAddr )
 {
 	struct ip_addr ipaddr;
-	
+	struct ip_addr netmask;
+	struct ip_addr gw;
+		
 	IP4_ADDR(&ipaddr, ipAddr[0], ipAddr[1], ipAddr[2], ipAddr[3]);
-	netif_set_ipaddr(&netif,&ipaddr);
+	IP4_ADDR(&netmask, 255, 255, 255, 0);
+	IP4_ADDR(&gw, ipAddr[0], ipAddr[1], ipAddr[2], 1);
+	
+	netif_set_addr(&netif,&ipaddr,&netmask,&gw);
 }
 
 
