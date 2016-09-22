@@ -279,6 +279,7 @@ uint32_t GetKey( void )
 		} 
 		
 		SET_HC165_CLK();
+		bsp_DelayUS(1);
 		CLR_HC165_CLK();	
 	}
 	
@@ -310,12 +311,14 @@ void SetLampVal( uint32_t led )
 		}
 		
 		SET_EXT_HC595_SCK();
+		bsp_DelayUS(1);
 		CLR_EXT_HC595_SCK();
 		
 		led<<=1;		
 	}
 	
-	SET_EXT_HC595_RCK();	
+	SET_EXT_HC595_RCK();
+	bsp_DelayUS(1);
 	CLR_EXT_HC595_RCK();
 }
 
