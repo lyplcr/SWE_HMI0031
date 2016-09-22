@@ -5498,7 +5498,7 @@ TestStatus JudgeStrengthAvail( TEST_TYPE_TypeDef type, uint8_t num,float *pAvail
 			
 			no_match_cnt = FindArrayValNotZeroCount(CNT_KYHNT_STANDARD,no_match);
 			
-			if ( CNT_KYHNT_STANDARD == no_match_cnt )	
+			if ((no_match_cnt == CNT_KYHNT_STANDARD-1) || (no_match_cnt == CNT_KYHNT_STANDARD))
 			{
 				*pAvail_press = 0.0f;
 				memcpy(match_sample,no_match, sizeof(uint8_t)*MAX_RECORD_TEST_RESULT_NUM );
@@ -5522,7 +5522,7 @@ TestStatus JudgeStrengthAvail( TEST_TYPE_TypeDef type, uint8_t num,float *pAvail
 			
 					no_match_cnt = FindArrayValNotZeroCount(CNT_KYHNT_STANDARD,no_match);
 					
-					if ( CNT_KYHNT_STANDARD == no_match_cnt )	
+					if ((no_match_cnt == CNT_KYHNT_STANDARD-1) || (no_match_cnt == CNT_KYHNT_STANDARD))
 					{
 						*pAvail_press = 0.0f;
 						memcpy(match_sample,no_match, sizeof(uint8_t)*MAX_RECORD_TEST_RESULT_NUM );
