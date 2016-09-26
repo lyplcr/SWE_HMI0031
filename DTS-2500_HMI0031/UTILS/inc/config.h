@@ -14,7 +14,7 @@
 #define	__CONFIG_H	
 
 /* 宏定义软件版本：0x00U--预览版，0x01U--正式版 */
-#define		VERSION_RELEASE				0x01U	
+#define		VERSION_RELEASE				0x00U	
 
 #if (VERSION_RELEASE == 0x01U)
 	#define ENABLE_BEEP					0x01U
